@@ -1,0 +1,66 @@
+# 🎮 Ball Fighting Arena — Como instalar no tablet Android
+
+Você tem **dois caminhos**. O primeiro é o mais rápido (funciona em minutos). O segundo gera um `.apk` de verdade. Os dois deixam o jogo rodando **em tela cheia, sem barra de navegador, e funcionando offline**.
+
+---
+
+## 🟢 Caminho 1 — Instalar direto pelo Chrome (mais rápido)
+
+Para isso, os arquivos do jogo precisam estar acessíveis por um endereço (URL). A forma mais fácil e gratuita é hospedar a pasta. Escolha UMA opção:
+
+### Como colocar o jogo online (grátis)
+- **GitHub Pages**: crie uma conta grátis no github.com, crie um repositório, suba todos os arquivos desta pasta, e ative o GitHub Pages nas configurações. Você recebe uma URL do tipo `https://seunome.github.io/ball-fighting-arena/`.
+- **Netlify Drop**: acesse **app.netlify.com/drop** e simplesmente **arraste esta pasta inteira** para a página. Em segundos ele te dá uma URL pública. (É a opção mais simples de todas — nem precisa criar conta.)
+
+### Depois de ter a URL
+1. Abra o **Google Chrome** no seu tablet Android.
+2. Acesse a URL do jogo.
+3. Toque no menu do Chrome (⋮ no canto) → **"Adicionar à tela inicial"** ou **"Instalar app"**.
+4. Confirme. O ícone do jogo aparece na tela inicial do tablet.
+5. Abra pelo ícone: ele roda em **tela cheia, sem navegador**, e funciona **mesmo sem internet** (depois de abrir uma vez).
+
+Pronto! Na prática, é um app.
+
+---
+
+## 🔵 Caminho 2 — Gerar um arquivo .APK de verdade (PWABuilder)
+
+Se você quer o `.apk` para instalar como um aplicativo normal:
+
+1. Primeiro coloque o jogo online e pegue a URL (use o Netlify Drop acima — é o mais fácil).
+2. No computador ou no próprio tablet, acesse: **https://www.pwabuilder.com**
+3. Cole a URL do jogo e clique em **Start**.
+4. O PWABuilder analisa o jogo. Clique em **"Package for stores"** → **Android**.
+5. Clique em **Generate** / **Download**. Ele gera um pacote `.apk` (ou `.aab`) já assinado.
+6. Passe o `.apk` para o tablet (por cabo, Google Drive, ou baixe direto nele).
+7. No tablet, toque no `.apk` para instalar. Talvez precise permitir **"Instalar apps de fontes desconhecidas"** nas configurações — o Android avisa e mostra onde ativar.
+8. O jogo aparece na lista de apps como um aplicativo normal.
+
+> **Dica:** o PWABuilder às vezes pede uma "package ID". Pode usar algo como `com.seunome.ballarena`. Qualquer nome no formato `com.algo.algo` serve.
+
+---
+
+## 📁 O que tem nesta pasta
+- `index.html` — o jogo completo
+- `manifest.webmanifest` — define nome, ícone e tela cheia do app
+- `sw.js` — faz o jogo funcionar offline
+- `icon-*.png` — ícones do app
+- `COMO-INSTALAR.md` — este guia
+
+**Importante:** mantenha todos os arquivos **juntos na mesma pasta**. Eles dependem uns dos outros.
+
+---
+
+## ❓ Dúvidas comuns
+
+**"Não aparece a opção de instalar no Chrome."**
+Isso só acontece quando o jogo está aberto por uma URL `https://` (hospedado). Se você abrir o arquivo direto do tablet (`file://`), o Chrome não oferece a instalação. Por isso o passo de hospedar é necessário. O Netlify Drop resolve em 30 segundos.
+
+**"Preciso pagar algo?"**
+Não. GitHub Pages, Netlify Drop e PWABuilder são gratuitos.
+
+**"O som não toca de primeira."**
+É normal em qualquer navegador: o áudio só liga após o primeiro toque na tela. Toque uma vez e a música começa.
+
+**"Funciona offline?"**
+Sim. Depois de abrir o jogo uma vez (com internet), ele fica salvo e roda sem conexão.
