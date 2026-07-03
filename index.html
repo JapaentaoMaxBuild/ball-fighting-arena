@@ -2,7 +2,7 @@
 <html lang="pt-BR">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <title>Ball Fighting Arena</title>
 <!-- PWA / app instalável -->
 <link rel="manifest" href="manifest.webmanifest">
@@ -99,8 +99,10 @@ html,body{height:100%;overflow:hidden;background:var(--bg0);color:var(--ink);
 
 /* ====== SETUP (mapa + players) ====== */
 #scrSetup{overflow:hidden;}
-#scrSetup .setup-body{flex:1;display:flex;flex-direction:column;gap:16px;
-  padding:6px 18px 20px;overflow-y:auto;}
+#scrAlmanac,#scrAchievements,#scrShop{overflow:hidden;}
+#scrSetup .setup-body,
+#scrAlmanac .setup-body,#scrAchievements .setup-body,#scrShop .setup-body{flex:1;display:flex;flex-direction:column;gap:16px;
+  padding:6px 18px 20px;overflow-y:auto;-webkit-overflow-scrolling:touch;}
 .setup-section .slabel{font-size:12px;font-weight:800;letter-spacing:.18em;
   text-transform:uppercase;color:var(--dim);margin-bottom:10px;}
 .opt-row{display:flex;gap:10px;flex-wrap:wrap;}
@@ -280,9 +282,13 @@ input[type=range]::-webkit-slider-thumb{appearance:none;width:20px;height:20px;b
     </div>
     <div class="menu-list" id="titleMenu">
       <div class="menu-item" data-act="start">Iniciar</div>
+      <div class="menu-item" data-act="almanac">Almanac</div>
+      <div class="menu-item" data-act="achievements">Conquistas</div>
+      <div class="menu-item" data-act="shop">Loja</div>
       <div class="menu-item" data-act="settings">Configurações</div>
       <div class="menu-item" data-act="quit">Sair</div>
     </div>
+    <div id="coinBadge" style="position:absolute;top:16px;right:16px;display:flex;align-items:center;gap:6px;background:var(--panel);border:1px solid var(--gold);border-radius:20px;padding:6px 14px;font-weight:900;color:var(--gold);letter-spacing:.05em;z-index:3;">🪙 <span id="coinCount">0</span></div>
     <div style="flex:1.3"></div>
     <div style="font-size:10px;color:var(--dimmer);letter-spacing:.2em;text-transform:uppercase;padding-bottom:20px;">v2.0 · toque para jogar</div>
   </div>
@@ -369,6 +375,35 @@ input[type=range]::-webkit-slider-thumb{appearance:none;width:20px;height:20px;b
     </div>
   </div>
 
+  <!-- ============ ALMANAC (pokédex) ============ -->
+  <div class="screen" id="scrAlmanac">
+    <div class="topbar">
+      <button class="backbtn" data-back="scrTitle">‹</button>
+      <h2>Almanac</h2>
+    </div>
+    <div class="setup-body" id="almanacBody" style="gap:10px;"></div>
+  </div>
+
+  <!-- ============ CONQUISTAS ============ -->
+  <div class="screen" id="scrAchievements">
+    <div class="topbar">
+      <button class="backbtn" data-back="scrTitle">‹</button>
+      <h2>Conquistas</h2>
+      <div style="margin-left:auto;font-weight:900;color:var(--gold);">🪙 <span id="achCoins">0</span></div>
+    </div>
+    <div class="setup-body" id="achBody" style="gap:10px;"></div>
+  </div>
+
+  <!-- ============ LOJA ============ -->
+  <div class="screen" id="scrShop">
+    <div class="topbar">
+      <button class="backbtn" data-back="scrTitle">‹</button>
+      <h2>Loja</h2>
+      <div style="margin-left:auto;font-weight:900;color:var(--gold);">🪙 <span id="shopCoins">0</span></div>
+    </div>
+    <div class="setup-body" id="shopBody" style="gap:14px;"></div>
+  </div>
+
   <!-- ============ BATALHA ============ -->
   <div class="screen" id="scrBattle">
     <div class="b-top" id="bHpBars"></div>
@@ -417,8 +452,8 @@ input[type=range]::-webkit-slider-thumb{appearance:none;width:20px;height:20px;b
 
 /* ---------- ROSTER ---------- */
 const CHARS = {
-  berserker:{ name:'Berserker', color:'#d4a017', dark:'#8a6a0f', icon:'⚔',
-    kind:'sword', spin:0.12, reach:52, dmg:6 },
+  berserker:{ name:'Berserker', color:'#d4a017', dark:'#8a6a0f', icon:'👊',
+    kind:'brawler', punchDmg:5, punchReach:14, grabDmg:8, grabCd:120 },
   samurai:{ name:'Samurai', color:'#a3d21e', dark:'#5f7d0f', icon:'🗡',
     kind:'sword', spin:0.20, reach:60, dmg:9 },
   arqueiro:{ name:'Arqueiro', color:'#3b9ae0', dark:'#1f5f96', icon:'🏹',
@@ -436,9 +471,81 @@ const CHARS = {
     kind:'soldier', hp:250, vestHp:150, bulletDmg:4, burst:20, reloadTime:120,
     grenadeDmg:100, grenadeSplash:50 },
   pacman:{ name:'Pacman', color:'#f2d42e', dark:'#b8a010', icon:'🟡',
-    kind:'pacman', hp:250, touchDmg:18, pelletCd:300, powerTime:180 }
+    kind:'pacman', hp:250, touchDmg:18, pelletCd:300, powerTime:180 },
+  heavyweight:{ name:'Heavyweight', color:'#7a5230', dark:'#4a3018', icon:'🤼',
+    kind:'heavy', hp:350, touchDmg:8, spinDmg:10, throwDmg:50, throwCd:150 }
 };
-const ORDER=['berserker','samurai','arqueiro','mago','clonador','luciferus','pandora','soldier','pacman'];
+const ORDER=['berserker','samurai','arqueiro','mago','clonador','luciferus','pandora','soldier','pacman','heavyweight'];
+
+/* ---------- ALMANAC: descrições dos personagens ---------- */
+const ALMANAC = {
+  berserker:{ hp:250, creator:'Renan',
+    desc:'Lutador de punho furioso. Dá socos ao se aproximar dos inimigos.',
+    skill:'Especial: agarra o inimigo, dá de 5 a 10 socos (5 de dano cada) e finaliza com um chute que arremessa longe (20 de dano). Ao chegar a 25% de vida, entra em FÚRIA — fica vermelho, invulnerável por um instante e seus golpes ficam muito mais fortes.' },
+  samurai:{ hp:250, creator:'Renan',
+    desc:'Espadachim que gira a katana ao redor do corpo, cortando quem se aproxima.',
+    skill:'Passiva: quanto MENOS vida ele tem, MAIS dano causa (fica avermelhado conforme enfraquece). Um verdadeiro guerreiro que luta melhor encurralado.' },
+  arqueiro:{ hp:250, creator:'Renan',
+    desc:'Atirador ágil que dispara flechas no inimigo mais próximo.',
+    skill:'As flechas ricocheteiam nas paredes até 3 vezes, podendo acertar de ângulos inesperados. Ataca à distância, mantendo os inimigos longe.' },
+  mago:{ hp:250, creator:'Renan',
+    desc:'Conjurador que lança bolas de fogo explosivas.',
+    skill:'As bolas de fogo explodem ao acertar, causando dano em área (splash). Ótimo contra grupos de inimigos amontoados.' },
+  clonador:{ hp:250, creator:'Renan',
+    desc:'Invocador que cria clones de si mesmo conforme perde vida.',
+    skill:'A cada 10% de vida perdida, gera um clone que persegue e bate nos inimigos. Pode ter até 10 clones ao mesmo tempo, virando um enxame.' },
+  luciferus:{ hp:500, creator:'Mauricio',
+    desc:'Anjo com aura sagrada que fere quem chega perto. O personagem mais resistente em sua forma angelical.',
+    skill:'Forma Anjo: aura pulsante que causa dano contínuo ao redor. Ao "morrer", RENASCE como DEMÔNIO (😈) com 250 de vida nova, cuspindo fogo à distância. Dois personagens em um.' },
+  pandora:{ hp:250, creator:'Mauricio',
+    desc:'Caixa do caos imprevisível. Transforma-se em outros personagens aleatoriamente.',
+    skill:'A cada poucos segundos, se transforma num personagem aleatório do jogo (com os poderes dele!) e depois volta ao normal. Nunca se sabe o que vai virar. No fim, seu tema de vitória é o do personagem que ele era.' },
+  soldier:{ hp:250, creator:'Mauricio',
+    desc:'Militar camuflado com colete à prova de balas e metralhadora.',
+    skill:'Colete (🛡) absorve dano de projéteis até quebrar. Dispara rajadas de 20 tiros e recarrega. Com vida baixa, joga uma granada explosiva de alto dano como último recurso.' },
+  pacman:{ hp:250, creator:'Renan',
+    desc:'Devorador amarelo que anda em linha reta e atravessa os inimigos, mordendo.',
+    skill:'Atravessa os oponentes dando uma mordida por passagem. A cada 5s gera uma pílula própria; ao comê-la, fica AZUL por 3s com o dobro de velocidade e dano.' },
+  heavyweight:{ hp:350, creator:'Renan',
+    desc:'Brutamontes do wrestling. Causa dano ao toque e é muito resistente.',
+    skill:'Especial: agarra o inimigo e o gira de 1 a 10 vezes (10 de dano por giro), depois o ARREMESSA numa direção aleatória. Quem foi arremessado vira um "projétil humano": se bater em alguém, causa 50 de dano (mas não machuca aliados de quem arremessou). Não agarra outro Heavyweight.' }
+};
+
+/* ---------- CONQUISTAS ---------- */
+const ACHIEVEMENTS = [
+  {id:'play5',   name:'Aquecendo',        desc:'Jogue 5 partidas',              coins:10,  check:p=>p.games>=5},
+  {id:'play50',  name:'Viciado',          desc:'Jogue 50 partidas',             coins:30,  check:p=>p.games>=50},
+  {id:'play100', name:'Lenda da Arena',   desc:'Jogue 100 partidas',            coins:100, check:p=>p.games>=100},
+  {id:'kill10',  name:'Primeiro Sangue',  desc:'Mate 10 inimigos',              coins:10,  check:p=>p.kills>=10},
+  {id:'kill100', name:'Carniceiro',       desc:'Mate 100 inimigos',             coins:30,  check:p=>p.kills>=100},
+  {id:'kill500', name:'Ceifador',         desc:'Mate 500 inimigos',             coins:100, check:p=>p.kills>=500},
+  {id:'suicide', name:'Pq está se batendo?', desc:'Mate a si mesmo no VS ou na arena', coins:100, check:p=>p.suicides>=1},
+  {id:'flawless',name:'Injusto',          desc:'Ganhe sem levar dano',          coins:100, check:p=>p.flawless>=1}
+];
+
+/* ---------- PROGRESSO (salvo no aparelho) ---------- */
+const SAVE_KEY='bfa_save_v1';
+let SAVE = { coins:0, games:0, kills:0, suicides:0, flawless:0, unlocked:{} };
+function loadSave(){
+  try{ const raw=localStorage.getItem(SAVE_KEY); if(raw){ SAVE=Object.assign(SAVE, JSON.parse(raw)); if(!SAVE.unlocked)SAVE.unlocked={}; } }catch(e){}
+}
+function persistSave(){ try{ localStorage.setItem(SAVE_KEY, JSON.stringify(SAVE)); }catch(e){} }
+function addCoins(n){ SAVE.coins+=n; persistSave(); updateCoinDisplay(); }
+function updateCoinDisplay(){
+  ['coinCount','achCoins','shopCoins'].forEach(id=>{ const el=document.getElementById(id); if(el)el.textContent=SAVE.coins; });
+}
+// checa conquistas recém-completadas e premia moedas
+function checkAchievements(){
+  let earned=0, newly=[];
+  for(const a of ACHIEVEMENTS){
+    if(!SAVE.unlocked[a.id] && a.check(SAVE)){
+      SAVE.unlocked[a.id]=true; earned+=a.coins; newly.push(a);
+    }
+  }
+  if(earned>0){ SAVE.coins+=earned; persistSave(); updateCoinDisplay(); showAchievementToast(newly); }
+  else persistSave();
+}
+
 
 /* ---------- MAPAS ---------- */
 const MAPS = {
@@ -992,6 +1099,9 @@ document.querySelectorAll('#titleMenu .menu-item').forEach(it=>{
     audioInit();
     const act=it.dataset.act;
     if(act==='start'){ SFX.confirm(); buildModes(); show('scrModes',true); }
+    else if(act==='almanac'){ SFX.select(); buildAlmanac(); show('scrAlmanac',true); }
+    else if(act==='achievements'){ SFX.select(); buildAchievements(); show('scrAchievements',true); }
+    else if(act==='shop'){ SFX.select(); buildShop(); show('scrShop',true); }
     else if(act==='settings'){ SFX.select(); show('scrSettings',true); }
     else if(act==='quit'){ SFX.back(); tryQuit(); }
   });
@@ -1003,6 +1113,99 @@ function tryQuit(){
     +'<div style="font-size:22px;font-weight:900;color:var(--gold);letter-spacing:.1em;text-transform:uppercase;">Até a próxima!</div>'
     +'<div style="font-size:13px;color:var(--dim);">Você pode fechar esta aba.</div>'
     +'<button onclick="location.reload()" style="margin-top:10px;padding:12px 26px;border:none;border-radius:9px;background:var(--panel);color:var(--ink);font-weight:800;letter-spacing:.08em;text-transform:uppercase;cursor:pointer;">Voltar</button></div>';
+}
+
+/* ---------- ALMANAC (pokédex) ---------- */
+function buildAlmanac(){
+  const box=document.getElementById('almanacBody'); box.innerHTML='';
+  ORDER.forEach(id=>{
+    const c=CHARS[id], a=ALMANAC[id]||{};
+    const card=document.createElement('div');
+    card.style.cssText='border:1px solid var(--panel-b);border-radius:12px;padding:14px;background:linear-gradient(150deg,var(--bg2),var(--panel));';
+    card.innerHTML=
+      `<div style="display:flex;align-items:center;gap:12px;margin-bottom:10px;">`
+      +`<div style="width:52px;height:52px;flex:none;border-radius:50%;border:3px solid #000;display:flex;align-items:center;justify-content:center;font-size:26px;background:${c.color};">${c.icon}</div>`
+      +`<div><div style="font-size:18px;font-weight:900;color:var(--ink);">${c.name}</div>`
+      +`<div style="font-size:11px;color:var(--dim);letter-spacing:.04em;">Criado por ${a.creator||'Renan'}</div></div></div>`
+      +`<div style="display:flex;gap:8px;margin-bottom:10px;flex-wrap:wrap;">`
+      +`<span style="font-size:11px;font-weight:800;background:var(--bg0);border:1px solid var(--panel-b);border-radius:6px;padding:4px 9px;color:#ff6b6b;">❤ ${a.hp||c.hp||250} vida</span>`
+      +`</div>`
+      +`<div style="font-size:12.5px;color:var(--ink);line-height:1.5;margin-bottom:8px;">${a.desc||''}</div>`
+      +`<div style="font-size:12px;color:var(--dim);line-height:1.55;border-left:2px solid var(--gold);padding-left:10px;">${a.skill||''}</div>`;
+    box.appendChild(card);
+  });
+}
+
+/* ---------- CONQUISTAS ---------- */
+function buildAchievements(){
+  updateCoinDisplay();
+  const box=document.getElementById('achBody'); box.innerHTML='';
+  ACHIEVEMENTS.forEach(a=>{
+    const done=!!SAVE.unlocked[a.id];
+    // progresso atual pra mostrar barra
+    let cur=0, goal=1;
+    if(a.id.startsWith('play')){ cur=SAVE.games; goal=a.id==='play5'?5:a.id==='play50'?50:100; }
+    else if(a.id.startsWith('kill')){ cur=SAVE.kills; goal=a.id==='kill10'?10:a.id==='kill100'?100:500; }
+    else if(a.id==='suicide'){ cur=SAVE.suicides; goal=1; }
+    else if(a.id==='flawless'){ cur=SAVE.flawless; goal=1; }
+    const pct=Math.min(100, Math.round(cur/goal*100));
+    const row=document.createElement('div');
+    row.style.cssText='border:1px solid '+(done?'var(--gold)':'var(--panel-b)')+';border-radius:11px;padding:13px 14px;background:'+(done?'linear-gradient(150deg,#2a2010,var(--panel))':'var(--panel)')+';';
+    row.innerHTML=
+      `<div style="display:flex;align-items:center;gap:10px;">`
+      +`<div style="font-size:22px;">${done?'🏆':'🔒'}</div>`
+      +`<div style="flex:1;"><div style="font-size:14px;font-weight:900;color:${done?'var(--gold)':'var(--ink)'};">${a.name}</div>`
+      +`<div style="font-size:11px;color:var(--dim);">${a.desc}</div></div>`
+      +`<div style="font-weight:900;color:var(--gold);font-size:13px;">🪙 ${a.coins}</div></div>`
+      +(done?'':`<div style="margin-top:9px;height:6px;background:var(--bg0);border-radius:3px;overflow:hidden;"><div style="height:100%;width:${pct}%;background:var(--gold);"></div></div>`
+        +`<div style="font-size:10px;color:var(--dim);margin-top:3px;text-align:right;">${Math.min(cur,goal)} / ${goal}</div>`);
+    box.appendChild(row);
+  });
+}
+
+/* ---------- LOJA ---------- */
+function buildShop(){
+  updateCoinDisplay();
+  const box=document.getElementById('shopBody'); box.innerHTML='';
+  // seção de moedas (placeholder, sem pagamento real)
+  const coinsSec=document.createElement('div');
+  coinsSec.innerHTML=`<div style="font-size:12px;font-weight:800;letter-spacing:.16em;text-transform:uppercase;color:var(--gold);margin-bottom:10px;">Moedas</div>`;
+  box.appendChild(coinsSec);
+  const packs=[{amt:100,price:'R$ 4,90'},{amt:500,price:'R$ 19,90'},{amt:1200,price:'R$ 39,90'}];
+  const grid=document.createElement('div'); grid.style.cssText='display:flex;gap:10px;flex-wrap:wrap;';
+  packs.forEach(p=>{
+    const card=document.createElement('div');
+    card.style.cssText='flex:1;min-width:96px;border:1px solid var(--panel-b);border-radius:11px;padding:14px 8px;text-align:center;background:linear-gradient(150deg,var(--bg2),var(--panel));cursor:pointer;';
+    card.innerHTML=`<div style="font-size:24px;">🪙</div><div style="font-size:16px;font-weight:900;color:var(--gold);margin:4px 0;">${p.amt}</div>`
+      +`<div style="font-size:12px;font-weight:800;color:var(--ink);background:var(--panel-b);border-radius:6px;padding:5px;">${p.price}</div>`;
+    card.addEventListener('click',()=>{ audioInit();SFX.select();
+      shopToast('Pagamentos ainda não estão disponíveis 🙂'); });
+    grid.appendChild(card);
+  });
+  box.appendChild(grid);
+  // seção "em breve"
+  const soon=document.createElement('div');
+  soon.style.cssText='margin-top:8px;border:1px dashed var(--panel-b);border-radius:12px;padding:26px 16px;text-align:center;';
+  soon.innerHTML=`<div style="font-size:30px;margin-bottom:8px;">🛍️</div>`
+    +`<div style="font-size:15px;font-weight:900;color:var(--ink);margin-bottom:4px;">Itens em breve</div>`
+    +`<div style="font-size:12px;color:var(--dim);line-height:1.5;">Cosméticos, skins e packs de personagens<br>vão aparecer aqui em atualizações futuras.</div>`;
+  box.appendChild(soon);
+}
+let shopToastTimer=null;
+function shopToast(msg){
+  let t=document.getElementById('shopToastEl');
+  if(!t){ t=document.createElement('div'); t.id='shopToastEl';
+    t.style.cssText='position:absolute;bottom:24px;left:50%;transform:translateX(-50%);background:var(--panel);border:1px solid var(--gold);color:var(--ink);padding:12px 20px;border-radius:24px;font-size:13px;font-weight:700;z-index:60;box-shadow:0 6px 20px rgba(0,0,0,.5);';
+    document.getElementById('app').appendChild(t); }
+  t.textContent=msg; t.style.opacity='1';
+  clearTimeout(shopToastTimer); shopToastTimer=setTimeout(()=>{ t.style.transition='opacity .4s'; t.style.opacity='0'; },1800);
+}
+// notificação de conquista desbloqueada
+function showAchievementToast(list){
+  if(!list.length)return;
+  const total=list.reduce((s,a)=>s+a.coins,0);
+  const msg=list.length===1?`🏆 ${list[0].name}  +${list[0].coins}🪙`:`🏆 ${list.length} conquistas!  +${total}🪙`;
+  shopToast(msg);
 }
 
 /* ---------- MODOS ---------- */
@@ -1311,6 +1514,17 @@ function makeFighter(slot, idx){
     // Pacman
     mouthPhase:0, pelletCd:(c.pelletCd||300)/cfg.fireRate, pelletTimer:60,
     powered:0, powerTime:(c.powerTime||180), biteList:[],
+    // Brawler (Berserker soqueiro)
+    punchDmg:(c.punchDmg||0)*cfg.dmg, punchReach:(c.punchReach||0)*cfg.size,
+    grabDmg:(c.grabDmg||0)*cfg.dmg, grabCd:0, grabCdMax:(c.grabCd||120)/cfg.fireRate,
+    grabbing:null, grabTimer:0, punchArm:0, punchAnim:0, knockback:0,
+    punchesLeft:0, punchGap:11,
+    // Heavyweight (agarra, gira e arremessa)
+    spinDmg:(c.spinDmg||0)*cfg.dmg, throwDmg:(c.throwDmg||0)*cfg.dmg,
+    throwCd:0, throwCdMax:(c.throwCd||150)/cfg.fireRate,
+    spinning:null, spinsLeft:0, spinTimer:0, spinAngle:0,
+    thrownBy:-1, thrownDmg:0, // quando este fighter é o projétil humano
+    lastHitBy:-1,
     alive:true
   };
   return f;
@@ -1353,8 +1567,12 @@ function startBattle(){
   bResize();
   fighters = G.slots.map((s,i)=>makeFighter(s,i));
   buildHpBars();
+  // conta a partida e prepara rastreio de conquistas
+  SAVE.games++; persistSave();
+  battleStats={ playerTookDamage:false };
   beginRound();
 }
+let battleStats={ playerTookDamage:false };
 function beginRound(){
   bRunning=false;bOver=false;flash=0;auraGrad=null;
   projectiles=[];sparks=[];booms=[];clones=[];pellets=[];
@@ -1393,6 +1611,10 @@ function resetFighter(f){
   f.vestHp=f.vestMax;f.burstLeft=0;f.burstTimer=0;f.reloadCd=0;f.grenadeThrown=false;
   // Pacman
   f.powered=0;f.pelletTimer=60;f.biteList=[];f.speedMul=f.cfg.speed;f.mouthPhase=0;
+  // Brawler
+  f.grabbing=null;f.grabTimer=0;f.grabCd=0;f.punchAnim=0;f.punchArm=0;f.knockback=0;f.punchesLeft=0;
+  // Heavyweight
+  f.spinning=null;f.spinsLeft=0;f.spinTimer=0;f.throwCd=0;f.thrownBy=-1;f.thrownDmg=0;f.lastHitBy=-1;
   f.alive=true;
 }
 
@@ -1533,9 +1755,13 @@ function segDist(b,p){
   let t=((p.x-b.x)*tx+(p.y-b.y)*ty);t=Math.max(0,Math.min(len,t));
   return Math.hypot(p.x-(b.x+tx*t),p.y-(b.y+ty*t));
 }
-function dealDamage(target, amount, isProjectile){
+function dealDamage(target, amount, isProjectile, force, attacker){
   if(target.immortal)return;
-  if(target.invuln&&target.invuln>0)return;
+  if(!force && target.invuln&&target.invuln>0)return;
+  // registra quem causou o último dano (pra detectar suicídio)
+  if(attacker!==undefined) target.lastHitBy=attacker;
+  // se o jogador (time 0) leva dano, marca (pra conquista "sem levar dano")
+  if(target.team===0 && amount>0) battleStats.playerTookDamage=true;
   // colete do Soldier: absorve dano de PROJÉTEIS até quebrar
   if(isProjectile && target.kind==='soldier' && target.vestHp>0){
     target.vestHp-=amount;
@@ -1565,6 +1791,165 @@ function doRanged(f){
         life:220,dmg:f.dmg,splash:f.splash,owner:f.slotIdx,color:f.color});
       SFX.fireball();
     }
+  }
+}
+/* ---------- helper: fighter está preso ou executando agarrão/giro? ---------- */
+function isBusy(f){
+  // está agarrando/girando alguém, OU está sendo arremessado, OU está sendo agarrado/girado por outro
+  if(f.grabbing||f.spinning) return true;
+  if(f.knockback>0) return true;
+  return heldByOther(f);
+}
+// algum OUTRO fighter está segurando/girando este fighter?
+function heldByOther(f){
+  for(const o of fighters){
+    if(!o.alive||o===f)continue;
+    if(o.grabbing===f||o.spinning===f) return true;
+  }
+  return false;
+}
+// este fighter é um "agarrador" (Berserker ou Heavyweight)?
+function isGrappler(f){ return f.kind==='brawler'||f.kind==='heavy'; }
+// o alvo poderia contra-agarrar agora (é agarrador, livre e com o especial pronto)?
+function foeCanCounterGrab(f, foe){
+  if(!isGrappler(foe)) return false;
+  if(isBusy(foe)) return false;
+  // Heavyweight não agarra outro Heavyweight — então não conta como contra-ameaça nesse caso
+  if(foe.kind==='heavy' && f.kind==='heavy') return false;
+  if(f.kind==='heavy' && foe.kind==='heavy') return false;
+  const cdReady = foe.kind==='brawler' ? (foe.grabCd<=0) : (foe.throwCd<=0);
+  if(!cdReady) return false;
+  const dist=Math.hypot(foe.x-f.x,foe.y-f.y);
+  return dist < f.r+foe.r+4; // está no alcance de agarrar também
+}
+// decide se 'f' vence a disputa pra agarrar 'foe' (moeda justa 50/50 quando ambos podem agarrar)
+function winsGrabContest(f, foe){
+  if(foeCanCounterGrab(f, foe)) return Math.random() < 0.5; // 50% real, independente da ordem
+  return true; // sem disputa: agarra normalmente
+}
+/* ---------- BRAWLER (Berserker soqueiro) ---------- */
+function doBrawler(f){
+  if(f.grabCd>0)f.grabCd--;
+  if(f.punchAnim>0)f.punchAnim--;
+  // se está sendo agarrado/girado por outro, ou voando arremessado, não age
+  if(!f.grabbing && (f.knockback>0 || heldByOther(f))) return;
+
+  // === ESTÁ AGARRANDO ALGUÉM (executando o especial) ===
+  if(f.grabbing){
+    const v=f.grabbing;
+    // se o alvo morreu ou sumiu, solta
+    if(!v.alive){ f.grabbing=null; f.grabTimer=0; return; }
+    // segura o inimigo colado na frente do Berserker
+    const hold=f.r+v.r-4;
+    v.x=f.x+Math.cos(f.ang)*hold; v.y=f.y+Math.sin(f.ang)*hold;
+    v.vx=0; v.vy=0;
+    f.invuln=Math.max(f.invuln,2); // invulnerável enquanto executa o especial
+    f.grabTimer--;
+    // dá um soco a cada 'punchGap' frames, até completar todos os socos sorteados
+    if(f.grabTimer<=0 && f.punchesLeft>0){
+      f.punchesLeft--;
+      f.grabTimer=f.punchGap;      // agenda o próximo soco
+      f.punchAnim=8; f.punchArm=(f.punchArm+1)%2;
+      dealDamage(v, 5*(f.berserk?2:1), false, true); // 5 de dano por soco (força, ignora invuln)
+      burst(v.x,v.y,f.berserk?'#ff6a00':'#ffcc33',7);
+      setFlash(4,'255,180,60'); SFX.sword();
+    }
+    // acabou todos os socos -> CHUTE pra longe (20 de dano)
+    if(f.grabTimer<=0 && f.punchesLeft<=0){
+      const kick=(f.berserk?24:18);
+      // empurra o inimigo pra fora do alcance antes, pra a colisão não absorver o chute
+      const push=f.r+v.r+6;
+      v.x=f.x+Math.cos(f.ang)*push; v.y=f.y+Math.sin(f.ang)*push;
+      v.vx=Math.cos(f.ang)*kick; v.vy=Math.sin(f.ang)*kick;
+      v.knockback=14; // ignora colisão por alguns frames pra voar livre
+      dealDamage(v, 20*(f.berserk?2:1), false, true); // chute = 20 de dano (força)
+      burst(v.x,v.y,'#ff4400',18); setFlash(10,'255,120,0'); SFX.explosion();
+      f.grabbing=null; f.grabTimer=0;
+      f.grabCd=f.grabCdMax; // recarga do especial
+    }
+    return; // enquanto agarra, não faz mais nada
+  }
+
+  // === PROCURA INIMIGO PRA SOCAR / AGARRAR ===
+  const foe=nearestEnemy(f); if(!foe)return;
+  // mira o inimigo mais próximo (vira o corpo pra ele)
+  const aim=Math.atan2(foe.y-f.y,foe.x-f.x);
+  f.ang += ((((aim-f.ang)%(Math.PI*2))+Math.PI*3)%(Math.PI*2)-Math.PI)*0.2; // vira suave
+  const dist=Math.hypot(foe.x-f.x,foe.y-f.y);
+
+  // encostou? -> inicia AGARRÃO (se o especial estiver disponível e ninguém estiver preso)
+  if(dist < f.r+foe.r+4 && f.grabCd<=0 && !foe.immortal && !isBusy(foe) && f.knockback<=0 && winsGrabContest(f,foe)){
+    f.grabbing=foe;
+    f.punchesLeft = 5 + Math.floor(Math.random()*6); // sorteia 5 a 10 socos
+    f.punchGap = 11;                                  // frames entre socos
+    f.grabTimer = f.punchGap;                         // primeiro soco após um instante
+    setFlash(8,'255,150,40'); SFX.transform();
+    return;
+  }
+  // se não pode agarrar ainda, dá socos normais quando perto
+  if(dist < f.r+foe.r+f.punchReach && f.hitCd<=0){
+    f.hitCd=f.berserk?6:12;
+    f.punchAnim=8; f.punchArm=(f.punchArm+1)%2;
+    const dmg=f.punchDmg*(f.berserk?3:1);
+    dealDamage(foe,dmg);
+    // pequeno empurrão do soco
+    foe.vx+=Math.cos(f.ang)*1.5; foe.vy+=Math.sin(f.ang)*1.5;
+    burst(f.x+Math.cos(f.ang)*f.r, f.y+Math.sin(f.ang)*f.r, f.berserk?'#ff6a00':'#ffcc33',6);
+    setFlash(4,f.berserk?'255,120,0':'255,220,120'); SFX.sword();
+  }
+}
+
+/* ---------- HEAVYWEIGHT (agarra, gira e arremessa) ---------- */
+function doHeavy(f){
+  if(f.throwCd>0)f.throwCd--;
+  // se está sendo agarrado/girado por outro, ou voando arremessado, não age
+  if(!f.spinning && (f.knockback>0 || heldByOther(f))) return;
+
+  // === ESTÁ GIRANDO ALGUÉM (executando o especial) ===
+  if(f.spinning){
+    const v=f.spinning;
+    if(!v.alive){ f.spinning=null; f.spinsLeft=0; return; }
+    // gira o inimigo ao redor do Heavyweight
+    f.spinAngle += 0.35; // velocidade da rotação
+    const orbit=f.r+v.r+2;
+    v.x=f.x+Math.cos(f.spinAngle)*orbit;
+    v.y=f.y+Math.sin(f.spinAngle)*orbit;
+    v.vx=0; v.vy=0;
+    f.spinTimer--;
+    // completou uma volta? -> dá dano da girada e conta
+    if(f.spinTimer<=0 && f.spinsLeft>0){
+      f.spinsLeft--;
+      f.spinTimer=18; // frames por girada
+      dealDamage(v, f.spinDmg, false, true); // 10 de dano por girada (força)
+      burst(v.x,v.y,'#c89050',8); setFlash(4,'200,150,80'); SFX.touch();
+    }
+    // acabou as giradas -> ARREMESSA numa direção aleatória
+    if(f.spinTimer<=0 && f.spinsLeft<=0){
+      const dir=Math.random()*Math.PI*2; // direção aleatória
+      const power=20;
+      const push=f.r+v.r+6;
+      v.x=f.x+Math.cos(dir)*push; v.y=f.y+Math.sin(dir)*push;
+      v.vx=Math.cos(dir)*power; v.vy=Math.sin(dir)*power;
+      v.knockback=16;
+      // marca a vítima como PROJÉTIL HUMANO: causa dano em inimigos de quem arremessou
+      v.thrownBy=f.slotIdx; v.thrownDmg=f.throwDmg;
+      burst(v.x,v.y,'#ff6633',20); setFlash(10,'255,140,60'); SFX.explosion();
+      f.spinning=null; f.spinsLeft=0;
+      f.throwCd=f.throwCdMax;
+    }
+    return;
+  }
+
+  // === PROCURA INIMIGO PRA AGARRAR ===
+  const foe=nearestEnemy(f); if(!foe)return;
+  const dist=Math.hypot(foe.x-f.x,foe.y-f.y);
+  // encostou e o especial está pronto? -> AGARRA (não agarra outro Heavyweight, imortal, nem quem já está preso)
+  if(dist < f.r+foe.r+4 && f.throwCd<=0 && !foe.immortal && foe.kind!=='heavy' && !isBusy(foe) && f.knockback<=0 && winsGrabContest(f,foe)){
+    f.spinning=foe;
+    f.spinsLeft = 1 + Math.floor(Math.random()*10); // sorteia 1 a 10 giradas
+    f.spinTimer = 18;
+    f.spinAngle = Math.atan2(foe.y-f.y, foe.x-f.x);
+    setFlash(8,'200,150,80'); SFX.transform();
   }
 }
 function explode(x,y,dmg,splash,owner,color){
@@ -1706,6 +2091,9 @@ function pandoraTick(f){
 
 /* ---------- STEP ---------- */
 function stepMove(f){
+  if(f.knockback>0){ f.knockback--; if(f.knockback===0 && f.thrownBy>=0){ f.thrownBy=-1; f.thrownDmg=0; } }
+  // Berserker agarrando ou Heavyweight girando ficam plantados
+  if(f.grabbing||f.spinning){ f.vx*=0.6; f.vy*=0.6; f.hitCd=Math.max(0,f.hitCd-1); return; }
   f.x+=f.vx;f.y+=f.vy;wallBounce(f);
   if(f.reach)f.ang+=f.spin;
   f.hitCd=Math.max(0,f.hitCd-1);
@@ -1724,17 +2112,18 @@ function bStep(){
       f.dmg=f.baseDmg*(1+(1-fr)*2);
       f.color=mix(f.baseColor,'#ff2d00',(1-fr)*0.6);
     }
-    // Berserker
+    // Berserker (lutador de punho + agarrão especial)
     if(f.id==='berserker'){
       const fr=Math.max(0,f.hp)/f.maxhp;
-      if(!f.berserk&&fr<=0.25){f.berserk=true;setFlash(12,'255,120,0');f.invuln=300;SFX.berserk();}
+      if(!f.berserk&&fr<=0.25){f.berserk=true;setFlash(12,'255,120,0');f.invuln=180;SFX.berserk();}
       if(f.invuln>0)f.invuln--;
-      if(f.berserk){ f.color='#e02020';f.dark='#7a0000';f.spin=f.baseSpin*3;f.dmg=f.baseDmg*3;
+      if(f.berserk){ f.color='#e02020';f.dark='#7a0000';
         if(Math.random()<0.5&&f.fire.length<40&&G.settings.particles){
           const a=Math.random()*7,sp=0.5+Math.random()*1.5;
           f.fire.push({x:f.x,y:f.y,vx:Math.cos(a)*sp,vy:Math.sin(a)*sp-0.6,life:1,r:6+Math.random()*8}); } }
       f.fire.forEach(fp=>{fp.x+=fp.vx;fp.y+=fp.vy;fp.vy-=0.04;fp.life-=0.04;fp.r*=0.96;});
       f.fire=f.fire.filter(fp=>fp.life>0);
+      doBrawler(f);
     }
     // Clonador
     if(f.kind==='cloner'){
@@ -1752,6 +2141,8 @@ function bStep(){
     if(f.kind==='soldier') doSoldier(f);
     // Pacman
     if(f.kind==='pacman') doPacman(f);
+    // Heavyweight
+    if(f.kind==='heavy') doHeavy(f);
     // Luciferus
     if(f.kind==='angel'){
       const foe=nearestEnemy(f); f.wingFlap+=0.15;f.auraPhase+=0.012;
@@ -1789,7 +2180,39 @@ function bStep(){
   // colisões entre fighters (Pacman atravessa, não colide)
   for(let i=0;i<alive.length;i++)for(let j=i+1;j<alive.length;j++){
     if(alive[i].kind==='pacman'||alive[j].kind==='pacman')continue;
+    // quem foi chutado (knockback) ou está agarrado/agarrando/girando não sofre colisão normal
+    if(alive[i].knockback>0||alive[j].knockback>0)continue;
+    if(alive[i].grabbing||alive[j].grabbing)continue;
+    if(alive[i].spinning||alive[j].spinning)continue;
     collide(alive[i],alive[j]);
+  }
+
+  // PROJÉTIL HUMANO: quem foi arremessado pelo Heavyweight causa dano ao bater
+  for(const p of alive){
+    if(p.thrownBy<0 || p.knockback<=0)continue; // só enquanto voa
+    for(const o of alive){
+      if(o===p)continue;
+      if(o.slotIdx===p.thrownBy)continue;          // não bate em quem arremessou
+      if(ownerCanHit(p.thrownBy, o)===false)continue; // aliado de quem arremessou não toma dano
+      if(Math.hypot(o.x-p.x,o.y-p.y) < p.r+o.r){
+        dealDamage(o, p.thrownDmg, false, true, p.thrownBy);   // 50 de dano ao impacto
+        burst((p.x+o.x)/2,(p.y+o.y)/2,'#ff5522',16); setFlash(8,'255,120,60'); SFX.explosion();
+        p.thrownBy=-1; p.thrownDmg=0; p.knockback=0; // consumiu o impacto
+        break;
+      }
+    }
+  }
+
+  // TOQUE do Heavyweight (dano de contato quando não está girando)
+  for(const f of alive){
+    if(f.kind!=='heavy'||f.spinning)continue;
+    if(f.hitCd>0){ f.hitCd--; continue; }
+    for(const o of alive){ if(o===f||sameTeam(o,f))continue;
+      if(Math.hypot(o.x-f.x,o.y-f.y) < f.r+o.r){
+        dealDamage(o, f.touchDmg); f.hitCd=20;
+        burst((f.x+o.x)/2,(f.y+o.y)/2,f.color,5); SFX.touch(); break;
+      }
+    }
   }
 
   // dano de espada (cada fighter com reach acerta inimigos)
@@ -1876,6 +2299,13 @@ function bStep(){
 
   // mortes
   for(const f of fighters){ if(f.alive&&isDeadF(f)){ f.alive=false;
+    // conquistas: conta abate; suicídio = último dano veio de si mesmo OU de um aliado (fogo amigo)
+    SAVE.kills++;
+    if(f.lastHitBy>=0){
+      const killer=fighters[f.lastHitBy];
+      if(f.lastHitBy===f.slotIdx || (killer && killer.team===f.team)) SAVE.suicides++;
+    }
+    persistSave();
     for(let k=0;k<20;k++){const a=Math.random()*7,sp=1+Math.random()*4;
       if(G.settings.particles)sparks.push({x:f.x,y:f.y,vx:Math.cos(a)*sp,vy:Math.sin(a)*sp,life:1,color:f.color});} } }
 
@@ -1902,6 +2332,9 @@ function bFinishTeam(team, survivors){
   };
   buildDust();
   tone(180,0.15,'sawtooth',0.14,90);
+  // conquista "Injusto": time do jogador (0) venceu sem levar dano
+  if(team===0 && !battleStats.playerTookDamage){ SAVE.flawless++; }
+  checkAchievements();
 }
 /* ---------- CUTSCENE DE VITÓRIA ---------- */
 let victory=null; // {winner, phase, t, cam:{x,y,zoom}, dust:[]}
@@ -1917,6 +2350,9 @@ function bFinish(winner){
   buildDust();
   // pequeno som de impacto ao vencer (o tema completo toca no card)
   tone(180,0.15,'sawtooth',0.14,90);
+  // conquista "Injusto": no modo arena, o vencedor é o jogador (slot 0 / team 0) e não levou dano
+  if(winner && winner.team===0 && !battleStats.playerTookDamage){ SAVE.flawless++; }
+  checkAchievements();
 }
 function buildDust(){
   victory.dust=[];
@@ -2049,6 +2485,34 @@ function drawSword(b){
   const hw=5.5;bx.beginPath();bx.moveTo(bs,-hw);bx.lineTo(be,-hw);bx.lineTo(tip,0);bx.lineTo(be,hw);bx.lineTo(bs,hw);bx.closePath();
   bx.fillStyle=b.color;bx.fill();bx.strokeStyle='#000';bx.lineWidth=2;bx.stroke();
   bx.strokeStyle='rgba(255,255,255,.7)';bx.lineWidth=1.5;bx.beginPath();bx.moveTo(bs+2,0);bx.lineTo(tip-6,0);bx.stroke();
+  bx.restore();
+}
+// Berserker: dois punhos que socam (anima ao golpear)
+function drawFists(b){
+  bx.save();bx.translate(b.x,b.y);bx.rotate(b.ang);
+  // extensão do soco (0 = recolhido, 1 = estendido)
+  const ext=b.punchAnim>0?(b.punchAnim/8):0;
+  const reach=b.r+6+ext*(b.grabbing?4:16);
+  const fistR=b.r*0.34;
+  // qual braço soca (alterna); o outro fica recolhido em guarda
+  for(const side of [-1,1]){
+    const isPunching = (b.punchArm===0 && side===-1) || (b.punchArm===1 && side===1);
+    const armExt = isPunching ? reach : b.r+2;
+    const offA = side*0.55*(1-ext*0.6); // ângulo lateral do braço
+    const fx=Math.cos(offA)*armExt, fy=Math.sin(offA)*armExt;
+    // braço (linha grossa do corpo até o punho)
+    bx.strokeStyle=b.dark;bx.lineWidth=b.r*0.34;bx.lineCap='round';
+    bx.beginPath();bx.moveTo(Math.cos(side*0.8)*b.r*0.5, Math.sin(side*0.8)*b.r*0.5);bx.lineTo(fx,fy);bx.stroke();
+    // punho (bola escura com brilho)
+    bx.fillStyle=b.color;bx.strokeStyle='#000';bx.lineWidth=2.5;
+    bx.beginPath();bx.arc(fx,fy,fistR,0,7);bx.fill();bx.stroke();
+    // nós dos dedos
+    bx.strokeStyle=b.dark;bx.lineWidth=1.5;
+    bx.beginPath();bx.moveTo(fx-fistR*0.5,fy-fistR*0.3);bx.lineTo(fx+fistR*0.5,fy-fistR*0.3);bx.stroke();
+    // clarão no punho que soca
+    if(isPunching&&ext>0.4){ bx.fillStyle='rgba(255,220,120,'+ext+')';
+      bx.beginPath();bx.arc(fx,fy,fistR+3,0,7);bx.fill(); }
+  }
   bx.restore();
 }
 function drawBow(b){
@@ -2276,11 +2740,21 @@ function drawBattle(){
       const g=bx.createRadialGradient(f.x,f.y,f.r*0.5,f.x,f.y,f.r+14);
       g.addColorStop(0,'rgba(60,150,230,0.6)');g.addColorStop(1,'rgba(60,150,230,0)');
       bx.fillStyle=g;bx.beginPath();bx.arc(f.x,f.y,f.r+14,0,7);bx.fill();bx.restore(); }
+    // Heavyweight girando: anel de rotação
+    if(f.kind==='heavy'&&f.spinning){ bx.save();bx.globalAlpha=0.5;
+      bx.strokeStyle='#e0a860';bx.lineWidth=3;bx.setLineDash([8,6]);bx.lineDashOffset=-f.spinAngle*20;
+      bx.beginPath();bx.arc(f.x,f.y,f.r+f.spinning.r+6,0,7);bx.stroke();bx.restore(); }
+    // projétil humano voando: rastro de fogo
+    if(f.thrownBy>=0&&f.knockback>0){ bx.save();bx.globalAlpha=0.5;
+      const g=bx.createRadialGradient(f.x,f.y,f.r*0.4,f.x,f.y,f.r+10);
+      g.addColorStop(0,'rgba(255,120,40,0.7)');g.addColorStop(1,'rgba(255,80,0,0)');
+      bx.fillStyle=g;bx.beginPath();bx.arc(f.x,f.y,f.r+10,0,7);bx.fill();bx.restore(); }
     drawBall(f,f.r,'',f.kind==='pacman'?null:f.tint);
     if(f.isPandora&&f.pandoraBlink>0){const a=f.pandoraBlink/18;bx.save();bx.globalAlpha=a*0.9;
       bx.fillStyle='#fff';bx.beginPath();bx.arc(f.x,f.y,f.r+a*10,0,7);bx.fill();bx.restore();}
   }
   for(const f of fighters){ if(!f.alive)continue;
+    if(f.kind==='brawler')drawFists(f);
     if(f.kind==='archer')drawBow(f);
     if(f.kind==='mage')drawStaff(f);
     if(f.kind==='soldier')drawGun(f);
@@ -2365,12 +2839,14 @@ window.addEventListener('resize',()=>{bgResize();});
 /* ==================================================================
    INIT
    ================================================================== */
+loadSave(); updateCoinDisplay();
 initBg();bgLoop();
 // primeiro toque libera áudio + música
 document.body.addEventListener('pointerdown',function once(){ audioInit();
   if(G.settings.music&&G.screen!=='scrBattle')startMusic();
   document.body.removeEventListener('pointerdown',once);
 },{once:true});
+
 // registra o service worker (permite instalar e jogar offline)
 if('serviceWorker' in navigator){
   window.addEventListener('load',function(){
