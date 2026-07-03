@@ -330,7 +330,7 @@ input[type=range]::-webkit-slider-thumb{appearance:none;width:20px;height:20px;b
     <div class="pslots" id="pslots"></div>
     <div class="roster-grid" id="rosterGrid"></div>
     <div class="select-go">
-      <button id="randomFill" style="flex:0 0 90px;background:var(--panel-b);color:var(--ink);">🎲 Auto</button>
+      <button id="randomFill" style="flex:0 0 90px;background:var(--panel-b);color:var(--ink);">🎲 Random</button>
       <button id="startMatch" disabled>Lutar!</button>
     </div>
   </div>
@@ -1366,7 +1366,8 @@ function updateStartBtn(){
 }
 document.getElementById('randomFill').addEventListener('click',()=>{
   audioInit();SFX.select();
-  G.slots.forEach(s=>{ if(!s.charId){ s.charId=ORDER[Math.floor(Math.random()*ORDER.length)];s.cfg=defaultCfg(); } });
+  // sorteia TODOS os slots de novo a cada clique (não só os vazios)
+  G.slots.forEach(s=>{ s.charId=ORDER[Math.floor(Math.random()*ORDER.length)]; s.cfg=defaultCfg(); });
   renderSlots();updateStartBtn();
 });
 document.getElementById('startMatch').addEventListener('click',()=>{
@@ -2852,7 +2853,6 @@ document.body.addEventListener('pointerdown',function once(){ audioInit();
   document.body.removeEventListener('pointerdown',once);
 },{once:true});
 
-// registra o service worker (permite instalar e jogar offline)
 if('serviceWorker' in navigator){
   window.addEventListener('load',function(){
     navigator.serviceWorker.register('sw.js').catch(function(){});
