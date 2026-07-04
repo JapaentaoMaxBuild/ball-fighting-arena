@@ -3,6 +3,9 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@700;800;900&display=swap" rel="stylesheet">
 <title>Ball Fighting Arena</title>
 <!-- PWA / app instalável -->
 <link rel="manifest" href="manifest.webmanifest">
@@ -35,6 +38,9 @@
 html,body{height:100%;overflow:hidden;background:var(--bg0);color:var(--ink);
   font-family:'Segoe UI',system-ui,-apple-system,sans-serif;}
 #app{position:relative;height:100dvh;max-width:560px;margin:0 auto;overflow:hidden;}
+/* nunca mostrar barras de scroll visíveis (rolagem por toque continua funcionando) */
+*{scrollbar-width:none;-ms-overflow-style:none;}
+*::-webkit-scrollbar{display:none;width:0;height:0;}
 
 /* ====== fundo animado ====== */
 #bgfx{position:absolute;inset:0;z-index:0;
@@ -79,10 +85,17 @@ html,body{height:100%;overflow:hidden;background:var(--bg0);color:var(--ink);
 
 /* ====== barra superior comum ====== */
 .topbar{display:flex;align-items:center;gap:12px;padding:16px 18px;z-index:2;}
-.backbtn{width:42px;height:42px;flex:none;border-radius:50%;border:1px solid var(--panel-b);
-  background:var(--panel);color:var(--ink);font-size:20px;cursor:pointer;
-  display:flex;align-items:center;justify-content:center;transition:transform .1s;}
-.backbtn:active{transform:scale(.9);}
+.backbtn{position:fixed;left:calc(16px + env(safe-area-inset-left));
+  bottom:calc(20px + env(safe-area-inset-bottom));z-index:50;
+  height:40px;flex:none;border-radius:10px;border:1px solid var(--panel-b);
+  background:var(--panel);color:var(--ink);font-size:14px;font-weight:800;cursor:pointer;
+  letter-spacing:.06em;padding:0 18px 0 14px;
+  display:flex;align-items:center;gap:7px;transition:transform .1s,background .15s;
+  box-shadow:0 4px 12px rgba(0,0,0,.5);}
+.backbtn::before{content:'';width:0;height:0;border-style:solid;
+  border-width:7px 10px 7px 0;border-color:transparent var(--ink) transparent transparent;}
+.backbtn:active{transform:scale(.92);}
+.backbtn:hover{background:var(--bg2);}
 .topbar h2{font-size:15px;font-weight:800;letter-spacing:.14em;text-transform:uppercase;
   color:var(--gold);}
 
@@ -114,6 +127,61 @@ html,body{height:100%;overflow:hidden;background:var(--bg0);color:var(--ink);
 .setup-section .slabel{font-size:12px;font-weight:800;letter-spacing:.18em;
   text-transform:uppercase;color:var(--dim);margin-bottom:10px;}
 .opt-row{display:flex;gap:10px;flex-wrap:wrap;}
+
+/* ===== GRIMÓRIO: grade de orbes luminosos + ficha detalhada ===== */
+.alm-grid{ display:grid; grid-template-columns:repeat(4, 1fr); gap:12px 8px; padding:6px 2px 14px; }
+.alm-orb{ display:flex; flex-direction:column; align-items:center; gap:6px; cursor:pointer;
+  transition:transform .14s; }
+.alm-orb:active{ transform:scale(.92); }
+.alm-orb-ring{ position:relative; width:100%; aspect-ratio:1; border-radius:50%; padding:4px;
+  display:flex; align-items:center; justify-content:center;
+  background:radial-gradient(circle at 50% 40%, color-mix(in srgb, var(--cc) 40%, transparent), transparent 70%);
+  transition:filter .15s; }
+.alm-orb-ball{ position:relative; width:88%; aspect-ratio:1; border-radius:50%; border:2px solid rgba(0,0,0,.5);
+  display:flex; align-items:center; justify-content:center;
+  box-shadow:0 4px 10px rgba(0,0,0,.5), inset -4px -6px 12px rgba(0,0,0,.4), inset 4px 5px 10px rgba(255,255,255,.35); }
+.alm-orb-ico{ font-size:26px; position:relative; z-index:2; filter:drop-shadow(0 1px 2px rgba(0,0,0,.4)); }
+.alm-orb-ball .deco{ position:absolute; left:-16%; top:-16%; width:132%; height:132%; pointer-events:none; z-index:1; }
+.alm-orb-nm{ font-family:'Nunito','Baloo 2',system-ui,sans-serif; font-size:11px; font-weight:900;
+  letter-spacing:.02em; text-transform:uppercase; color:var(--dim); text-align:center;
+  white-space:nowrap; overflow:hidden; text-overflow:ellipsis; max-width:100%; }
+.alm-orb.sel .alm-orb-ring{ filter:drop-shadow(0 0 10px color-mix(in srgb, var(--cc) 80%, transparent)); }
+.alm-orb.sel .alm-orb-nm{ color:var(--ink); }
+.alm-orb.sel .alm-orb-ball{ box-shadow:0 0 14px 2px color-mix(in srgb, var(--cc) 65%, transparent),
+  0 4px 10px rgba(0,0,0,.5), inset -4px -6px 12px rgba(0,0,0,.4), inset 4px 5px 10px rgba(255,255,255,.4); }
+
+.alm-detail{ padding:0 2px; }
+.alm-hint{ text-align:center; color:var(--dim); font-size:12px; padding:24px 16px;
+  border:1px dashed var(--panel-b); border-radius:14px; letter-spacing:.02em; }
+.alm-detail.open .alm-card{ border-radius:16px; padding:16px; position:relative; overflow:hidden;
+  border:1px solid color-mix(in srgb, var(--cc) 45%, var(--panel-b));
+  background:
+    radial-gradient(120% 80% at 100% 0%, color-mix(in srgb, var(--cc) 18%, transparent), transparent 60%),
+    linear-gradient(150deg, var(--bg2), var(--panel));
+  animation:almReveal .3s ease; }
+@keyframes almReveal{ from{ opacity:0; transform:translateY(-8px); } to{ opacity:1; transform:translateY(0); } }
+.alm-card-head{ display:flex; align-items:center; gap:13px; margin-bottom:12px; }
+.alm-portrait{ position:relative; width:60px; height:60px; flex:none; border-radius:50%;
+  border:2px solid rgba(0,0,0,.5); display:flex; align-items:center; justify-content:center; font-size:30px;
+  box-shadow:0 4px 10px rgba(0,0,0,.5), inset -4px -6px 12px rgba(0,0,0,.4), inset 4px 5px 10px rgba(255,255,255,.35); }
+.alm-portrait .deco{ position:absolute; left:-16%; top:-16%; width:132%; height:132%; pointer-events:none; }
+.alm-portrait span{ position:relative; z-index:2; }
+.alm-title{ flex:1; min-width:0; }
+.alm-nm{ font-family:'Nunito','Baloo 2',system-ui,sans-serif; font-size:22px; font-weight:900;
+  color:var(--ink); letter-spacing:.01em; line-height:1.1; }
+.alm-by{ font-size:11px; color:var(--dim); letter-spacing:.04em; margin-top:2px; }
+.alm-hp{ display:inline-block; margin-top:6px; font-size:11px; font-weight:800; color:#ff6b6b;
+  background:rgba(0,0,0,.35); border:1px solid var(--panel-b); border-radius:6px; padding:3px 9px; }
+.alm-detail .themeBtn{ flex:none; width:44px; height:44px; border-radius:50%; border:2px solid var(--gold);
+  background:var(--bg0); color:var(--gold); font-size:18px; cursor:pointer; display:flex;
+  align-items:center; justify-content:center; transition:transform .1s; }
+.alm-detail .themeBtn:active{ transform:scale(.9); }
+.alm-detail .themeBtn.playing{ background:var(--gold); color:#1a0f00; }
+.alm-desc{ font-size:13px; color:var(--ink); line-height:1.5; margin-bottom:12px; }
+.alm-skill-lbl{ font-size:10px; font-weight:900; letter-spacing:.16em; text-transform:uppercase;
+  color:color-mix(in srgb, var(--cc) 70%, var(--gold)); margin-bottom:5px; }
+.alm-skill{ font-size:12px; color:var(--dim); line-height:1.55;
+  border-left:2px solid color-mix(in srgb, var(--cc) 60%, var(--gold)); padding-left:11px; }
 .opt{flex:1;min-width:70px;padding:12px 8px;text-align:center;border-radius:9px;
   border:1px solid var(--panel-b);background:var(--panel);cursor:pointer;
   font-size:13px;font-weight:800;letter-spacing:.04em;text-transform:uppercase;
@@ -133,7 +201,7 @@ html,body{height:100%;overflow:hidden;background:var(--bg0);color:var(--ink);
 
 /* ====== SELEÇÃO DE PERSONAGENS ====== */
 #scrSelect{overflow:hidden;}
-.pslots{display:flex;gap:6px;padding:6px 12px;overflow-x:auto;flex:none;}
+.pslots{display:flex;gap:6px;padding:20px 12px 6px;overflow:hidden;flex:none;}
 .pslot{flex:1;min-width:74px;border-radius:10px;padding:8px 6px;text-align:center;
   border:2px solid var(--panel-b);background:var(--panel);position:relative;
   transition:border-color .2s,transform .15s;}
@@ -149,9 +217,121 @@ html,body{height:100%;overflow:hidden;background:var(--bg0);color:var(--ink);
   width:20px;height:20px;display:flex;align-items:center;justify-content:center;}
 .pslot .gear:active{transform:scale(.85);}
 
+/* ---- Seleção VS: leque de cards em arco com "VS" central ---- */
+.vs-stage{ position:relative; display:flex; flex-direction:column; align-items:center;
+  justify-content:center; gap:0; padding:14px 6px 16px; }
+.vs-fan{ display:flex; justify-content:center; align-items:flex-end; gap:6px; }
+.vs-fan.top{ align-items:flex-start; margin-bottom:16px; z-index:1; }
+.vs-fan.bottom{ align-items:flex-end; margin-top:16px; z-index:1; }
+.vs-center{ position:absolute; top:50%; left:50%; transform:translate(-50%,-50%);
+  display:inline-flex; align-items:center; justify-content:center;
+  font-family:'Nunito','Baloo 2',system-ui,sans-serif; font-weight:900;
+  line-height:1; z-index:6; pointer-events:none; }
+.vs-center .vs-v, .vs-center .vs-s{ font-size:110px; letter-spacing:0; display:inline-block;
+  color:#ff8c1a;
+  -webkit-text-stroke:6px #111; paint-order:stroke fill;
+  background:linear-gradient(170deg,#ffd24d 8%,#ff8c1a 45%,#e0630a 92%);
+  -webkit-background-clip:text; background-clip:text; -webkit-text-fill-color:transparent;
+  filter:
+    drop-shadow(3px 3px 0 #111)
+    drop-shadow(0 0 16px rgba(255,120,20,.55))
+    drop-shadow(2px 6px 5px rgba(0,0,0,.75)); }
+.vs-center .vs-v{ position:relative; z-index:1; transform:rotate(-10deg); }
+.vs-center .vs-s{ position:relative; z-index:2; margin-left:-18px; transform:rotate(9deg) translateY(10px); }
+.vs-card{ width:120px; position:relative; cursor:pointer;
+  transform:rotate(var(--fan,0deg)); transform-origin:center bottom;
+  transition:transform .18s ease; }
+.vs-fan.bottom .vs-card{ transform:rotate(calc(var(--fan,0deg) * -1)); transform-origin:center top; }
+.vs-card .cardinner{ position:relative; border-radius:16px; padding:15px 9px 12px;
+  background:linear-gradient(160deg,#2a1c3e,#1a1228); border:3px solid rgba(255,255,255,.14);
+  box-shadow:0 10px 24px rgba(0,0,0,.5); display:flex; flex-direction:column; align-items:center;
+  aspect-ratio:3/4; justify-content:center; overflow:visible; }
+.vs-card.teamB .cardinner{ border-color:rgba(255,90,110,.5); }
+.vs-card.teamA .cardinner{ border-color:rgba(60,220,200,.5); }
+.vs-card.arena .cardinner{ border-color:rgba(242,193,78,.55); }
+
+/* ===== Arena Mode estilo KOF: slots grandes nas laterais, lista centralizada no meio ===== */
+#scrSelect.arena-layout .pslots{ position:absolute; top:0; bottom:64px; left:0; right:0;
+  display:flex; justify-content:space-between; align-items:center; pointer-events:none;
+  padding:0 6px; overflow:visible; z-index:3; }
+#scrSelect.arena-layout .arena-col{ display:flex; flex-direction:column; justify-content:center;
+  gap:12px; pointer-events:auto; }
+/* a lista de personagens ocupa o miolo, entre as colunas, centralizada com folga em cima/baixo */
+#scrSelect.arena-layout .roster-grid{ position:absolute; top:0; bottom:64px; left:96px; right:96px;
+  display:flex; flex-wrap:wrap; align-content:center; justify-content:center; align-items:center;
+  gap:8px; padding:20px 4px; overflow-y:auto; z-index:2; }
+#scrSelect.arena-layout .roster-grid .rchar{ width:62px; flex:0 0 auto; }
+.arena-slot{ width:80px; aspect-ratio:3/4; cursor:pointer; position:relative;
+  transition:transform .15s; }
+.arena-slot.active{ transform:scale(1.06); z-index:4; }
+.arena-slot .aslot-inner{ position:relative; width:100%; height:100%; border-radius:12px;
+  background:linear-gradient(160deg,#2a1c3e,#1a1228); border:2px solid rgba(242,193,78,.5);
+  box-shadow:0 6px 14px rgba(0,0,0,.5); display:flex; flex-direction:column; align-items:center;
+  justify-content:center; overflow:visible; }
+.arena-slot.active .aslot-inner{ border-color:var(--neon); box-shadow:0 0 16px rgba(255,61,129,.55),0 6px 14px rgba(0,0,0,.5); }
+.arena-slot.animating .aslot-inner{ overflow:hidden; }
+.arena-slot .aslot-inner.locked{ border-style:dashed; border-color:rgba(120,100,150,.5);
+  background:linear-gradient(160deg,#1a1228,#120c1e); opacity:.75; }
+.arena-slot .aslot-lock{ font-size:26px; opacity:.6; }
+.arena-slot .cportrait{ position:relative; width:60%; aspect-ratio:1; display:flex; align-items:center; justify-content:center; }
+.arena-slot .cportrait.drop-in{ animation:cellDropIn .42s cubic-bezier(.34,1.56,.64,1); }
+.arena-slot .cportrait .deco{ position:absolute; left:-18%; top:-18%; width:136%; height:136%; pointer-events:none; overflow:visible; }
+.arena-slot .cface{ width:100%; aspect-ratio:1; border-radius:50%; border:2px solid #000;
+  display:flex; align-items:center; justify-content:center; font-size:26px; background:#2a2233;
+  box-shadow:0 4px 8px rgba(0,0,0,.45), inset -3px -5px 8px rgba(0,0,0,.35), inset 3px 4px 7px rgba(255,255,255,.25); }
+.arena-slot .cnm{ position:absolute; top:66%; left:50%; transform:translate(-50%,-50%); z-index:6;
+  font-family:'Nunito','Baloo 2',system-ui,sans-serif; font-size:13px; font-weight:900; color:#fff;
+  letter-spacing:.01em; text-transform:uppercase; -webkit-text-stroke:0.8px #000; paint-order:stroke fill;
+  text-shadow:0 2px 3px rgba(0,0,0,.95),0 0 5px rgba(0,0,0,.9); white-space:nowrap; pointer-events:none; }
+.arena-slot .cgear{ position:absolute; top:3px; right:4px; font-size:12px; opacity:.75; z-index:7;
+  width:18px; height:18px; display:flex; align-items:center; justify-content:center; }
+.arena-slot .aslot-toggle{ position:absolute; bottom:-8px; left:50%; transform:translateX(-50%);
+  width:24px; height:24px; border-radius:50%; border:2px solid var(--panel-b); background:var(--panel);
+  color:var(--ink); font-size:12px; font-weight:900; cursor:pointer; z-index:8; display:flex;
+  align-items:center; justify-content:center; box-shadow:0 2px 6px rgba(0,0,0,.5); }
+.arena-slot .aslot-toggle:active{ transform:translateX(-50%) scale(.85); }
+.arena-slot .aslot-inner.locked .aslot-toggle{ background:var(--gold); color:#1a0f00; border-color:var(--gold); }
+/* Arena Mode: grade de cards (quebra em linhas), cabendo na tela */
+.arena-stage{ position:relative; display:flex; align-items:center; justify-content:center; padding:18px 10px 14px; width:100%; }
+.arena-fan{ display:grid; gap:8px; justify-content:center; justify-items:center; width:100%;
+  grid-template-columns:repeat(3, minmax(0, 1fr)); max-width:400px; }
+/* com poucos cards, menos colunas pra eles não ficarem espremidos */
+.arena-fan.n1,.arena-fan.n2,.arena-fan.n3,.arena-fan.n4{ grid-template-columns:repeat(2, minmax(0, 130px)); }
+.vs-card.arena{ transform:none; width:100%; max-width:130px; }
+.vs-card.arena.active{ transform:scale(1.06); z-index:4; }
+.vs-card.arena .cardinner{ width:100%; }
+.vs-card.active{ transform:rotate(var(--fan,0deg)) scale(1.08); z-index:4; }
+.vs-fan.bottom .vs-card.active{ transform:rotate(calc(var(--fan,0deg) * -1)) scale(1.08); }
+.vs-card.active .cardinner{ border-color:var(--neon);
+  box-shadow:0 0 18px rgba(255,61,129,.6),0 8px 18px rgba(0,0,0,.5); }
+/* durante a queda, corta só a área da bola (o nome fica sempre livre por cima) */
+.vs-card.animating .cportrait{ overflow:hidden; }
+.vs-card .cportrait{ position:relative; width:66%; aspect-ratio:1; display:flex; align-items:center; justify-content:center; }
+.vs-card .cportrait.drop-in{ animation:cellDropIn .42s cubic-bezier(.34,1.56,.64,1); }
+.vs-card .cportrait.drop-out{ animation:cellDropOut .34s ease-in forwards; }
+@keyframes cellDropIn{ 0%{ transform:translateY(-180%); opacity:0; }
+  70%{ opacity:1; } 100%{ transform:translateY(0); opacity:1; } }
+@keyframes cellDropOut{ 0%{ transform:translateY(0); opacity:1; }
+  100%{ transform:translateY(180%); opacity:0; } }
+.vs-card .cportrait .deco{ position:absolute; left:-18%; top:-18%; width:136%; height:136%; pointer-events:none; overflow:visible; }
+.vs-card .cface{ width:100%; aspect-ratio:1; border-radius:50%; border:2px solid #000;
+  display:flex; align-items:center; justify-content:center; font-size:39px; background:#2a2233;
+  box-shadow:0 5px 10px rgba(0,0,0,.45), inset -4px -6px 10px rgba(0,0,0,.35), inset 4px 5px 9px rgba(255,255,255,.28); }
+.vs-card .cnm{ position:absolute; top:64%; left:50%; transform:translate(-50%,-50%); z-index:6;
+  font-family:'Nunito','Baloo 2','Segoe UI Rounded','Trebuchet MS',system-ui,sans-serif;
+  font-size:24px; font-weight:900; color:#fff; letter-spacing:.01em; text-transform:uppercase;
+  -webkit-text-stroke:2px #000; paint-order:stroke fill;
+  text-shadow:0 2px 3px rgba(0,0,0,.95), 0 0 6px rgba(0,0,0,.9), 2px 2px 0 rgba(0,0,0,.6);
+  white-space:nowrap; pointer-events:none; }
+.vs-card .cgear{ position:absolute; top:6px; right:8px; font-size:18px; opacity:.75;
+  width:26px; height:26px; display:flex; align-items:center; justify-content:center; z-index:7; }
+.vs-card .cgear:active{ transform:scale(.85); }
+
 .roster-grid{flex:1;overflow-y:auto;display:grid;
   grid-template-columns:repeat(auto-fill,minmax(66px,1fr));gap:7px;
-  padding:8px 12px 10px;align-content:start;}
+  padding:8px 12px 10px;align-content:start;
+  scrollbar-width:none;-ms-overflow-style:none;}
+.roster-grid::-webkit-scrollbar{display:none;width:0;height:0;}
 .rchar{aspect-ratio:1;border-radius:10px;border:2px solid var(--panel-b);
   background:linear-gradient(150deg,var(--bg2),var(--panel));cursor:pointer;
   display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;
@@ -166,14 +346,54 @@ html,body{height:100%;overflow:hidden;background:var(--bg0);color:var(--ink);
   display:flex;align-items:center;justify-content:center;font-size:20px;}
 .rchar .rnm{font-size:8px;font-weight:800;text-transform:uppercase;letter-spacing:.02em;
   color:var(--dim);text-align:center;line-height:1;}
+/* card "?" de sorteio (parece um herói misterioso no fim da lista) */
+.rchar.rrandom{ border-color:var(--gold);
+  background:linear-gradient(150deg,#3a2a10,#241a08); }
+.rchar.rrandom .rface-q{ width:38px;height:38px;border-radius:50%;border:2px solid #000;
+  display:flex;align-items:center;justify-content:center;font-size:24px;font-weight:900;color:#1a1206;
+  background:conic-gradient(from 0deg,#f2c14e,#ff8a3d,#ff3d81,#7c5cff,#3dd6ff,#f2c14e);
+  text-shadow:0 1px 2px rgba(255,255,255,.5); animation:qspin 6s linear infinite; }
+@keyframes qspin{ to{ filter:hue-rotate(360deg); } }
+.rchar.rrandom .rnm{ color:var(--gold); }
 
-.select-go{margin:6px 12px calc(14px + env(safe-area-inset-bottom));display:flex;gap:10px;}
-.select-go button{flex:1;padding:15px;border:none;border-radius:10px;font-size:15px;
-  font-weight:900;letter-spacing:.1em;text-transform:uppercase;cursor:pointer;transition:transform .1s;}
-.select-go button:active{transform:scale(.97);}
-#startMatch{color:#1a0f00;background:linear-gradient(180deg,var(--gold),var(--gold-d));
-  box-shadow:0 3px 0 #7a5a1c;}
-#startMatch:disabled{opacity:.4;filter:grayscale(1);}
+/* botão FIGHT: só aparece quando todos os personagens estão escolhidos */
+#fightBtn{ display:none; position:absolute; left:50%; bottom:calc(24px + env(safe-area-inset-bottom));
+  transform:translateX(-50%); z-index:30; cursor:pointer;
+  padding:14px 52px; border:none; border-radius:14px;
+  font-family:'Nunito','Baloo 2',system-ui,sans-serif;
+  font-size:38px; font-weight:900; letter-spacing:.04em; text-transform:uppercase;
+  color:#fff; -webkit-text-stroke:1.5px #5a1200; paint-order:stroke fill;
+  background:linear-gradient(180deg,#ff5a3d,#e01b2e);
+  box-shadow:0 6px 0 #7a0f18, 0 10px 24px rgba(224,27,46,.5), inset 0 2px 6px rgba(255,255,255,.4);
+  text-shadow:0 2px 3px rgba(0,0,0,.45); }
+#fightBtn.show{ display:block; animation:fightIn .45s cubic-bezier(.34,1.56,.64,1); }
+#fightBtn.show{ animation:fightIn .45s cubic-bezier(.34,1.56,.64,1), fightPulse 1.1s ease-in-out .45s infinite; }
+#fightBtn:active{ transform:translateX(-50%) scale(.95) translateY(3px); box-shadow:0 3px 0 #7a0f18, 0 6px 14px rgba(224,27,46,.5); }
+@keyframes fightIn{ 0%{ opacity:0; transform:translateX(-50%) scale(.3) translateY(40px); }
+  100%{ opacity:1; transform:translateX(-50%) scale(1) translateY(0); } }
+@keyframes fightPulse{ 0%,100%{ transform:translateX(-50%) scale(1); }
+  50%{ transform:translateX(-50%) scale(1.06); } }
+
+/* ====== HOVER: elementos crescem um pouco ao passar o mouse ====== */
+@media (hover:hover){
+  .menu-item{transition:transform .14s,background .15s;}
+  .menu-item:hover{transform:scale(1.05);}
+  .mode-card.open:hover{transform:scale(1.03);}
+  .opt:hover{transform:scale(1.06);}
+  .go-btn{transition:transform .12s;}
+  .go-btn:hover{transform:scale(1.04);}
+  #fightBtn.show:hover{transform:translateX(-50%) scale(1.06);}
+  .backbtn:hover{transform:scale(1.06);background:var(--bg2);}
+  .rchar:not(.sel):hover{transform:scale(1.1);border-color:var(--neon);z-index:2;}
+  .rchar.rrandom:hover{transform:scale(1.12);}
+  .themeBtn{transition:transform .14s,background .15s,color .15s;}
+  .themeBtn:hover{transform:scale(1.14);}
+  .item-btn{transition:transform .12s,background .15s;}
+  .item-btn:hover{transform:scale(1.12);}
+  /* cards do leque VS: crescem mantendo a rotação do leque */
+  .vs-fan.top .vs-card:not(.active):hover{transform:rotate(var(--fan,0deg)) scale(1.06);z-index:3;}
+  .vs-fan.bottom .vs-card:not(.active):hover{transform:rotate(calc(var(--fan,0deg) * -1)) scale(1.06);z-index:3;}
+}
 
 /* zoom transition overlay ao escolher personagem */
 #zoomFx{position:absolute;inset:0;z-index:40;pointer-events:none;display:flex;
@@ -268,15 +488,19 @@ input[type=range]::-webkit-slider-thumb{appearance:none;width:20px;height:20px;b
 .vwrap{position:relative;z-index:1;display:flex;flex-direction:column;align-items:center;gap:12px;
   animation:vpop .6s cubic-bezier(.2,1.3,.4,1);}
 @keyframes vpop{0%{transform:scale(.4);opacity:0;}60%{transform:scale(1.08);}100%{transform:scale(1);opacity:1;}}
-.vlabel{font-size:13px;letter-spacing:.5em;text-transform:uppercase;color:var(--gold);
-  font-weight:800;padding-left:.5em;}
+.vlabel{font-size:44px;letter-spacing:.28em;text-transform:uppercase;color:var(--gold);
+  font-weight:900;padding-left:.28em;text-shadow:0 0 24px rgba(242,193,78,.9),0 3px 0 #7a5a1c;
+  animation:vlabelpulse 1.1s ease-in-out infinite;}
+@keyframes vlabelpulse{0%,100%{transform:scale(1);text-shadow:0 0 24px rgba(242,193,78,.9),0 3px 0 #7a5a1c;}
+  50%{transform:scale(1.09);text-shadow:0 0 40px rgba(242,193,78,1),0 3px 0 #7a5a1c;}}
 .vface{width:130px;height:130px;border-radius:50%;border:6px solid #000;display:flex;
   align-items:center;justify-content:center;font-size:68px;box-shadow:0 0 60px currentColor;
   animation:vfloat 2.4s ease-in-out infinite;}
 @keyframes vfloat{0%,100%{transform:translateY(0) rotate(-3deg);}50%{transform:translateY(-10px) rotate(3deg);}}
 .vname{font-size:34px;font-weight:900;letter-spacing:.02em;text-transform:uppercase;
   text-shadow:0 0 30px currentColor;}
-.vsub{font-size:12px;color:var(--dim);letter-spacing:.16em;text-transform:uppercase;margin-top:-6px;}
+.vsub{font-size:19px;color:#f0e0c0;letter-spacing:.1em;text-transform:uppercase;margin-top:2px;
+  font-weight:700;text-shadow:0 0 14px rgba(0,0,0,.7);}
 #vBack{margin-top:18px;padding:16px 30px;border:none;border-radius:11px;font-size:15px;
   font-weight:900;letter-spacing:.1em;text-transform:uppercase;cursor:pointer;color:#1a0f00;
   background:linear-gradient(180deg,var(--gold),var(--gold-d));
@@ -300,28 +524,27 @@ input[type=range]::-webkit-slider-thumb{appearance:none;width:20px;height:20px;b
   <div class="screen on" id="scrTitle">
     <div style="flex:1"></div>
     <div class="logo">
-      <div class="l1">Bem-vindo à</div>
       <div class="l2">Ball Fighting</div>
       <div class="l3">Arena</div>
     </div>
     <div class="menu-list" id="titleMenu">
-      <div class="menu-item" data-act="start">Iniciar</div>
-      <div class="menu-item" data-act="almanac">Grimório</div>
-      <div class="menu-item" data-act="achievements">Conquistas</div>
-      <div class="menu-item" data-act="shop">Loja</div>
-      <div class="menu-item" data-act="settings">Configurações</div>
-      <div class="menu-item" data-act="quit">Sair</div>
+      <div class="menu-item" data-act="start" data-i18n="start">Iniciar</div>
+      <div class="menu-item" data-act="almanac" data-i18n="almanac">Grimório</div>
+      <div class="menu-item" data-act="achievements" data-i18n="achievements">Conquistas</div>
+      <div class="menu-item" data-act="shop" data-i18n="shop">Loja</div>
+      <div class="menu-item" data-act="settings" data-i18n="settings">Configurações</div>
+      <div class="menu-item" data-act="quit" data-i18n="quit">Sair</div>
     </div>
     <div id="coinBadge" style="position:absolute;top:16px;right:16px;display:flex;align-items:center;gap:6px;background:var(--panel);border:1px solid var(--gold);border-radius:20px;padding:6px 14px;font-weight:900;color:var(--gold);letter-spacing:.05em;z-index:3;">🪙 <span id="coinCount">0</span></div>
     <div style="flex:1.3"></div>
-    <div style="font-size:10px;color:var(--dimmer);letter-spacing:.2em;text-transform:uppercase;padding-bottom:20px;">v2.0 · toque para jogar</div>
+    <div style="position:absolute;bottom:14px;left:16px;font-size:10px;color:var(--dimmer);letter-spacing:.15em;text-transform:uppercase;z-index:3;">v2.1</div>
   </div>
 
   <!-- ============ MODOS ============ -->
   <div class="screen" id="scrModes">
     <div class="topbar">
-      <button class="backbtn" data-back="scrTitle">‹</button>
-      <h2>Modos de Jogo</h2>
+      <button class="backbtn" data-back="scrTitle" data-i18n="back">Back</button>
+      <h2 data-i18n="gameModes">Modos de Jogo</h2>
     </div>
     <div class="modes" id="modesList"></div>
   </div>
@@ -329,71 +552,73 @@ input[type=range]::-webkit-slider-thumb{appearance:none;width:20px;height:20px;b
   <!-- ============ SETUP ============ -->
   <div class="screen" id="scrSetup">
     <div class="topbar">
-      <button class="backbtn" data-back="scrModes">‹</button>
-      <h2>Arena Mode · Configurar</h2>
+      <button class="backbtn" data-back="scrModes" data-i18n="back">Back</button>
+      <h2 data-i18n="arenaConfig">Arena Mode · Configurar</h2>
     </div>
     <div class="setup-body">
       <div class="setup-section">
-        <div class="slabel">Mapa</div>
+        <div class="slabel" data-i18n="map">Mapa</div>
         <div class="opt-row" id="mapOpts"></div>
       </div>
       <div class="setup-section">
-        <div class="slabel">Jogadores</div>
+        <div class="slabel" data-i18n="players">Jogadores</div>
         <div class="opt-row" id="playerOpts"></div>
       </div>
     </div>
-    <button class="go-btn" id="toSelect">Escolher Lutadores</button>
+    <button class="go-btn" id="toSelect" data-i18n="chooseFighters">Escolher Lutadores</button>
   </div>
 
   <!-- ============ SELEÇÃO ============ -->
   <div class="screen" id="scrSelect">
-    <div class="topbar">
-      <button class="backbtn" data-back="scrSetup">‹</button>
-      <h2>Selecionar Lutadores</h2>
-    </div>
+    <button class="backbtn" data-back="scrSetup" data-i18n="back">Back</button>
     <div class="pslots" id="pslots"></div>
     <div class="roster-grid" id="rosterGrid"></div>
-    <div class="select-go">
-      <button id="randomFill" style="flex:0 0 90px;background:var(--panel-b);color:var(--ink);">🎲 Random</button>
-      <button id="startMatch" disabled>Lutar!</button>
-    </div>
+    <button id="fightBtn" class="fight-pop">FIGHT!</button>
   </div>
 
   <!-- ============ SETTINGS ============ -->
   <div class="screen" id="scrSettings">
     <div class="topbar">
-      <button class="backbtn" data-back="scrTitle">‹</button>
-      <h2>Configurações</h2>
+      <button class="backbtn" data-back="scrTitle" data-i18n="back">Back</button>
+      <h2 data-i18n="settings">Configurações</h2>
     </div>
     <div class="setup-body">
       <div class="set-group">
-        <div class="sgtitle">Vídeo</div>
+        <div class="sgtitle" data-i18n="video">Vídeo</div>
         <div class="slider-row">
-          <div class="srtop"><span class="srname">Qualidade dos efeitos</span><span class="srval" id="vfxVal">Alta</span></div>
+          <div class="srtop"><span class="srname" data-i18n="effectsQuality">Qualidade dos efeitos</span><span class="srval" id="vfxVal">Alta</span></div>
           <input type="range" id="vfxRange" min="0" max="2" step="1" value="2">
         </div>
         <div class="cheat-row" style="border-top:none;">
-          <div><div class="crname">Partículas</div><div class="crdesc">Faíscas, fogo e explosões</div></div>
+          <div><div class="crname" data-i18n="particles">Partículas</div><div class="crdesc" data-i18n="particlesDesc">Faíscas, fogo e explosões</div></div>
           <div class="toggle on" id="tglParticles"></div>
         </div>
         <div class="cheat-row">
-          <div><div class="crname">Flash de tela</div><div class="crdesc">Clarões em impactos</div></div>
+          <div><div class="crname" data-i18n="screenFlash">Flash de tela</div><div class="crdesc" data-i18n="screenFlashDesc">Clarões em impactos</div></div>
           <div class="toggle on" id="tglFlash"></div>
         </div>
       </div>
       <div class="set-group">
-        <div class="sgtitle">Áudio</div>
+        <div class="sgtitle" data-i18n="audio">Áudio</div>
         <div class="slider-row">
-          <div class="srtop"><span class="srname">Volume geral</span><span class="srval" id="volVal">80%</span></div>
+          <div class="srtop"><span class="srname" data-i18n="masterVolume">Volume geral</span><span class="srval" id="volVal">80%</span></div>
           <input type="range" id="volRange" min="0" max="100" step="5" value="80">
         </div>
         <div class="cheat-row" style="border-top:none;">
-          <div><div class="crname">Música</div><div class="crdesc">Trilha do menu</div></div>
+          <div><div class="crname" data-i18n="music">Música</div><div class="crdesc" data-i18n="musicDesc">Trilha do menu</div></div>
           <div class="toggle on" id="tglMusic"></div>
         </div>
         <div class="cheat-row">
-          <div><div class="crname">Efeitos sonoros</div><div class="crdesc">Sons de combate</div></div>
+          <div><div class="crname" data-i18n="sfx">Efeitos sonoros</div><div class="crdesc" data-i18n="sfxDesc">Sons de combate</div></div>
           <div class="toggle on" id="tglSfx"></div>
+        </div>
+      </div>
+      <div class="set-group">
+        <div class="sgtitle" data-i18n="language">Idioma</div>
+        <div class="opt-row" id="langOpts">
+          <div class="opt" data-lang="pt">🇧🇷 Português</div>
+          <div class="opt" data-lang="en">🇺🇸 English</div>
+          <div class="opt" data-lang="ja">🇯🇵 日本語</div>
         </div>
       </div>
     </div>
@@ -402,8 +627,8 @@ input[type=range]::-webkit-slider-thumb{appearance:none;width:20px;height:20px;b
   <!-- ============ ALMANAC (pokédex) ============ -->
   <div class="screen" id="scrAlmanac">
     <div class="topbar">
-      <button class="backbtn" data-back="scrTitle">‹</button>
-      <h2>Grimório</h2>
+      <button class="backbtn" data-back="scrTitle" data-i18n="back">Back</button>
+      <h2 data-i18n="almanac">Grimório</h2>
     </div>
     <div class="setup-body" id="almanacBody" style="gap:10px;"></div>
   </div>
@@ -411,8 +636,8 @@ input[type=range]::-webkit-slider-thumb{appearance:none;width:20px;height:20px;b
   <!-- ============ CONQUISTAS ============ -->
   <div class="screen" id="scrAchievements">
     <div class="topbar">
-      <button class="backbtn" data-back="scrTitle">‹</button>
-      <h2>Conquistas</h2>
+      <button class="backbtn" data-back="scrTitle" data-i18n="back">Back</button>
+      <h2 data-i18n="achievements">Conquistas</h2>
       <div style="margin-left:auto;font-weight:900;color:var(--gold);">🪙 <span id="achCoins">0</span></div>
     </div>
     <div class="setup-body" id="achBody" style="gap:10px;"></div>
@@ -421,8 +646,8 @@ input[type=range]::-webkit-slider-thumb{appearance:none;width:20px;height:20px;b
   <!-- ============ LOJA ============ -->
   <div class="screen" id="scrShop">
     <div class="topbar">
-      <button class="backbtn" data-back="scrTitle">‹</button>
-      <h2>Loja</h2>
+      <button class="backbtn" data-back="scrTitle" data-i18n="back">Back</button>
+      <h2 data-i18n="shop">Loja</h2>
       <div style="margin-left:auto;font-weight:900;color:var(--gold);">🪙 <span id="shopCoins">0</span></div>
     </div>
     <div class="setup-body" id="shopBody" style="gap:14px;"></div>
@@ -450,11 +675,11 @@ input[type=range]::-webkit-slider-thumb{appearance:none;width:20px;height:20px;b
       <div id="victoryCard">
         <div class="vrays"></div>
         <div class="vwrap">
-          <div class="vlabel">Vencedor</div>
+          <div class="vlabel" data-i18n="winner">Vencedor</div>
           <div class="vface" id="vFace">⚔</div>
           <div class="vname" id="vName">—</div>
           <div class="vsub" id="vSub"></div>
-          <button id="vBack">Voltar à seleção</button>
+          <button id="vBack" data-i18n="backToSelect">Voltar à seleção</button>
         </div>
       </div>
     </div>
@@ -489,34 +714,129 @@ input[type=range]::-webkit-slider-thumb{appearance:none;width:20px;height:20px;b
    BALL FIGHTING ARENA — núcleo
    ================================================================== */
 
+/* ---------- IDIOMAS (i18n) ---------- */
+const I18N = {
+  pt:{
+    _name:'Português',
+    start:'Iniciar', almanac:'Grimório', achievements:'Conquistas', shop:'Loja',
+    settings:'Configurações', quit:'Sair',
+    gameModes:'Modos de Jogo', arenaConfig:'Arena Mode · Configurar',
+    selectFighters:'Selecionar Lutadores', winner:'Vencedor', backToSelect:'Voltar à seleção',
+    map:'Mapa', players:'Jogadores', chooseFighters:'Escolher Lutadores',
+    video:'Vídeo', effectsQuality:'Qualidade dos efeitos', particles:'Partículas',
+    particlesDesc:'Faíscas, fogo e explosões', screenFlash:'Flash de tela',
+    screenFlashDesc:'Clarões em impactos', audio:'Áudio', masterVolume:'Volume geral',
+    music:'Música', musicDesc:'Trilha do menu', sfx:'Efeitos sonoros', sfxDesc:'Sons de combate',
+    language:'Idioma', languageDesc:'Idioma do jogo',
+    high:'Alta', medium:'Média', low:'Baixa',
+    random:'Random', fight:'Lutar!', back:'Voltar', menu:'Menu',
+    player:'Jogador', createdBy:'Criado por', life:'vida', playTheme:'Ouvir tema de vitória',
+    almHint:'Toque num lutador para ver a ficha completa', almSkill:'Habilidade especial',
+    draw:'Empate', nobodySurvived:'Ninguém sobreviveu', tie:'Empate',
+    teamAYou:'Time A · Você', teamBEnemy:'Time B · Adversário', ledBy:'Liderado por',
+    teamA:'Time A', teamB:'Time B',
+    coins:'Moedas', itemsSoon:'Itens em breve',
+    itemsSoonDesc:'Cosméticos, skins e packs de personagens<br>vão aparecer aqui em atualizações futuras.',
+    paymentsUnavailable:'Pagamentos ainda não estão disponíveis 🙂',
+    mode_arena:'Arena Mode', mode_arena_d:'Batalha livre — o último de pé vence',
+    mode_vs:'VS', mode_vs_d:'Você contra um amigo · 1v1, 2v2 ou 3v3',
+    mode_survival:'Survival', mode_survival_d:'Ondas infinitas de inimigos',
+    mode_boss:'Boss Rush', mode_boss_d:'Enfrente chefes em sequência',
+    vsConfig:'VS · Configurar'
+  },
+  en:{
+    _name:'English',
+    start:'Start', almanac:'Grimoire', achievements:'Achievements', shop:'Shop',
+    settings:'Settings', quit:'Quit',
+    gameModes:'Game Modes', arenaConfig:'Arena Mode · Setup',
+    selectFighters:'Select Fighters', winner:'Winner', backToSelect:'Back to selection',
+    map:'Map', players:'Players', chooseFighters:'Choose Fighters',
+    video:'Video', effectsQuality:'Effects quality', particles:'Particles',
+    particlesDesc:'Sparks, fire and explosions', screenFlash:'Screen flash',
+    screenFlashDesc:'Flashes on impact', audio:'Audio', masterVolume:'Master volume',
+    music:'Music', musicDesc:'Menu soundtrack', sfx:'Sound effects', sfxDesc:'Combat sounds',
+    language:'Language', languageDesc:'Game language',
+    high:'High', medium:'Medium', low:'Low',
+    random:'Random', fight:'Fight!', back:'Back', menu:'Menu',
+    player:'Player', createdBy:'Created by', life:'HP', playTheme:'Play victory theme',
+    almHint:'Tap a fighter to see the full profile', almSkill:'Special ability',
+    draw:'Draw', nobodySurvived:'Nobody survived', tie:'Draw',
+    teamAYou:'Team A · You', teamBEnemy:'Team B · Enemy', ledBy:'Led by',
+    teamA:'Team A', teamB:'Team B',
+    coins:'Coins', itemsSoon:'Items coming soon',
+    itemsSoonDesc:'Cosmetics, skins and character packs<br>will show up here in future updates.',
+    paymentsUnavailable:'Payments are not available yet 🙂',
+    mode_arena:'Arena Mode', mode_arena_d:'Free-for-all — last one standing wins',
+    mode_vs:'VS', mode_vs_d:'You against a friend · 1v1, 2v2 or 3v3',
+    mode_survival:'Survival', mode_survival_d:'Endless waves of enemies',
+    mode_boss:'Boss Rush', mode_boss_d:'Face bosses back to back',
+    vsConfig:'VS · Setup'
+  },
+  ja:{
+    _name:'日本語',
+    start:'スタート', almanac:'図鑑', achievements:'実績', shop:'ショップ',
+    settings:'設定', quit:'終了',
+    gameModes:'ゲームモード', arenaConfig:'アリーナモード · 設定',
+    selectFighters:'ファイター選択', winner:'勝者', backToSelect:'選択に戻る',
+    map:'マップ', players:'プレイヤー', chooseFighters:'ファイターを選ぶ',
+    video:'映像', effectsQuality:'エフェクト品質', particles:'パーティクル',
+    particlesDesc:'火花・炎・爆発', screenFlash:'画面フラッシュ',
+    screenFlashDesc:'衝撃時の閃光', audio:'音声', masterVolume:'全体音量',
+    music:'音楽', musicDesc:'メニューBGM', sfx:'効果音', sfxDesc:'戦闘サウンド',
+    language:'言語', languageDesc:'ゲームの言語',
+    high:'高', medium:'中', low:'低',
+    random:'ランダム', fight:'バトル！', back:'戻る', menu:'メニュー',
+    player:'プレイヤー', createdBy:'作成者', life:'体力', playTheme:'勝利テーマを再生',
+    almHint:'ファイターをタップして詳細を見る', almSkill:'特殊能力',
+    draw:'引き分け', nobodySurvived:'全員倒れた', tie:'引き分け',
+    teamAYou:'チームA · あなた', teamBEnemy:'チームB · 相手', ledBy:'リーダー',
+    teamA:'チームA', teamB:'チームB',
+    coins:'コイン', itemsSoon:'アイテムは近日公開',
+    itemsSoonDesc:'コスメ・スキン・キャラパックは<br>今後のアップデートで登場します。',
+    paymentsUnavailable:'決済はまだ利用できません 🙂',
+    mode_arena:'アリーナモード', mode_arena_d:'バトルロイヤル — 最後まで生き残った者が勝ち',
+    mode_vs:'VS', mode_vs_d:'友達と対戦 · 1v1・2v2・3v3',
+    mode_survival:'サバイバル', mode_survival_d:'無限に押し寄せる敵の波',
+    mode_boss:'ボスラッシュ', mode_boss_d:'ボスと連戦する',
+    vsConfig:'VS · 設定'
+  }
+};
+function t(key){ const L=I18N[G.settings.lang]||I18N.pt; return L[key]!==undefined?L[key]:(I18N.pt[key]||key); }
+
 /* ---------- ROSTER ---------- */
 const CHARS = {
-  berserker:{ name:'Berserker', color:'#d4a017', dark:'#8a6a0f', icon:'👊',
+  berserker:{ name:'Berserk', color:'#d4a017', dark:'#8a6a0f', icon:'👊',
     kind:'brawler', punchDmg:5, punchReach:14, grabDmg:8, grabCd:120 },
   samurai:{ name:'Samurai', color:'#a3d21e', dark:'#5f7d0f', icon:'🗡',
     kind:'katana', dmg:6, slashCd:45, ultCd:300 },
-  arqueiro:{ name:'Arqueiro', color:'#3b9ae0', dark:'#1f5f96', icon:'🏹',
+  arqueiro:{ name:'Range', color:'#3b9ae0', dark:'#1f5f96', icon:'🏹',
     kind:'archer', dmg:10, fireCd:120 },
-  mago:{ name:'Mago', color:'#c05ae0', dark:'#7a2f96', icon:'🔮',
+  mago:{ name:'Mage', color:'#c05ae0', dark:'#7a2f96', icon:'🔮',
     kind:'mage', dmg:10, splash:24, fireCd:70 },
-  clonador:{ name:'Clonador', color:'#20b0a0', dark:'#0f6a60', icon:'👥',
+  clonador:{ name:'Clone', color:'#20b0a0', dark:'#0f6a60', icon:'👥',
     kind:'cloner', touchDmg:5 },
   luciferus:{ name:'Luciferus', color:'#f5f0d8', dark:'#c9b96a', icon:'😇',
     kind:'angel', hp:500, auraR:40, auraDmg:0.12,
     demonHp:250, demonAuraR:46, demonDmg:0.55 },
-  pandora:{ name:'PandoraBall', color:'#e8e2ec', dark:'#8a7fa0', icon:'🎲',
+  pandora:{ name:'Pandora', color:'#e8e2ec', dark:'#8a7fa0', icon:'🎲',
     kind:'pandora', hp:250 },
   soldier:{ name:'Soldier', color:'#5a7d3c', dark:'#3a5525', icon:'🪖',
     kind:'soldier', hp:250, vestHp:150, bulletDmg:4, burst:20, reloadTime:120,
     grenadeDmg:100, grenadeSplash:50 },
-  pacman:{ name:'Pacman', color:'#f2d42e', dark:'#b8a010', icon:'🟡',
+  pacman:{ name:'PacMac', color:'#f2d42e', dark:'#b8a010', icon:'🟡',
     kind:'pacman', hp:250, touchDmg:18, pelletCd:300, powerTime:180 },
-  heavyweight:{ name:'Heavyweight', color:'#7a5230', dark:'#4a3018', icon:'🤼',
+  heavyweight:{ name:'Weight', color:'#7a5230', dark:'#4a3018', icon:'🤼',
     kind:'heavy', hp:350, touchDmg:8, spinDmg:10, throwDmg:50, throwCd:150 },
   chronos:{ name:'Chronos', color:'#4a90d9', dark:'#2a5a8a', icon:'⏳',
-    kind:'chronos', hp:250, dmg:8, fireCd:90, bubbleCd:180 }
+    kind:'chronos', hp:250, dmg:8, fireCd:90, bubbleCd:180 },
+  vampire:{ name:'Vampire', color:'#8a8a92', dark:'#4a4a52', icon:'🧛',
+    kind:'vampire', hp:150, dmg:14, fireCd:70 },
+  soulstealer:{ name:'Soul Stealer', color:'#6a3ca8', dark:'#3a1f66', icon:'🔮',
+    kind:'soulstealer', hp:200, dmg:10 },
+  hunter:{ name:'Hunter', color:'#b5722e', dark:'#6e4318', icon:'🔫',
+    kind:'hunter', hp:250, dmg:30 }
 };
-const ORDER=['berserker','samurai','arqueiro','mago','clonador','luciferus','pandora','soldier','pacman','heavyweight','chronos'];
+const ORDER=['berserker','samurai','arqueiro','mago','clonador','luciferus','pandora','soldier','pacman','heavyweight','chronos','vampire','soulstealer','hunter'];
 
 /* ---------- ALMANAC: descrições dos personagens ---------- */
 const ALMANAC = {
@@ -552,8 +872,90 @@ const ALMANAC = {
     skill:'Especial: agarra o inimigo e o gira de 1 a 10 vezes (10 de dano por giro), depois o ARREMESSA numa direção aleatória. Quem foi arremessado vira um "projétil humano": se bater em alguém, causa 50 de dano (mas não machuca aliados de quem arremessou). Não agarra outro Heavyweight.' },
   chronos:{ hp:250, creator:'Feito por IA',
     desc:'Guardião do tempo. Manipula o fluxo temporal para dominar o campo de batalha.',
-    skill:'Cria BOLHAS DE TEMPO LENTO sobre os inimigos: quem entra na bolha se move em câmera lenta (cerca de 1/3 da velocidade), inclusive os projéteis. Também dispara pulsos temporais que causam dano. ULTIMATE (só com vida abaixo de 20%): PARA O TEMPO — todos os inimigos e seus projéteis congelam por 2 segundos, enquanto o Chronos ataca 10x mais rápido, despejando uma rajada de pulsos temporais. Uma virada desesperada quando está quase morrendo. O Chronos e seus aliados nunca são afetados.' }
+    skill:'Cria BOLHAS DE TEMPO LENTO sobre os inimigos: quem entra na bolha se move em câmera lenta (cerca de 1/3 da velocidade), inclusive os projéteis. Também dispara pulsos temporais que causam dano. ULTIMATE (só com vida abaixo de 20%): PARA O TEMPO — todos os inimigos e seus projéteis congelam por 2 segundos, enquanto o Chronos ataca 5x mais rápido, despejando uma rajada de pulsos temporais. Uma virada desesperada quando está quase morrendo. O Chronos e seus aliados nunca são afetados.' },
+  vampire:{ hp:150, creator:'Renan',
+    desc:'Morcego sanguinário de pele cinzenta, presas afiadas e asas. Arremessa sangue nos inimigos — quanto mais cheio de vida, mais forte o golpe; quanto mais fraco, menos dano.',
+    skill:'MORDIDA: ao encostar num inimigo, ele o AGARRA e dá 3 mordidas. Cada mordida recupera 1 de vida e enche 5% da BARRA DE SANGUE. Ao terminar, os dois se separam e o próprio Vampire é jogado pra trás com força (mais que o inimigo). Ao encher 100% da barra, TRANSFORMA-SE EM DRÁCULA: dobro de dano, dobro de cura e dobro de velocidade. Na forma Drácula a barra vai esvaziando — quando zera, volta ao normal.' },
+  soulstealer:{ hp:200, creator:'Renan',
+    desc:'Ceifador de almas com uma lanterna brilhante. Uma aura à sua volta suga a alma dos inimigos próximos.',
+    skill:'AURA: suga a alma dos inimigos por perto, dando-lhes um debuff de ALMA (0 a 100). Quanto mais alma perdida, mais dano DELE o inimigo recebe (100 = dobro de dano). A alma sugada vai pra lanterna (até 500). A cada 50 de alma, dispara automaticamente uma de 3 skills: 1) RAJADA — explosão em área ao redor; 2) FANTASMA — invoca um espírito que corre até um inimigo aleatório e some ao acertar; 3) FORMA ETÉREA — vira alma e fica 100% intangível por 2s (não ataca, mas continua sugando almas de quem estiver perto).' },
+  hunter:{ hp:250, creator:'Renan',
+    desc:'Caçador com rifle e um cão de caça fiel que nunca morre.',
+    skill:'CACHORRO: corre até um inimigo aleatório, morde (5 de dano), deixa lento e MARCA o alvo; depois descansa um tempo. O inimigo marcado recebe o DOBRO de dano do rifle. Só existe 1 marcado por vez — nova mordida transfere a marca. RIFLE: tiro lento (a cada ~5s) e rápido, 30 de dano (60 no marcado). Sempre prioriza o inimigo marcado, mesmo longe, a não ser que haja parede no caminho. ARMADILHA: joga armadilhas no chão; inimigos que pisarem levam 10 de dano e ficam presos (stun) por alguns segundos. O próprio Hunter também pode pisar nas suas armadilhas — mas não leva dano, só fica lento por um tempo.' }
 };
+
+// traduções do Grimório (descrição + habilidade) por idioma; PT vem do ALMANAC acima
+const ALMANAC_I18N = {
+  en:{
+    berserker:{ desc:'Furious brawler. Punches enemies as he closes in.',
+      skill:'Special: grabs the enemy, lands 5 to 10 punches (5 damage each) and finishes with a kick that throws them far (20 damage). At 25% HP he enters RAGE — turns red, becomes invulnerable for a moment and his blows grow much stronger.' },
+    samurai:{ desc:'Katana warrior who launches arcs of energy toward enemies.',
+      skill:'Every hit can be CRITICAL: 30% chance to double the damage (2x) and 10% chance to quintuple it (5x!). ULTIMATE (5s cooldown): leaps onto 3 random enemies slashing them, staying invulnerable during the jumps — inspired by the Omnislash.' },
+    arqueiro:{ desc:'Nimble shooter with a feathered hat. Each shot picks one of two firing techniques.',
+      skill:'Every 2s (50% each): fires 5 straight arrows forward, OR 5 arrows in a fan (spread). PASSIVE: when dropping to half HP, turns INVISIBLE and intangible for 5 seconds — keeps attacking and moving, and can only be hurt by AREA damage (Luciferus aura, Mage fire, explosions).' },
+    mago:{ desc:'Pointy-hat caster who wields fire, ice and lightning. Each cast randomly picks one of three spells.',
+      skill:'Each cast (33% each): 🔥 Fireball that leaves a flaming trail on the ground (5 damage to whoever steps on it, lasts ~3.5s); ❄️ Ice Shield that absorbs up to 20 damage and turns the HP bar bright blue (recasting refills, does not stack); ⚡ Lightning that strikes a random enemy for 20 damage. RARE (1%): summons a random allied hero to fight at his side until the end!' },
+    clonador:{ desc:'Summoner who creates clones of himself as he loses HP.',
+      skill:'For every 10% HP lost, spawns a clone that chases and hits enemies. Can have up to 10 clones at once, becoming a swarm.' },
+    luciferus:{ desc:'Angel with a holy aura that hurts anyone nearby. The toughest character in his angelic form.',
+      skill:'Angel form: pulsing aura that deals continuous damage around him. When he "dies", he REBORNS as a DEMON (😈) with 250 fresh HP, spitting fire from range. Two characters in one.' },
+    pandora:{ desc:'Unpredictable box of chaos. Transforms into other characters at random.',
+      skill:'Every few seconds, transforms into a random character from the game (with their powers!) and then returns to normal. You never know what it will become. In the end, its victory theme is that of the character it was.' },
+    soldier:{ desc:'Camouflaged soldier with a bulletproof vest and a machine gun.',
+      skill:'Vest (🛡) absorbs projectile damage until it breaks. Fires bursts of 20 shots and reloads. At low HP, throws a high-damage explosive grenade as a last resort.' },
+    pacman:{ desc:'Yellow devourer that moves in a straight line and passes through enemies, biting.',
+      skill:'Passes through opponents, biting once per pass. Every 5s it spawns its own pellet; eating it turns it BLUE for 3s with double speed and damage.' },
+    heavyweight:{ desc:'Wrestling brute. Deals touch damage and is very tough.',
+      skill:'Special: grabs the enemy and spins them 1 to 10 times (10 damage per spin), then THROWS them in a random direction. Whoever is thrown becomes a "human projectile": if they hit someone, they deal 50 damage (but never hurts allies of the thrower). Does not grab another Heavyweight.' },
+    chronos:{ desc:'Guardian of time. Manipulates the temporal flow to dominate the battlefield.',
+      skill:'Creates SLOW-TIME BUBBLES over enemies: whoever enters the bubble moves in slow motion (about 1/3 speed), projectiles included. Also fires temporal pulses that deal damage. ULTIMATE (only below 20% HP): STOPS TIME — all enemies and their projectiles freeze for 2 seconds while Chronos attacks 5x faster, unleashing a barrage of temporal pulses. A desperate comeback when near death. Chronos and his allies are never affected.' },
+    vampire:{ desc:'A bloodthirsty gray-skinned bat with sharp fangs and wings. Hurls blood at enemies — the fuller his health, the stronger the hit; the weaker he is, the less damage.',
+      skill:'BITE: on contact he GRABS the enemy and bites 3 times. Each bite heals 1 HP and fills 5% of his BLOOD BAR. When done, both split apart and the Vampire himself is flung backward hard (harder than the enemy). At 100% he TRANSFORMS INTO DRACULA: double damage, double healing and double speed. In Dracula form the bar drains — when empty, he reverts.' },
+    soulstealer:{ desc:'A soul reaper carrying a glowing lantern. An aura around him drains the souls of nearby enemies.',
+      skill:'AURA: drains the souls of nearby enemies, applying a SOUL debuff (0 to 100). The more soul lost, the more damage they take from HIM (100 = double). Drained souls fill his lantern (up to 500). Every 50 soul he auto-casts one of 3 skills: 1) BLAST — area explosion around him; 2) GHOST — summons a spirit that rushes a random enemy and vanishes on hit; 3) ETHEREAL — becomes a soul, 100% intangible for 2s (cannot attack, but still drains nearby souls).' },
+    hunter:{ desc:'A hunter with a rifle and a loyal hound that never dies.',
+      skill:'DOG: runs to a random enemy, bites (5 dmg), slows and MARKS them, then rests. The marked target takes DOUBLE rifle damage. Only 1 mark at a time — a new bite transfers it. RIFLE: slow (every ~5s) but fast shot, 30 dmg (60 on the marked). Always prioritizes the marked enemy, even far away, unless a wall blocks the line. TRAP: drops traps on the ground; enemies who step on one take 10 dmg and are stunned for a few seconds. The Hunter can step on his own traps too — but takes no damage, just gets slowed for a while.' }
+  },
+  ja:{
+    berserker:{ desc:'怒れる格闘家。敵に近づいて殴りかかる。',
+      skill:'必殺技：敵をつかみ、5〜10回のパンチ（各5ダメージ）を叩き込み、遠くへ吹き飛ばすキック（20ダメージ）で締める。HP25%以下で「激昂」状態に入り、赤くなって一瞬無敵になり、攻撃が大幅に強化される。' },
+    samurai:{ desc:'刀を振るう戦士。敵に向けてエネルギーの斬撃を放つ。',
+      skill:'すべての攻撃が「クリティカル」になり得る：30%の確率でダメージ2倍、10%の確率で5倍！必殺技（クールタイム5秒）：ランダムな3体の敵に飛びかかり斬りつけ、その間は無敵になる——オムニスラッシュ風。' },
+    arqueiro:{ desc:'羽根つき帽子の素早い射手。射撃ごとに2つの技から選ぶ。',
+      skill:'2秒ごと（各50%）：前方に矢を5本まっすぐ、または扇状に5本発射。パッシブ：HPが半分になると5秒間「透明」かつ実体なしに——攻撃と移動は続き、範囲ダメージ（ルシファスのオーラ、魔法使いの炎、爆発）でしか傷つかない。' },
+    mago:{ desc:'とんがり帽子の魔術師。炎・氷・雷を操る。詠唱ごとに3つの魔法からランダムに選ぶ。',
+      skill:'詠唱ごと（各33%）：🔥 地面に炎の跡を残すファイアボール（踏むと5ダメージ、約3.5秒持続）；❄️ 最大20ダメージを吸収しHPバーを青く輝かせるアイスシールド（再詠唱で回復、重複なし）；⚡ ランダムな敵に20ダメージの雷。レア（1%）：味方の英雄をランダムに召喚し、最後まで共に戦う！' },
+    clonador:{ desc:'HPを失うごとに自分の分身を生み出す召喚者。',
+      skill:'HPが10%減るごとに、敵を追いかけて殴る分身を生成。最大10体まで同時に出せて、群れとなる。' },
+    luciferus:{ desc:'聖なるオーラで近づく者を傷つける天使。天使形態では最も硬い。',
+      skill:'天使形態：周囲に継続ダメージを与える脈打つオーラ。「死ぬ」と250の新たなHPを持つ「悪魔」（😈）として復活し、遠距離から炎を吐く。1体で2キャラ分。' },
+    pandora:{ desc:'予測不能な混沌の箱。ランダムに他のキャラへ変身する。',
+      skill:'数秒ごとにゲーム内のランダムなキャラ（その能力ごと！）に変身し、その後元に戻る。何になるかは誰にも分からない。最後の勝利テーマは、その時なっていたキャラのもの。' },
+    soldier:{ desc:'防弾ベストとマシンガンを持つ迷彩の兵士。',
+      skill:'ベスト（🛡）は壊れるまで弾のダメージを吸収。20連射のバーストを撃ちリロードする。HPが低いと、最後の手段として高ダメージの爆発手榴弾を投げる。' },
+    pacman:{ desc:'まっすぐ進み、敵をすり抜けて噛みつく黄色い捕食者。',
+      skill:'相手をすり抜け、通過するたびに一噛み。5秒ごとに自分のペレットを生成；食べると3秒間「青く」なり、速度とダメージが倍になる。' },
+    heavyweight:{ desc:'レスリングの怪力。接触ダメージを与え、非常に頑丈。',
+      skill:'必殺技：敵をつかんで1〜10回回転させ（1回転10ダメージ）、ランダムな方向へ「投げ飛ばす」。投げられた者は「人間の弾」になる：誰かに当たると50ダメージ（ただし投げた側の味方は傷つけない）。他のヘビー級はつかめない。' },
+    chronos:{ desc:'時の守護者。時間の流れを操り戦場を支配する。',
+      skill:'敵の上に「スロー時間バブル」を生成：中に入った者は（弾も含め）スローモーション（約1/3速度）になる。ダメージを与える時間パルスも放つ。必殺技（HP20%以下のみ）：時を止める——すべての敵とその弾が2秒間停止し、その間クロノスは5倍速で攻撃し、時間パルスの弾幕を浴びせる。瀕死からの決死の逆転。クロノスと味方は決して影響を受けない。' },
+    vampire:{ desc:'灰色の肌に鋭い牙と翼を持つ吸血コウモリ。敵に血を投げつける——HPが満タンなほど強力で、弱っているほどダメージが下がる。',
+      skill:'噛みつき：敵に触れるとつかんで3回噛みつく。1噛みごとにHP1回復し「ブラッドゲージ」が5%たまる。終わると両者は離れ、ヴァンパイア自身が強く後ろへ吹き飛ぶ（敵より強く）。100%でドラキュラに変身：ダメージ2倍、回復2倍、速度2倍。ドラキュラ形態ではゲージが減り、ゼロで元に戻る。' },
+    soulstealer:{ desc:'光るランタンを持つ魂の刈り取り手。周囲のオーラが近くの敵の魂を吸い取る。',
+      skill:'オーラ：近くの敵の魂を吸い、「ソウル」デバフ（0〜100）を与える。魂を失うほど、彼から受けるダメージが増える（100で2倍）。吸った魂はランタンにたまる（最大500）。ソウル50ごとに3つのスキルから自動発動：1) 爆発——周囲に範囲ダメージ；2) 亡霊——ランダムな敵に突進し命中で消える霊を召喚；3) 霊体化——魂になり2秒間100%無敵（攻撃不可だが近くの魂は吸い続ける）。' },
+    hunter:{ desc:'ライフルと、決して死なない忠実な猟犬を連れた狩人。',
+      skill:'犬：ランダムな敵に走り噛みつき（5ダメージ）、鈍足にして「マーク」を付け、その後休む。マークされた敵はライフルのダメージが2倍。マークは同時に1体のみ——新たに噛むと移る。ライフル：低速（約5秒毎）だが速い弾、30ダメージ（マーク時60）。壁が無い限り、遠くてもマークした敵を優先。トラップ：地面に罠を設置；敵が踏むと10ダメージと数秒のスタン。狩人自身も自分の罠を踏むことがあるが、ダメージは無くしばらく鈍足になるだけ。' }
+  }
+};
+// retorna {desc, skill} do personagem no idioma atual
+function almanacText(id){
+  const base=ALMANAC[id]||{};
+  const lang=G.settings.lang;
+  if(lang!=='pt' && ALMANAC_I18N[lang] && ALMANAC_I18N[lang][id]){
+    return ALMANAC_I18N[lang][id];
+  }
+  return { desc:base.desc||'', skill:base.skill||'' };
+}
 
 /* ---------- CONQUISTAS ---------- */
 const ACHIEVEMENTS = [
@@ -566,14 +968,48 @@ const ACHIEVEMENTS = [
   {id:'suicide', name:'Pq está se batendo?', desc:'Mate a si mesmo no VS ou na arena', coins:100, check:p=>p.suicides>=1},
   {id:'flawless',name:'Injusto',          desc:'Ganhe sem levar dano',          coins:100, check:p=>p.flawless>=1}
 ];
+// traduções das conquistas (nome + descrição) por idioma; PT vem do array acima
+const ACHIEVEMENTS_I18N = {
+  en:{
+    play5:{ name:'Warming Up',      desc:'Play 5 matches' },
+    play50:{ name:'Hooked',         desc:'Play 50 matches' },
+    play100:{ name:'Arena Legend',  desc:'Play 100 matches' },
+    kill10:{ name:'First Blood',    desc:'Kill 10 enemies' },
+    kill100:{ name:'Butcher',       desc:'Kill 100 enemies' },
+    kill500:{ name:'Reaper',        desc:'Kill 500 enemies' },
+    suicide:{ name:'Why hit yourself?', desc:'Kill yourself in VS or the arena' },
+    flawless:{ name:'Unfair',       desc:'Win without taking damage' }
+  },
+  ja:{
+    play5:{ name:'ウォームアップ',   desc:'5戦プレイする' },
+    play50:{ name:'ハマった',        desc:'50戦プレイする' },
+    play100:{ name:'アリーナの伝説', desc:'100戦プレイする' },
+    kill10:{ name:'ファーストブラッド', desc:'敵を10体倒す' },
+    kill100:{ name:'ブッチャー',     desc:'敵を100体倒す' },
+    kill500:{ name:'死神',           desc:'敵を500体倒す' },
+    suicide:{ name:'なんで自分を殴ってるの？', desc:'VSかアリーナで自滅する' },
+    flawless:{ name:'理不尽',        desc:'ノーダメージで勝利する' }
+  }
+};
+// retorna {name, desc} da conquista no idioma atual
+function achievementText(a){
+  const lang=G.settings.lang;
+  if(lang!=='pt' && ACHIEVEMENTS_I18N[lang] && ACHIEVEMENTS_I18N[lang][a.id]){
+    return ACHIEVEMENTS_I18N[lang][a.id];
+  }
+  return { name:a.name, desc:a.desc };
+}
 
 /* ---------- PROGRESSO (salvo no aparelho) ---------- */
 const SAVE_KEY='bfa_save_v1';
 let SAVE = { coins:0, games:0, kills:0, suicides:0, flawless:0, unlocked:{} };
 function loadSave(){
   try{ const raw=localStorage.getItem(SAVE_KEY); if(raw){ SAVE=Object.assign(SAVE, JSON.parse(raw)); if(!SAVE.unlocked)SAVE.unlocked={}; } }catch(e){}
+  // carrega as configurações salvas (idioma, volume, toggles)
+  try{ const s=localStorage.getItem('bfa_settings_v1'); if(s){ Object.assign(G.settings, JSON.parse(s)); } }catch(e){}
 }
 function persistSave(){ try{ localStorage.setItem(SAVE_KEY, JSON.stringify(SAVE)); }catch(e){} }
+function persistSettings(){ try{ localStorage.setItem('bfa_settings_v1', JSON.stringify(G.settings)); }catch(e){} }
 function addCoins(n){ SAVE.coins+=n; persistSave(); updateCoinDisplay(); }
 function updateCoinDisplay(){
   ['coinCount','achCoins','shopCoins'].forEach(id=>{ const el=document.getElementById(id); if(el)el.textContent=SAVE.coins; });
@@ -597,9 +1033,11 @@ const MAPS = {
   medium:{ name:'Médio', icon:'◼', shape:'square', size:0.88 },
   large:{ name:'Grande', icon:'⬛', shape:'square', size:1.0 },
   circle:{ name:'Círculo', icon:'⬤', shape:'circle', size:0.96 },
-  boxbox:{ name:'Box in Box', icon:'⊡', shape:'boxbox', size:1.0 }
+  boxbox:{ name:'Box in Box', icon:'⊡', shape:'boxbox', size:1.0 },
+  plus:{ name:'Cruz', icon:'➕', shape:'plus', size:1.0 },
+  blackhole:{ name:'Buraco Negro', icon:'🕳', shape:'blackhole', size:1.0 }
 };
-const MAP_ORDER=['small','medium','large','circle','boxbox'];
+const MAP_ORDER=['small','medium','large','circle','boxbox','plus','blackhole'];
 
 /* ---------- ESTADO GLOBAL ---------- */
 const G = {
@@ -611,9 +1049,13 @@ const G = {
   slots:[],            // {charId, cfg, team} — team só no modo VS
   activeSlot:0,
   gearSlot:0,
-  settings:{ vfx:2, particles:true, flash:true, vol:80, music:true, sfx:true }
+  settings:{ vfx:2, particles:true, flash:true, vol:80, music:true, sfx:true, lang:'pt' }
 };
 function defaultCfg(){ return {dmg:1, hp:1, size:1, speed:1, fireRate:1, immortal:false}; }
+// tamanho base da bola e fator de escala (tudo — minions, auras, áreas — deriva daqui).
+// Original era 34; diminuímos pra dar mais espaço nos mapas. SCALE reescala tudo junto.
+const BALL_R=28;
+const SCALE=BALL_R/34; // ~0.82 — multiplica minions/auras/áreas pra manter proporção
 function isVS(){ return G.mode==='vs'; }
 
 /* ==================================================================
@@ -779,6 +1221,12 @@ const SFX={
   lock(){ synth({freq:200,dur:0.16,wave:'sawtooth',gain:0.12,glide:130,filter:{type:'lowpass',freq:800,env:300}}); hit({dur:0.08,gain:0.08,freq:400}); },
   toggle(){ synth({freq:640,dur:0.07,wave:'square',gain:0.09,glide:760,filter:{type:'highpass',freq:400}}); },
   // combate
+  punch(){ if(canPlay('punch',45)){
+    // soco grosso e seco: transiente grave (thud) + estalo curto de impacto, sem cauda metálica
+    drumKick(null,0.55);                                                    // corpo grave do impacto
+    synth({freq:150,dur:0.09,wave:'sine',gain:0.24,glide:60,sub:0.5,filter:{type:'lowpass',freq:600,env:200}}); // "thump" grave
+    hit({dur:0.05,gain:0.18,freq:1100,filterType:'lowpass',q:0.7,shape:0.5}); // estalo seco do impacto (curto, sem reverb)
+  } },
   sword(){ if(canPlay('sword',55)){ hit({dur:0.09,gain:0.16,freq:3200,filterType:'bandpass',q:1.5,reverb:true});
     synth({freq:420,dur:0.10,wave:'sawtooth',gain:0.10,glide:180,filter:{type:'highpass',freq:900}}); } },
   slash(){ if(canPlay('slash',45)){
@@ -789,6 +1237,15 @@ const SFX={
   touch(){ if(canPlay('touch',65))synth({freq:200,dur:0.10,wave:'sine',gain:0.14,glide:110,sub:0.4,filter:{type:'lowpass',freq:900}}); },
   arrow(){ if(canPlay('arrow',70)){ synth({freq:900,dur:0.12,wave:'sawtooth',gain:0.09,glide:280,filter:{type:'bandpass',freq:2000,q:2}});
     hit({dur:0.06,gain:0.05,freq:5000,filterType:'highpass'}); } },
+  // estampido seco de arma de fogo (metralhadora): crack agudo + estouro grave, SEM tom nem glide
+  gunshot(){ if(canPlay('gunshot',55)){
+    // "PÁ" — estalo branco agudo e curtíssimo, bem seco e estalado (o crack do disparo)
+    hit({dur:0.035,gain:0.48,freq:5500,filterType:'highpass',q:0.6,shape:3.2});
+    // camada média que dá o "corpo" do estalo (curta, sem virar grave/abafado)
+    hit({dur:0.055,gain:0.28,freq:2000,filterType:'bandpass',q:0.9,shape:2.4});
+    // punch grave MÍNIMO só pra dar peso (bem curtinho, senão vira "tu")
+    synth({freq:130,dur:0.04,wave:'sine',gain:0.17,glide:70,sub:0.3,filter:{type:'lowpass',freq:600,env:120},r:0.02});
+  } },
   fireball(){ if(canPlay('fireball',85)){ synth({freq:240,dur:0.18,wave:'sawtooth',gain:0.12,glide:80,detune:[-10,10],filter:{type:'lowpass',freq:1400,env:300},reverb:true});
     hit({dur:0.14,gain:0.06,freq:1800,filterType:'bandpass',q:0.7}); } },
   explosion(){ if(canPlay('explosion',110)){ drumKick(null,0.7);
@@ -998,6 +1455,8 @@ function edmRiser(t,dur){
 function startMusic(){
   if(!G.settings.music||!AC||musicTimer)return;
   if(!musicBus)musicBus=makeMusicBus();
+  // garante volume cheio ao (re)iniciar, a menos que um fade esteja controlando
+  if(musicBus.master && !musicFading){ musicBus.master.gain.cancelScheduledValues(AC.currentTime); musicBus.master.gain.setValueAtTime(1, AC.currentTime); }
   const BPM=130, stepDur=60/BPM/4; // semicolcheia
   musicStep=0;
   const schedule=()=>{
@@ -1061,6 +1520,179 @@ function startMusic(){
   musicStarted=true;
 }
 function stopMusic(){ if(musicTimer){clearInterval(musicTimer);musicTimer=null;} }
+let musicFading=false;
+// para a música do menu com fade out suave (e chama cb ao terminar)
+function fadeOutMusic(ms, cb){
+  if(!musicBus||!musicBus.master||!AC){ stopMusic(); if(cb)cb(); return; }
+  musicFading=true;
+  const g=musicBus.master.gain, now=AC.currentTime, dur=(ms||600)/1000;
+  g.cancelScheduledValues(now); g.setValueAtTime(g.value, now);
+  g.linearRampToValueAtTime(0.0001, now+dur);
+  setTimeout(()=>{ stopMusic(); if(musicBus&&musicBus.master)musicBus.master.gain.setValueAtTime(0.0001, AC.currentTime); musicFading=false; if(cb)cb(); }, ms||600);
+}
+// retoma a música do menu subindo o volume devagarinho (degradê)
+function fadeInMusic(ms){
+  if(!G.settings.music||!AC) return;
+  musicFading=true;
+  startMusic();
+  if(!musicBus||!musicBus.master){ musicFading=false; return; }
+  const g=musicBus.master.gain, now=AC.currentTime, dur=(ms||1400)/1000;
+  g.cancelScheduledValues(now); g.setValueAtTime(0.0001, now);
+  g.linearRampToValueAtTime(1, now+dur);
+  setTimeout(()=>{ musicFading=false; }, ms||1400);
+}
+
+/* ==================================================================
+   MÚSICA DE BATALHA — trilhas chiptune ricas (Batalha Veloz + Metal)
+   ================================================================== */
+let battleMusicTimer=null, battleMusicBus=null, battleStep=0, battleTrack=-1;
+function bmHz(m){ return 440*Math.pow(2,(m-69)/12); }
+const BM_N={};
+['C','Cs','D','Ds','E','F','Fs','G','Gs','A','As','B'].forEach((nm,i)=>{
+  for(let oct=1;oct<=6;oct++){ BM_N[nm+oct]=bmHz(12*(oct+1)+i); }
+});
+
+// ---------- FAIXA 0: BATALHA VELOZ (rica) ----------
+// lead principal (128 passos, parte A+B)
+const BV_LEAD=[
+  'A5',null,'G5',null,'A5',null,'E5','Fs5','A5',null,'B5',null,'C6',null,'B5',null,
+  'B5',null,'A5',null,'G5',null,'E5',null,'G5','A5','B5',null,'A5',null,'G5',null,
+  'C6',null,'B5',null,'A5',null,'G5','Fs5','A5',null,'E5',null,'A5',null,'C6',null,
+  'E5',null,'G5',null,'A5',null,'C6',null,'B5','A5','G5',null,'A5',null,'E5',null,
+  'C6',null,'D6',null,'E6',null,'C6','B5','A5',null,'C6',null,'D6',null,'E6',null,
+  'B5',null,'D6',null,'C6',null,'A5',null,'B5','C6','G5',null,'B5',null,'D6',null,
+  'A5',null,'C6',null,'E6',null,'D6','C6','C6',null,'A5',null,'G5',null,'E5',null,
+  'E5',null,'A5',null,'C6',null,'E6',null,'D6','C6','B5',null,'A5',null,'Gs5',null
+];
+// contramelodia (harmonia, entra na parte B e nos refrões) — terças/quintas
+const BV_HARM=[
+  null,null,'E5',null,null,null,'C5',null,null,null,'G5',null,null,null,'G5',null,
+  null,null,'E5',null,null,null,'C5',null,null,null,'E5',null,null,null,'E5',null,
+  'E5',null,null,null,'E5',null,null,null,'C5',null,null,null,'E5',null,null,null,
+  null,null,'C5',null,null,null,'E5',null,null,null,'E5',null,null,null,'C5',null,
+  'E5',null,'G5',null,'A5',null,'E5',null,'E5',null,'E5',null,'G5',null,'A5',null,
+  'G5',null,'A5',null,'E5',null,'C5',null,'G5',null,'D5',null,'G5',null,'A5',null,
+  'C5',null,'E5',null,'A5',null,'G5',null,'E5',null,'C5',null,'B4',null,'A4',null,
+  'A4',null,'C5',null,'E5',null,'A5',null,'A5',null,'E5',null,'C5',null,'E5',null
+];
+const BV_BASS=['A2','A2','E2','A2','A2','E2','F2','C2','F2','C2','C2','G2','G2','D2','E2','E2'];
+const BV_BASS_B=['C2','C2','G2','C2','A2','E2','A2','E2','D2','A2','D2','A2','E2','B2','E2','E2'];
+const BV_ARP=['A4','C5','E5','A5','G4','B4','D5','G5','F4','A4','C5','F5','E4','G4','B4','E5']; // arpejo brilhante
+
+// ---------- FAIXA 1: METAL PESADO (rica) ----------
+// riff grave em palm-mute (128 passos)
+const MT_RIFF=[
+  'E2','E2','E2',null,'G2','E2','F2',null,'E2','E2','E2',null,'As2','A2','G2',null,
+  'E2','E2','E2',null,'G2','E2','C3',null,'B2','A2','G2',null,'E2','E2','E2',null,
+  'E2','E2','E2',null,'G2','E2','F2',null,'E2','E2','E2',null,'D3','C3','As2',null,
+  'A2','A2','A2',null,'C3','A2','G2',null,'E2','E2','G2',null,'E2','D2','E2',null,
+  'E2','E2','G2',null,'A2','G2','E2',null,'E2','E2','G2',null,'C3','B2','A2',null,
+  'F2','F2','A2',null,'C3','A2','F2',null,'G2','G2','As2',null,'D3','C3','As2',null,
+  'E2','E2','E2',null,'G2','E2','F2',null,'E2','E2','G2',null,'A2','G2','E2',null,
+  'E2','E2','G2','A2','B2','A2','G2','E2','E2','E2','G2','B2','E3','D3','B2','G2'
+];
+// dobra de guitarra (quinta acima do riff, entra em partes)
+const MT_LEAD=[
+  null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,
+  null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,
+  'E5',null,'G5',null,'B5',null,'E6',null,'D6',null,'B5',null,'G5',null,'E5',null,
+  'Fs5',null,'A5',null,'C6',null,'A5',null,'G5',null,'E5',null,'Fs5',null,'G5',null,
+  'B5',null,'A5',null,'G5',null,'E5',null,'G5',null,'A5',null,'B5',null,'C6',null,
+  'A5',null,'C6',null,'A5',null,'F5',null,'G5',null,'As5',null,'C6',null,'D6',null,
+  'E6',null,'D6',null,'B5',null,'G5',null,'A5',null,'B5',null,'C6',null,'B5',null,
+  'E6',null,'D6',null,'B5',null,'G5','A5','B5',null,'E6',null,'G6',null,'E6',null
+];
+const MT_ARP=['E3','B3','E4','G4','E3','B3','E4','B3','A3','E4','A4','C5','A3','E4','A4','E4'];
+
+function startBattleMusic(track){
+  if(!G.settings.music||!AC||battleMusicTimer)return;
+  // alterna entre as faixas a cada batalha (em vez de sortear e repetir muito)
+  if(track===undefined){ battleTrack=(battleTrack+1)%2; track=battleTrack; }
+  battleTrack=track;
+  if(!battleMusicBus){ battleMusicBus=AC.createGain(); battleMusicBus.gain.value=0.2;
+    const comp=AC.createDynamicsCompressor(); comp.threshold.value=-12; comp.ratio.value=3.5;
+    battleMusicBus.connect(comp); comp.connect(AC.destination); }
+  battleMusicBus.gain.value=0.2;
+  const BPM=battleTrack===0?168:158, stepDur=60/BPM/4;
+  battleStep=0;
+  const schedule=()=> (battleTrack===0?scheduleVeloz:scheduleMetal)(stepDur);
+  battleMusicTimer=setInterval(schedule, stepDur*1000);
+}
+function scheduleVeloz(stepDur){
+  if(!G.settings.music){ stopBattleMusic(); return; }
+  const s=battleStep%128, sb=battleStep%16, bar=Math.floor(s/16), partB=(s>=64);
+  // LEAD principal (quadrada) + eco agudo
+  const ln=BV_LEAD[s];
+  if(ln){ const f=BM_N[ln];
+    beepBM({freq:f,dur:stepDur*1.5,wave:'square',gain:0.12,r:stepDur*0.4});
+    beepBM({freq:f*2,dur:stepDur*0.6,wave:'square',gain:0.03,r:stepDur*0.25}); }
+  // CONTRAMELODIA/harmonia (triângulo, mais suave) — enche o "molho"
+  const hn=BV_HARM[s];
+  if(hn){ beepBM({freq:BM_N[hn],dur:stepDur*1.8,wave:'triangle',gain:0.07,r:stepDur*0.6}); }
+  // ARPEJO brilhante contínuo (tempera, toca em quase todo passo par)
+  if(sb%2===0){ const an=BV_ARP[sb]; if(an) beepBM({freq:BM_N[an]*2,dur:stepDur*0.9,wave:'square',gain:0.035,r:stepDur*0.4}); }
+  // BAIXO (serra) cada 1/8
+  if(sb%2===0){ const bn=(partB?BV_BASS_B:BV_BASS)[sb]; if(bn) beepBM({freq:BM_N[bn],dur:stepDur*1.7,wave:'sawtooth',gain:0.15,r:stepDur*0.5}); }
+  // BATERIA com fills
+  if(sb%4===0) noiseBM('kick',0.12,0.5);
+  if(sb===8) noiseBM('kick',0.12,0.4);
+  if(sb===4||sb===12) noiseBM('snare',0.13,0.32);
+  if(sb%2===1) noiseBM('hat',0.05,0.14);
+  // fill de bateria no fim de cada 4 compassos (bar 3 e 7)
+  if((bar===3||bar===7) && sb>=12){ noiseBM('snare',0.08,0.28); }
+  if(s===127) noiseBM('crash',0.4,0.3);
+  battleStep++;
+}
+function scheduleMetal(stepDur){
+  if(!G.settings.music){ stopBattleMusic(); return; }
+  const s=battleStep%128, sb=battleStep%16, bar=Math.floor(s/16);
+  // RIFF grave (serra filtrada, palm-mute curto)
+  const rn=MT_RIFF[s];
+  if(rn){ const f=BM_N[rn];
+    beepBM({freq:f,dur:stepDur*1.1,wave:'sawtooth',gain:0.15,r:stepDur*0.2,filter:{type:'lowpass',freq:1500,q:2}});
+    beepBM({freq:f*1.5,dur:stepDur*1.0,wave:'sawtooth',gain:0.06,r:stepDur*0.2,filter:{type:'lowpass',freq:1700}}); } // dobra 5ª
+  // LEAD/solo (agudo, entra na parte B)
+  const mn=MT_LEAD[s];
+  if(mn){ beepBM({freq:BM_N[mn],dur:stepDur*1.8,wave:'sawtooth',gain:0.1,r:stepDur*0.5,vib:6,filter:{type:'lowpass',freq:2800}}); }
+  // ARPEJO de fundo (harmonia, dá corpo)
+  if(sb%4===2){ const an=MT_ARP[sb]; if(an) beepBM({freq:BM_N[an],dur:stepDur*1.4,wave:'square',gain:0.045,r:stepDur*0.6}); }
+  // BATERIA pesada (double kick + snare batendo)
+  if(sb%2===0) noiseBM('kick',0.11,0.5);           // double-bass
+  if(sb===4||sb===12) noiseBM('snare',0.14,0.36);
+  if(sb%2===1) noiseBM('hat',0.045,0.13);
+  if((bar===3||bar===7)&&sb>=10&&sb%2===0) noiseBM('snare',0.09,0.3); // fill
+  if(s===0||s===64) noiseBM('crash',0.45,0.32);
+  battleStep++;
+}
+function stopBattleMusic(){ if(battleMusicTimer){clearInterval(battleMusicTimer);battleMusicTimer=null;} }
+function beepBM(o){
+  const t0=AC.currentTime+0.02, dur=o.dur;
+  const osc=AC.createOscillator(); osc.type=o.wave||'square'; osc.frequency.setValueAtTime(o.freq,t0);
+  const g=AC.createGain(); const a=0.004, r=o.r||dur*0.4, peak=o.gain||0.14;
+  g.gain.setValueAtTime(0.0001,t0);
+  g.gain.exponentialRampToValueAtTime(peak,t0+a);
+  g.gain.setValueAtTime(peak,t0+Math.max(a,dur-r));
+  g.gain.exponentialRampToValueAtTime(0.0001,t0+dur);
+  let node=osc;
+  if(o.filter){ const f=AC.createBiquadFilter(); f.type=o.filter.type||'lowpass'; f.frequency.value=o.filter.freq||1400; if(o.filter.q)f.Q.value=o.filter.q; osc.connect(f); node=f; }
+  if(o.vib){ const lfo=AC.createOscillator(), lg=AC.createGain(); lfo.frequency.value=o.vib; lg.gain.value=o.freq*0.013; lfo.connect(lg); lg.connect(osc.frequency); lfo.start(t0); lfo.stop(t0+dur); }
+  node.connect(g); g.connect(battleMusicBus||AC.destination);
+  osc.start(t0); osc.stop(t0+dur+0.03);
+}
+function noiseBM(type,dur,gain){
+  const t0=AC.currentTime+0.02;
+  const n=Math.floor(AC.sampleRate*dur), buf=AC.createBuffer(1,n,AC.sampleRate), d=buf.getChannelData(0);
+  for(let i=0;i<n;i++) d[i]=Math.random()*2-1;
+  const src=AC.createBufferSource(); src.buffer=buf;
+  const f=AC.createBiquadFilter();
+  if(type==='hat'){ f.type='highpass'; f.frequency.value=7500; }
+  else if(type==='snare'){ f.type='highpass'; f.frequency.value=1400; }
+  else if(type==='crash'){ f.type='highpass'; f.frequency.value=5000; }
+  else { f.type='lowpass'; f.frequency.value=190; }
+  const g=AC.createGain(); g.gain.setValueAtTime(gain,t0); g.gain.exponentialRampToValueAtTime(0.0001,t0+dur);
+  src.connect(f); f.connect(g); g.connect(battleMusicBus||AC.destination);
+  src.start(t0); src.stop(t0+dur+0.02);
+}
 
 /* ==================================================================
    TEMAS DE VITÓRIA — um jingle único por personagem
@@ -1141,6 +1773,24 @@ const VICTORY_THEMES={
     notes:[['A4',1],['E5',1],['A5',2],['G5',1],['E5',1],['D5',2],
            ['E5',1],['A4',1],['C5',1],['E5',1],['A5',3]],
     bassNotes:['A3','A3','E3','A3'], bassWave:'sine', shimmer:true
+  },
+  vampire:{ // gótico, sombrio, menor, com ar de órgão de castelo
+    tempo:150, wave:'sawtooth', gain:0.14,
+    notes:[['D4',1],['F4',1],['A4',2],['Gs4',1],['A4',1],['F4',2],
+           ['D4',1],['E4',1],['F4',1],['D4',1],['A3',3]],
+    bassNotes:['D3','D3','A2','As2'], bassWave:'square', detune:8
+  },
+  soulstealer:{ // etéreo, fantasmagórico, notas que flutuam
+    tempo:160, wave:'sine', gain:0.13,
+    notes:[['A4',1],['C5',1],['E5',2],['D5',1],['C5',1],['A4',2],
+           ['G4',1],['A4',1],['C5',1],['E5',1],['D5',3]],
+    bassNotes:['A3','F3','C3','E3'], bassWave:'triangle', shimmer:true
+  },
+  hunter:{ // marcial, decidido, tipo tema de caçador
+    tempo:130, wave:'square', gain:0.13,
+    notes:[['G4',1],['G4',1],['C5',2],['B4',1],['G4',1],['D5',2],
+           ['C5',1],['E5',1],['G5',2],['E5',1],['C5',1],['G4',3]],
+    bassNotes:['C3','C3','G3','C3'], bassWave:'sawtooth'
   }
 };
 // perfil de produção por personagem (timbre, filtro, bateria)
@@ -1230,6 +1880,10 @@ function playVictoryTheme(charId){
       reverb:true,isMusic:true,victory:1,a:0.01,s:0.6,r:1.0});
   });
   themeDrum(fx.drums,endT,true);
+  // duração até o acorde final COMEÇAR — o fade in de volta (lento) cruza suavemente com
+  // a cauda do acorde, sem vácuo e sem sobreposição perceptível.
+  const lastEnd = Math.max(t, bt, endT);
+  return (lastEnd - AC.currentTime) * 1000;
 }
 
 
@@ -1243,7 +1897,11 @@ function show(id, zoom){
   const prev=G.screen;
   G.screen=id;
   // ao sair do Grimório, corta qualquer tema de vitória que esteja tocando
-  if(prev==='scrAlmanac' && id!=='scrAlmanac' && typeof stopVictoryMusic==='function') stopVictoryMusic();
+  if(prev==='scrAlmanac' && id!=='scrAlmanac'){
+    if(typeof stopVictoryMusic==='function') stopVictoryMusic();
+    if(almThemeTimer){ clearTimeout(almThemeTimer); almThemeTimer=null; }
+    musicFading=false; // solta o controle do fade pra música voltar normal
+  }
   // música só no menu
   if(id==='scrBattle') stopMusic(); else startMusic();
 }
@@ -1261,7 +1919,13 @@ document.querySelectorAll('#titleMenu .menu-item').forEach(it=>{
     else if(act==='almanac'){ SFX.select(); buildAlmanac(); show('scrAlmanac',true); }
     else if(act==='achievements'){ SFX.select(); buildAchievements(); show('scrAchievements',true); }
     else if(act==='shop'){ SFX.select(); buildShop(); show('scrShop',true); }
-    else if(act==='settings'){ SFX.select(); show('scrSettings',true); }
+    else if(act==='settings'){ SFX.select();
+      // sincroniza os controles com os valores salvos
+      const vr=document.getElementById('vfxRange'); if(vr){vr.value=G.settings.vfx;document.getElementById('vfxVal').textContent=t(['low','medium','high'][G.settings.vfx]||'high');}
+      const vol=document.getElementById('volRange'); if(vol){vol.value=G.settings.vol;document.getElementById('volVal').textContent=G.settings.vol+'%';}
+      ['tglParticles','tglFlash','tglMusic','tglSfx'].forEach((id,i)=>{ const k=['particles','flash','music','sfx'][i]; const el=document.getElementById(id); if(el)el.classList.toggle('on',G.settings[k]); });
+      if(typeof updateLangSel==='function')updateLangSel();
+      show('scrSettings',true); }
     else if(act==='quit'){ SFX.back(); tryQuit(); }
   });
 });
@@ -1275,51 +1939,84 @@ function tryQuit(){
 }
 
 /* ---------- ALMANAC (pokédex) ---------- */
+let almanacOpen=null; // id do personagem com ficha aberta
 function buildAlmanac(){
   const box=document.getElementById('almanacBody'); box.innerHTML='';
+  box.style.gap='0';
+  // grade de orbes: cada personagem é uma esfera luminosa com sua cor
+  const grid=document.createElement('div'); grid.className='alm-grid';
   ORDER.forEach(id=>{
-    const c=CHARS[id], a=ALMANAC[id]||{};
-    const card=document.createElement('div');
-    card.style.cssText='border:1px solid var(--panel-b);border-radius:12px;padding:14px;background:linear-gradient(150deg,var(--bg2),var(--panel));';
-    card.innerHTML=
-      `<div style="display:flex;align-items:center;gap:12px;margin-bottom:10px;">`
-      +`<div style="width:52px;height:52px;flex:none;border-radius:50%;border:3px solid #000;display:flex;align-items:center;justify-content:center;font-size:26px;background:${c.color};">${c.icon}</div>`
-      +`<div style="flex:1;"><div style="font-size:18px;font-weight:900;color:var(--ink);">${c.name}</div>`
-      +`<div style="font-size:11px;color:var(--dim);letter-spacing:.04em;">Criado por ${a.creator||'Renan'}</div></div>`
-      +`<button class="themeBtn" data-theme="${id}" title="Ouvir tema de vitória" style="flex:none;width:44px;height:44px;border-radius:50%;border:2px solid var(--gold);background:var(--bg0);color:var(--gold);font-size:18px;cursor:pointer;display:flex;align-items:center;justify-content:center;">▶</button></div>`
-      +`<div style="display:flex;gap:8px;margin-bottom:10px;flex-wrap:wrap;">`
-      +`<span style="font-size:11px;font-weight:800;background:var(--bg0);border:1px solid var(--panel-b);border-radius:6px;padding:4px 9px;color:#ff6b6b;">❤ ${a.hp||c.hp||250} vida</span>`
-      +`</div>`
-      +`<div style="font-size:12.5px;color:var(--ink);line-height:1.5;margin-bottom:8px;">${a.desc||''}</div>`
-      +`<div style="font-size:12px;color:var(--dim);line-height:1.55;border-left:2px solid var(--gold);padding-left:10px;">${a.skill||''}</div>`;
-    box.appendChild(card);
-  });
-  // liga os botões de tema de vitória
-  let themeTimer=null;
-  box.querySelectorAll('.themeBtn').forEach(btn=>{
-    btn.addEventListener('click',()=>{
-      audioInit();
-      const id=btn.dataset.theme;
-      // para qualquer tema tocando antes e reseta os ícones
-      stopVictoryMusic();
-      if(themeTimer){ clearTimeout(themeTimer); themeTimer=null; }
-      box.querySelectorAll('.themeBtn').forEach(b=>{ b.textContent='▶'; b.classList.remove('playing'); });
-      if(!G.settings.music){ // avisa se a música está desligada
-        btn.textContent='🔇'; setTimeout(()=>{btn.textContent='▶';},900); return;
-      }
-      // PAUSA a música do menu pra não sobrepor o tema
-      stopMusic();
-      btn.textContent='♪'; btn.classList.add('playing');
-      playVictoryTheme(id);
-      // quando o tema termina (~4s): volta o ícone e RELIGA a música do menu
-      themeTimer=setTimeout(()=>{
-        btn.textContent='▶'; btn.classList.remove('playing');
-        themeTimer=null;
-        if(G.screen==='scrAlmanac' && G.settings.music) startMusic(); // só se ainda estiver no Grimório
-      }, 4200);
+    const c=CHARS[id];
+    const cell=document.createElement('div');
+    cell.className='alm-orb'+(almanacOpen===id?' sel':'');
+    cell.dataset.char=id;
+    cell.style.setProperty('--cc', c.color);
+    cell.innerHTML=
+      `<div class="alm-orb-ring"><div class="alm-orb-ball" style="background:${c.color}">`
+      +`${charDecor(id)}<span class="alm-orb-ico">${c.icon}</span></div></div>`
+      +`<div class="alm-orb-nm">${c.name}</div>`;
+    cell.addEventListener('click',()=>{
+      audioInit(); SFX.nav();
+      almanacOpen = (almanacOpen===id) ? null : id; // toca de novo pra fechar
+      renderAlmanacDetail();
+      cell.parentElement.querySelectorAll('.alm-orb').forEach(o=>o.classList.remove('sel'));
+      if(almanacOpen===id) cell.classList.add('sel');
     });
+    grid.appendChild(cell);
   });
+  box.appendChild(grid);
+  // painel de detalhe (ficha)
+  const detail=document.createElement('div'); detail.className='alm-detail'; detail.id='almDetail';
+  box.appendChild(detail);
+  renderAlmanacDetail();
 }
+function renderAlmanacDetail(){
+  const detail=document.getElementById('almDetail'); if(!detail)return;
+  if(!almanacOpen){
+    detail.className='alm-detail';
+    detail.innerHTML=`<div class="alm-hint">${t('almHint')}</div>`;
+    return;
+  }
+  const id=almanacOpen, c=CHARS[id], a=ALMANAC[id]||{};
+  const txt=almanacText(id);
+  const hp=a.hp||c.hp||250;
+  detail.className='alm-detail open';
+  detail.style.setProperty('--cc', c.color);
+  detail.innerHTML=
+    `<div class="alm-card">`
+    +`<div class="alm-card-head">`
+    +`<div class="alm-portrait" style="background:${c.color}">${charDecor(id)}<span>${c.icon}</span></div>`
+    +`<div class="alm-title"><div class="alm-nm">${c.name}</div>`
+    +`<div class="alm-by">${t('createdBy')} ${a.creator||'Renan'}</div>`
+    +`<div class="alm-hp">❤ ${hp} ${t('life')}</div></div>`
+    +`<button class="themeBtn" data-theme="${id}" title="${t('playTheme')}">▶</button>`
+    +`</div>`
+    +`<div class="alm-desc">${txt.desc||''}</div>`
+    +`<div class="alm-skill-lbl">${t('almSkill')}</div>`
+    +`<div class="alm-skill">${txt.skill||''}</div>`
+    +`</div>`;
+  // liga o botão de tema de vitória
+  const btn=detail.querySelector('.themeBtn');
+  if(btn){
+    btn.addEventListener('click',(e)=>{
+      e.stopPropagation(); audioInit();
+      stopVictoryMusic();
+      if(almThemeTimer){ clearTimeout(almThemeTimer); almThemeTimer=null; }
+      if(!G.settings.music){ btn.textContent='🔇'; setTimeout(()=>{btn.textContent='▶';},900); return; }
+      btn.textContent='♪'; btn.classList.add('playing');
+      // baixa a música do menu suavemente, então toca o tema do personagem
+      fadeOutMusic(500, ()=>{
+        const durMs = playVictoryTheme(id) || 10000; // duração do tema (até o acorde final)
+        almThemeTimer=setTimeout(()=>{
+          btn.textContent='▶'; btn.classList.remove('playing'); almThemeTimer=null;
+          // fade in lento cruza com a cauda do acorde final: sem vácuo, sem sobreposição brusca
+          if(G.screen==='scrAlmanac' && G.settings.music) fadeInMusic(2000);
+        }, durMs);
+      });
+    });
+  }
+}
+let almThemeTimer=null;
 
 /* ---------- CONQUISTAS ---------- */
 function buildAchievements(){
@@ -1334,13 +2031,14 @@ function buildAchievements(){
     else if(a.id==='suicide'){ cur=SAVE.suicides; goal=1; }
     else if(a.id==='flawless'){ cur=SAVE.flawless; goal=1; }
     const pct=Math.min(100, Math.round(cur/goal*100));
+    const at=achievementText(a); // nome + descrição no idioma atual
     const row=document.createElement('div');
     row.style.cssText='border:1px solid '+(done?'var(--gold)':'var(--panel-b)')+';border-radius:11px;padding:13px 14px;background:'+(done?'linear-gradient(150deg,#2a2010,var(--panel))':'var(--panel)')+';';
     row.innerHTML=
       `<div style="display:flex;align-items:center;gap:10px;">`
       +`<div style="font-size:22px;">${done?'🏆':'🔒'}</div>`
-      +`<div style="flex:1;"><div style="font-size:14px;font-weight:900;color:${done?'var(--gold)':'var(--ink)'};">${a.name}</div>`
-      +`<div style="font-size:11px;color:var(--dim);">${a.desc}</div></div>`
+      +`<div style="flex:1;"><div style="font-size:14px;font-weight:900;color:${done?'var(--gold)':'var(--ink)'};">${at.name}</div>`
+      +`<div style="font-size:11px;color:var(--dim);">${at.desc}</div></div>`
       +`<div style="font-weight:900;color:var(--gold);font-size:13px;">🪙 ${a.coins}</div></div>`
       +(done?'':`<div style="margin-top:9px;height:6px;background:var(--bg0);border-radius:3px;overflow:hidden;"><div style="height:100%;width:${pct}%;background:var(--gold);"></div></div>`
         +`<div style="font-size:10px;color:var(--dim);margin-top:3px;text-align:right;">${Math.min(cur,goal)} / ${goal}</div>`);
@@ -1354,7 +2052,7 @@ function buildShop(){
   const box=document.getElementById('shopBody'); box.innerHTML='';
   // seção de moedas (placeholder, sem pagamento real)
   const coinsSec=document.createElement('div');
-  coinsSec.innerHTML=`<div style="font-size:12px;font-weight:800;letter-spacing:.16em;text-transform:uppercase;color:var(--gold);margin-bottom:10px;">Moedas</div>`;
+  coinsSec.innerHTML=`<div style="font-size:12px;font-weight:800;letter-spacing:.16em;text-transform:uppercase;color:var(--gold);margin-bottom:10px;">${t('coins')}</div>`;
   box.appendChild(coinsSec);
   const packs=[{amt:100,price:'R$ 4,90'},{amt:500,price:'R$ 19,90'},{amt:1200,price:'R$ 39,90'}];
   const grid=document.createElement('div'); grid.style.cssText='display:flex;gap:10px;flex-wrap:wrap;';
@@ -1364,7 +2062,7 @@ function buildShop(){
     card.innerHTML=`<div style="font-size:24px;">🪙</div><div style="font-size:16px;font-weight:900;color:var(--gold);margin:4px 0;">${p.amt}</div>`
       +`<div style="font-size:12px;font-weight:800;color:var(--ink);background:var(--panel-b);border-radius:6px;padding:5px;">${p.price}</div>`;
     card.addEventListener('click',()=>{ audioInit();SFX.select();
-      shopToast('Pagamentos ainda não estão disponíveis 🙂'); });
+      shopToast(t('paymentsUnavailable')); });
     grid.appendChild(card);
   });
   box.appendChild(grid);
@@ -1372,8 +2070,8 @@ function buildShop(){
   const soon=document.createElement('div');
   soon.style.cssText='margin-top:8px;border:1px dashed var(--panel-b);border-radius:12px;padding:26px 16px;text-align:center;';
   soon.innerHTML=`<div style="font-size:30px;margin-bottom:8px;">🛍️</div>`
-    +`<div style="font-size:15px;font-weight:900;color:var(--ink);margin-bottom:4px;">Itens em breve</div>`
-    +`<div style="font-size:12px;color:var(--dim);line-height:1.5;">Cosméticos, skins e packs de personagens<br>vão aparecer aqui em atualizações futuras.</div>`;
+    +`<div style="font-size:15px;font-weight:900;color:var(--ink);margin-bottom:4px;">${t('itemsSoon')}</div>`
+    +`<div style="font-size:12px;color:var(--dim);line-height:1.5;">${t('itemsSoonDesc')}</div>`;
   box.appendChild(soon);
 }
 let shopToastTimer=null, shopToastHide=null;
@@ -1410,8 +2108,9 @@ function buildModes(){
   MODES.forEach(m=>{
     const c=document.createElement('div');
     c.className='mode-card'+(m.open?' open':' locked');
-    c.innerHTML=`<div class="glow"></div><div class="mtitle">${m.title}</div>`
-      +`<div class="mdesc">${m.desc}</div>`+(m.open?'':'<div class="lock">🔒</div>');
+    const mtitle=t('mode_'+m.id), mdesc=t('mode_'+m.id+'_d');
+    c.innerHTML=`<div class="glow"></div><div class="mtitle">${mtitle}</div>`
+      +`<div class="mdesc">${mdesc}</div>`+(m.open?'':'<div class="lock">🔒</div>');
     c.addEventListener('click',()=>{
       audioInit();
       if(!m.open){ SFX.lock(); c.animate([{transform:'translateX(-4px)'},{transform:'translateX(4px)'},{transform:'translateX(0)'}],{duration:150}); return; }
@@ -1425,7 +2124,7 @@ function buildModes(){
 function buildSetup(){
   // título da tela conforme o modo
   document.querySelector('#scrSetup .topbar h2').textContent =
-    isVS()?'VS · Configurar':'Arena Mode · Configurar';
+    isVS()?t('vsConfig'):t('arenaConfig');
   const mapBox=document.getElementById('mapOpts');mapBox.innerHTML='';
   MAP_ORDER.forEach(id=>{
     const m=MAPS[id];
@@ -1437,8 +2136,10 @@ function buildSetup(){
     mapBox.appendChild(o);
   });
   const pBox=document.getElementById('playerOpts');pBox.innerHTML='';
+  const playerSection=document.querySelector('#scrSetup .setup-section:nth-child(2)');
   const slabel=document.querySelector('#scrSetup .setup-section:nth-child(2) .slabel');
   if(isVS()){
+    if(playerSection)playerSection.style.display='';
     if(slabel)slabel.textContent='Formato';
     [[1,'1v1'],[2,'2v2'],[3,'3v3']].forEach(([n,lbl])=>{
       const o=document.createElement('div');
@@ -1449,15 +2150,8 @@ function buildSetup(){
       pBox.appendChild(o);
     });
   } else {
-    if(slabel)slabel.textContent='Jogadores';
-    [2,3,4,5,6].forEach(n=>{
-      const o=document.createElement('div');
-      o.className='opt'+(G.numPlayers===n?' sel':'');
-      o.innerHTML=`<span class="oicon">${n}</span>players`;
-      o.addEventListener('click',()=>{ audioInit();SFX.nav();G.numPlayers=n;
-        pBox.querySelectorAll('.opt').forEach(x=>x.classList.remove('sel'));o.classList.add('sel'); });
-      pBox.appendChild(o);
-    });
+    // Arena: a escolha de jogadores agora é feita na tela de seleção (slots com cadeado)
+    if(playerSection)playerSection.style.display='none';
   }
 }
 document.getElementById('toSelect').addEventListener('click',()=>{
@@ -1468,13 +2162,33 @@ document.getElementById('toSelect').addEventListener('click',()=>{
     for(let i=0;i<G.vsFormat;i++) G.slots.push({charId:null,cfg:defaultCfg(),team:0});
     for(let i=0;i<G.vsFormat;i++) G.slots.push({charId:null,cfg:defaultCfg(),team:1});
   } else {
-    for(let i=0;i<G.numPlayers;i++) G.slots.push({charId:null,cfg:defaultCfg(),team:i});
+    // Arena: sempre 6 slots; os 2 primeiros ativos, os demais começam bloqueados (cadeado)
+    for(let i=0;i<6;i++) G.slots.push({charId:null,cfg:defaultCfg(),team:i,locked:i>=2});
   }
   G.activeSlot=0;
   buildSelect(); show('scrSelect',true);
 });
 
 /* ---------- SELEÇÃO DE PERSONAGENS ---------- */
+// aplica o idioma escolhido em todos os textos marcados com data-i18n
+function applyLang(){
+  document.querySelectorAll('[data-i18n]').forEach(el=>{
+    const key=el.dataset.i18n;
+    el.textContent=t(key);
+  });
+  document.querySelectorAll('[data-i18n-title]').forEach(el=>{
+    el.title=t(el.dataset.i18nTitle);
+  });
+  // rótulos que são construídos por JS: reconstrói as telas dinâmicas se estiverem abertas
+  if(typeof buildModes==='function' && G.screen==='scrModes')buildModes();
+  if(G.screen==='scrSelect')buildSelect();
+  if(G.screen==='scrAlmanac' && typeof buildAlmanac==='function')buildAlmanac();
+  if(G.screen==='scrAchievements' && typeof buildAchievements==='function')buildAchievements();
+  if(G.screen==='scrShop' && typeof buildShop==='function')buildShop();
+  // atualiza o texto do valor de qualidade de efeitos (Alta/Média/Baixa)
+  const vfxVal=document.getElementById('vfxVal');
+  if(vfxVal){ const q=['low','medium','high']; vfxVal.textContent=t(q[G.settings.vfx]||'high'); }
+}
 function buildSelect(){
   renderSlots();
   const grid=document.getElementById('rosterGrid');grid.innerHTML='';
@@ -1488,6 +2202,16 @@ function buildSelect(){
     el.addEventListener('click',()=>pickChar(id,el));
     grid.appendChild(el);
   });
+  // card "?" no fim: sorteia TODOS os personagens de uma vez
+  const rnd=document.createElement('div');
+  rnd.className='rchar rrandom';
+  rnd.innerHTML=`<div class="rface rface-q">?</div>`
+    +`<div class="rnm">${t('random')}</div>`;
+  rnd.addEventListener('click',()=>{
+    rnd.classList.remove('pop');void rnd.offsetWidth;rnd.classList.add('pop');
+    randomizeAll();
+  });
+  grid.appendChild(rnd);
   updateRosterSel();
   updateStartBtn();
 }
@@ -1500,24 +2224,78 @@ function updateRosterSel(){
 }
 function renderSlots(){
   const box=document.getElementById('pslots');box.innerHTML='';
+  document.getElementById('scrSelect').classList.remove('arena-layout');
   if(isVS()){
-    // rótulo dos times
-    box.style.flexDirection='column';box.style.gap='4px';
-    const mkRow=(team,label,color)=>{
-      const lbl=document.createElement('div');
-      lbl.style.cssText='font-size:10px;font-weight:800;letter-spacing:.12em;text-transform:uppercase;color:'+color+';padding:2px 4px;';
-      lbl.textContent=label;
-      box.appendChild(lbl);
-      const row=document.createElement('div');row.style.cssText='display:flex;gap:6px;';
-      G.slots.forEach((s,i)=>{ if(s.team!==team)return; row.appendChild(mkSlot(s,i)); });
-      box.appendChild(row);
-    };
-    mkRow(1,'⬆ Time B · Adversário','#ff5566');
-    mkRow(0,'⬇ Time A · Você','#33ddcc');
+    // leque de cards em arco ao redor de um "VS" central
+    box.style.flexDirection='column';box.style.gap='0';
+    const stage=document.createElement('div'); stage.className='vs-stage';
+    const rowTop=document.createElement('div'); rowTop.className='vs-fan top';
+    const rowBot=document.createElement('div'); rowBot.className='vs-fan bottom';
+    const vs=document.createElement('div'); vs.className='vs-center';
+    vs.innerHTML='<span class="vs-v">V</span><span class="vs-s">S</span>';
+    // separa os slots por time, na ordem
+    const teamB=[], teamA=[];
+    G.slots.forEach((s,i)=>{ (s.team===1?teamB:teamA).push({s,i}); });
+    // aplica rotação em leque: cards das pontas inclinam pra fora
+    const fanRot=(idx,total)=>{ if(total<=1)return 0; const mid=(total-1)/2; return (idx-mid)*11; };
+    teamB.forEach((o,idx)=>{ const c=mkCard(o.s,o.i); c.style.setProperty('--fan',fanRot(idx,teamB.length)+'deg'); rowTop.appendChild(c); });
+    teamA.forEach((o,idx)=>{ const c=mkCard(o.s,o.i); c.style.setProperty('--fan',fanRot(idx,teamA.length)+'deg'); rowBot.appendChild(c); });
+    stage.appendChild(rowTop); stage.appendChild(vs); stage.appendChild(rowBot);
+    box.appendChild(stage);
   } else {
-    box.style.flexDirection='row';box.style.gap='6px';
-    G.slots.forEach((s,i)=>box.appendChild(mkSlot(s,i)));
+    // Arena Mode estilo KOF: 3 slots grandes na esquerda + 3 na direita, lista no meio
+    document.getElementById('scrSelect').classList.add('arena-layout');
+    box.style.flexDirection='row';box.style.gap='0';
+    const colL=document.createElement('div'); colL.className='arena-col left';
+    const colR=document.createElement('div'); colR.className='arena-col right';
+    G.slots.forEach((s,i)=>{ const card=mkArenaSlot(s,i); (i<3?colL:colR).appendChild(card); });
+    box.appendChild(colL); box.appendChild(colR);
   }
+}
+// slot grande do Arena com botão de ativar/bloquear (cadeado)
+function mkArenaSlot(s,i){
+  const el=document.createElement('div');
+  el.className='arena-slot'+(i===G.activeSlot&&!s.locked?' active':'')+(s.locked?' locked':'');
+  el.dataset.slot=i;
+  const c=(!s.locked && s.charId)?CHARS[s.charId]:null;
+  const dropCls=(i===dropInSlot)?' drop-in':'';
+  if(s.locked){
+    el.innerHTML=`<div class="aslot-inner locked"><div class="aslot-lock">🔒</div>`
+      +`<button class="aslot-toggle" data-toggle="${i}" title="Ativar">＋</button></div>`;
+  } else {
+    el.innerHTML=`<div class="aslot-inner">`
+      +`<div class="cportrait${dropCls}">${c?charDecor(s.charId):''}<div class="cface" style="${c?('background:'+c.color):''}">${c?c.icon:'?'}</div></div>`
+      +`<div class="cnm">${c?c.name:'—'}</div>`
+      +(c?`<div class="cgear" data-gear="${i}">⚙</div>`:'')
+      // só os slots além do 2º podem ser bloqueados (mínimo 2 jogadores)
+      +(i>=2?`<button class="aslot-toggle" data-toggle="${i}" title="Bloquear">🔒</button>`:'')
+      +`</div>`;
+  }
+  if(i===dropInSlot){ el.classList.add('animating');
+    setTimeout(()=>{ el.classList.remove('animating'); }, 440);
+    dropInSlot=-1; }
+  el.addEventListener('click',(e)=>{
+    if(e.target.dataset.toggle!==undefined){ toggleArenaSlot(+e.target.dataset.toggle); return; }
+    if(e.target.dataset.gear!==undefined){ openGear(+e.target.dataset.gear); return; }
+    if(s.locked) return; // slot bloqueado não seleciona
+    audioInit();SFX.nav();G.activeSlot=i;renderSlots();
+  });
+  return el;
+}
+// ativa/bloqueia um slot do Arena (mínimo 2 ativos)
+function toggleArenaSlot(i){
+  audioInit();
+  const s=G.slots[i];
+  if(!s.locked){
+    // vai bloquear: garante que sobrem pelo menos 2 ativos
+    const ativos=G.slots.filter(x=>!x.locked).length;
+    if(ativos<=2){ SFX.lock(); return; } // não deixa ficar com menos de 2
+    s.locked=true; s.charId=null; SFX.back();
+    if(G.activeSlot===i){ G.activeSlot=G.slots.findIndex(x=>!x.locked); }
+  } else {
+    s.locked=false; SFX.select(); G.activeSlot=i; dropInSlot=i;
+  }
+  renderSlots(); updateRosterSel(); updateStartBtn();
 }
 function mkSlot(s,i){
   const el=document.createElement('div');
@@ -1535,19 +2313,139 @@ function mkSlot(s,i){
   });
   return el;
 }
+// decorações que envolvem a bola de cada personagem na seleção (asas, chapéu, katana...)
+function charDecor(id){
+  const D={
+    soulstealer:`<svg class="deco" viewBox="0 0 120 120">
+      <g stroke="#c9a6f0" stroke-width="2.5" fill="none" opacity="0.7">
+        <circle cx="60" cy="60" r="50" stroke-dasharray="3 8"/>
+      </g>
+      <g fill="#e8dcff" opacity="0.8">
+        <circle cx="24" cy="40" r="4"/><circle cx="96" cy="46" r="3"/><circle cx="30" cy="86" r="3"/>
+      </g></svg>`,
+    hunter:`<svg class="deco" viewBox="0 0 120 120">
+      <g fill="#8a5a2a" stroke="#4a3018" stroke-width="1.5">
+        <ellipse cx="26" cy="88" rx="14" ry="10"/>
+        <ellipse cx="16" cy="78" rx="5" ry="8"/>
+        <circle cx="30" cy="86" r="2" fill="#000"/></g></svg>`,
+    vampire:`<svg class="deco" viewBox="0 0 120 120">
+      <g fill="#2a2a30" stroke="#000" stroke-width="1.5">
+        <path d="M40 54 Q10 40 6 62 Q18 58 22 70 Q26 60 34 62 Q30 70 38 68 Q34 60 44 60Z"/>
+        <path d="M80 54 Q110 40 114 62 Q102 58 98 70 Q94 60 86 62 Q90 70 82 68 Q86 60 76 60Z"/>
+      </g></svg>`,
+    luciferus:`<svg class="deco" viewBox="0 0 120 120">
+      <ellipse cx="60" cy="20" rx="26" ry="7" fill="none" stroke="#ffe680" stroke-width="4"/>
+      <g fill="#f4f4ff" stroke="#c9c9e0" stroke-width="1.5">
+        <path d="M34 60 Q4 48 6 74 Q18 70 26 82 Q22 66 34 66Z"/>
+        <path d="M86 60 Q116 48 114 74 Q102 70 94 82 Q98 66 86 66Z"/>
+      </g></svg>`,
+    samurai:`<svg class="deco" viewBox="0 0 120 120">
+      <g stroke="#d9d9e6" stroke-width="4" stroke-linecap="round">
+        <line x1="90" y1="18" x2="34" y2="86"/></g>
+      <line x1="92" y1="14" x2="80" y2="26" stroke="#b8860b" stroke-width="6" stroke-linecap="round"/></svg>`,
+    arqueiro:`<svg class="deco" viewBox="0 0 120 120">
+      <path d="M96 20 Q116 60 96 100" fill="none" stroke="#8a5a2b" stroke-width="4"/>
+      <line x1="96" y1="20" x2="96" y2="100" stroke="#e8e0c0" stroke-width="1.5"/>
+      <line x1="30" y1="60" x2="104" y2="60" stroke="#cfcfcf" stroke-width="2"/>
+      <path d="M30 60 l8 -5 v10 Z" fill="#cfcfcf"/></svg>`,
+    mago:`<svg class="deco" viewBox="0 0 120 120">
+      <path d="M60 4 L44 40 H76 Z" fill="#5a2d8a" stroke="#3a1a5a" stroke-width="2"/>
+      <circle cx="60" cy="6" r="4" fill="#ffe680"/>
+      <text x="60" y="30" font-size="12" text-anchor="middle" fill="#ffe680">★</text></svg>`,
+    berserker:`<svg class="deco" viewBox="0 0 120 120">
+      <g stroke="#ff5a2a" stroke-width="4" stroke-linecap="round" opacity="0.9">
+        <line x1="18" y1="30" x2="30" y2="42"/><line x1="102" y1="30" x2="90" y2="42"/>
+        <line x1="10" y1="60" x2="26" y2="60"/><line x1="110" y1="60" x2="94" y2="60"/></g></svg>`,
+    heavyweight:`<svg class="deco" viewBox="0 0 120 120">
+      <g fill="#c9a24a" stroke="#7a5a1a" stroke-width="2">
+        <rect x="30" y="14" width="60" height="12" rx="3"/>
+        <circle cx="60" cy="30" r="10"/></g></svg>`,
+    chronos:`<svg class="deco" viewBox="0 0 120 120">
+      <circle cx="60" cy="60" r="52" fill="none" stroke="#7cc8ff" stroke-width="2" opacity="0.6" stroke-dasharray="4 6"/>
+      <line x1="60" y1="60" x2="60" y2="30" stroke="#bfe4ff" stroke-width="3" stroke-linecap="round"/>
+      <line x1="60" y1="60" x2="82" y2="70" stroke="#bfe4ff" stroke-width="3" stroke-linecap="round"/></svg>`,
+    soldier:`<svg class="deco" viewBox="0 0 120 120">
+      <path d="M38 22 Q60 10 82 22 L82 30 L38 30 Z" fill="#3d5a2b" stroke="#26401a" stroke-width="2"/></svg>`,
+    pacman:`<svg class="deco" viewBox="0 0 120 120">
+      <g fill="#ffd21e"><circle cx="20" cy="60" r="5"/><circle cx="8" cy="60" r="4"/></g></svg>`,
+    clonador:`<svg class="deco" viewBox="0 0 120 120">
+      <circle cx="30" cy="42" r="14" fill="none" stroke="#1de0b4" stroke-width="3" opacity="0.7"/>
+      <circle cx="90" cy="42" r="14" fill="none" stroke="#1de0b4" stroke-width="3" opacity="0.5"/></svg>`,
+    pandora:`<svg class="deco" viewBox="0 0 120 120">
+      <g stroke="#c86bff" stroke-width="3" opacity="0.8"><line x1="60" y1="6" x2="60" y2="20"/>
+      <line x1="30" y1="14" x2="38" y2="26"/><line x1="90" y1="14" x2="82" y2="26"/></g></svg>`
+  };
+  return D[id]||'';
+}
+function mkCell(s,i){
+  const el=document.createElement('div');
+  el.className='vs-cell'+(i===G.activeSlot?' active':'');
+  el.dataset.slot=i;
+  const c=s.charId?CHARS[s.charId]:null;
+  const dropCls = (i===dropInSlot) ? ' drop-in' : '';
+  el.innerHTML=`<div class="cportrait${dropCls}">${c?charDecor(s.charId):''}<div class="cface" style="${c?('background:'+c.color):''}">${c?c.icon:'?'}</div></div>`
+    +`<div class="cnm">${c?c.name:'—'}</div>`
+    +(c?`<div class="cgear" data-gear="${i}">⚙</div>`:'');
+  if(i===dropInSlot){ el.classList.add('animating');
+    setTimeout(()=>{ el.classList.remove('animating'); }, 440);
+    dropInSlot=-1; }
+  el.addEventListener('click',(e)=>{
+    if(e.target.dataset.gear!==undefined){ openGear(+e.target.dataset.gear); return; }
+    audioInit();SFX.nav();G.activeSlot=i;renderSlots();
+  });
+  return el;
+}
+// card do leque (VS): mesma ideia do mkCell mas em formato de carta inclinada
+function mkCard(s,i){
+  const el=document.createElement('div');
+  const teamCls = isVS() ? (s.team===1?' teamB':' teamA') : ' arena';
+  el.className='vs-card'+(i===G.activeSlot?' active':'')+teamCls;
+  el.dataset.slot=i;
+  const c=s.charId?CHARS[s.charId]:null;
+  const dropCls = (i===dropInSlot) ? ' drop-in' : '';
+  el.innerHTML=`<div class="cardinner">`
+    +`<div class="cportrait${dropCls}">${c?charDecor(s.charId):''}<div class="cface" style="${c?('background:'+c.color):''}">${c?c.icon:'?'}</div></div>`
+    +`<div class="cnm">${c?c.name:'—'}</div>`
+    +(c?`<div class="cgear" data-gear="${i}">⚙</div>`:'')
+    +`</div>`;
+  if(i===dropInSlot){ el.classList.add('animating');
+    setTimeout(()=>{ el.classList.remove('animating'); }, 440);
+    dropInSlot=-1; }
+  el.addEventListener('click',(e)=>{
+    if(e.target.dataset.gear!==undefined){ openGear(+e.target.dataset.gear); return; }
+    audioInit();SFX.nav();G.activeSlot=i;renderSlots();
+  });
+  return el;
+}
 function pickChar(id, el){
   audioInit();SFX.select();
   el.classList.remove('pop');void el.offsetWidth;el.classList.add('pop');
   // zoom transition estilo smash
   playZoom(id);
-  G.slots[G.activeSlot].charId=id;
-  G.slots[G.activeSlot].cfg=defaultCfg();
-  // avança pro próximo slot vazio
-  let next=G.slots.findIndex((s,idx)=>idx>G.activeSlot && !s.charId);
-  if(next<0) next=G.slots.findIndex(s=>!s.charId);
-  if(next>=0) G.activeSlot=next;
-  renderSlots();updateRosterSel();updateStartBtn();
+  const active=G.slots[G.activeSlot];
+  if(!active || active.locked) return; // não escolhe em slot bloqueado
+  const selName = isVS()?'.vs-cell':'.arena-slot';
+  const slotEl = document.querySelector(selName+'[data-slot="'+G.activeSlot+'"]');
+  const wasFilled = !!active.charId;
+  const apply=()=>{
+    G.slots[G.activeSlot].charId=id;
+    G.slots[G.activeSlot].cfg=defaultCfg();
+    dropInSlot=G.activeSlot;
+    // avança pro próximo slot ativo e vazio
+    let next=G.slots.findIndex((s,idx)=>idx>G.activeSlot && !s.locked && !s.charId);
+    if(next<0) next=G.slots.findIndex(s=>!s.locked && !s.charId);
+    if(next>=0) G.activeSlot=next;
+    renderSlots();updateRosterSel();updateStartBtn();
+  };
+  // se o slot já tinha alguém, o antigo "sai por baixo" antes do novo cair
+  if(wasFilled && slotEl){
+    const port=slotEl.querySelector('.cportrait');
+    if(port){ slotEl.classList.add('animating'); port.classList.add('drop-out');
+      setTimeout(apply, 300); return; }
+  }
+  apply();
 }
+let dropInSlot=-1; // slot que deve tocar a animação de entrada no próximo render
 function playZoom(id){
   const c=CHARS[id];
   const fx=document.getElementById('zoomFx'),face=document.getElementById('zface');
@@ -1555,17 +2453,21 @@ function playZoom(id){
   fx.classList.remove('play');void fx.offsetWidth;fx.classList.add('play');
 }
 function updateStartBtn(){
-  const ready=G.slots.every(s=>s.charId);
-  document.getElementById('startMatch').disabled=!ready;
+  // considera só os slots ativos (não bloqueados)
+  const active=G.slots.filter(s=>!s.locked);
+  const ready=active.length>=2 && active.every(s=>s.charId);
+  const btn=document.getElementById('fightBtn');
+  if(btn) btn.classList.toggle('show', ready);
 }
-document.getElementById('randomFill').addEventListener('click',()=>{
+function randomizeAll(){
   audioInit();SFX.select();
-  // sorteia TODOS os slots de novo a cada clique (não só os vazios)
-  G.slots.forEach(s=>{ s.charId=ORDER[Math.floor(Math.random()*ORDER.length)]; s.cfg=defaultCfg(); });
+  // sorteia todos os slots ATIVOS (ignora bloqueados)
+  G.slots.forEach(s=>{ if(!s.locked){ s.charId=ORDER[Math.floor(Math.random()*ORDER.length)]; s.cfg=defaultCfg(); } });
   renderSlots();updateRosterSel();updateStartBtn();
-});
-document.getElementById('startMatch').addEventListener('click',()=>{
-  if(G.slots.some(s=>!s.charId))return;
+}
+document.getElementById('fightBtn').addEventListener('click',()=>{
+  const active=G.slots.filter(s=>!s.locked);
+  if(active.length<2 || active.some(s=>!s.charId))return;
   audioInit();SFX.confirm();startBattle();
 });
 
@@ -1621,19 +2523,41 @@ function bindToggle(id,key,after){
   el.classList.toggle('on',G.settings[key]);
   el.addEventListener('click',()=>{ audioInit();SFX.toggle();
     G.settings[key]=!G.settings[key];el.classList.toggle('on',G.settings[key]);
+    persistSettings&&persistSettings();
     if(after)after(); });
 }
 bindToggle('tglParticles','particles');
 bindToggle('tglFlash','flash');
-bindToggle('tglMusic','music',()=>{ if(G.settings.music&&G.screen!=='scrBattle')startMusic();else stopMusic(); });
+bindToggle('tglMusic','music',()=>{
+  if(!G.settings.music){ stopMusic(); stopBattleMusic(); }
+  else if(G.screen==='scrBattle'){ if(bRunning&&!bOver)startBattleMusic(battleTrack); }
+  else startMusic();
+});
 bindToggle('tglSfx','sfx');
-const vfxNames=['Baixa','Média','Alta'];
+// seletor de idioma
+function updateLangSel(){
+  document.querySelectorAll('#langOpts .opt').forEach(o=>{
+    o.classList.toggle('sel', o.dataset.lang===G.settings.lang);
+  });
+}
+document.querySelectorAll('#langOpts .opt').forEach(o=>{
+  o.addEventListener('click',()=>{
+    audioInit();SFX.select();
+    G.settings.lang=o.dataset.lang;
+    updateLangSel();
+    applyLang();
+    persistSettings&&persistSettings();
+  });
+});
+const vfxNames=()=>[t('low'),t('medium'),t('high')];
 document.getElementById('vfxRange').addEventListener('input',function(){
-  G.settings.vfx=+this.value;document.getElementById('vfxVal').textContent=vfxNames[this.value];
+  G.settings.vfx=+this.value;document.getElementById('vfxVal').textContent=vfxNames()[this.value];
+  persistSettings&&persistSettings();
   if(canPlay('slide',40))tone(500,0.03,'square',0.05);
 });
 document.getElementById('volRange').addEventListener('input',function(){
   G.settings.vol=+this.value;document.getElementById('volVal').textContent=this.value+'%';
+  persistSettings&&persistSettings();
 });
 
 /* ==================================================================
@@ -1667,6 +2591,23 @@ function computeArena(){
     const bs=s*0.28;
     arena={shape:'boxbox', x:ix, y:iy, w:s, h:s,
       box:{x:ix+s/2-bs/2, y:iy+s/2-bs/2, w:bs, h:bs}};
+  } else if(m.shape==='plus'){
+    // arena em forma de "+": quadrado com os 4 cantos bloqueados
+    const s=Math.min(availW,availH)*m.size;
+    const ix=(BW-s)/2, iy=(BH-s)/2;
+    const c=s*0.32; // tamanho de cada canto bloqueado (corredores estreitos mas passáveis)
+    arena={shape:'plus', x:ix, y:iy, w:s, h:s, corner:c,
+      corners:[
+        {x:ix,       y:iy,       w:c, h:c}, // superior esquerdo
+        {x:ix+s-c,   y:iy,       w:c, h:c}, // superior direito
+        {x:ix,       y:iy+s-c,   w:c, h:c}, // inferior esquerdo
+        {x:ix+s-c,   y:iy+s-c,   w:c, h:c}  // inferior direito
+      ]};
+  } else if(m.shape==='blackhole'){
+    // quadrado com um buraco negro no centro que puxa e depois arremessa
+    const s=Math.min(availW,availH)*m.size;
+    arena={shape:'blackhole', x:(BW-s)/2, y:(BH-s)/2, w:s, h:s,
+      cx:BW/2, cy:BH/2};
   }
 }
 
@@ -1680,6 +2621,8 @@ let fighters=[], projectiles=[], sparks=[], booms=[], clones=[];
 let bolts=[], fireTrails=[], slashFx=[]; // Mago: raios e rastros; Samurai: efeitos de corte
 let timeBubbles=[]; // Chronos: bolhas de tempo lento
 let arenaItems=[]; // Versus: itens jogados na arena (minas, frutas, etc.)
+let dogs=[], ghosts=[], traps=[]; // Hunter: cachorro/armadilhas; Soul Stealer: fantasmas
+let blackholeTimer=0, blackholePhase='idle', blackholePulse=0; // ciclo do buraco negro
 let timeStopOwner=-1; // Chronos: quem ativou o Time Stop (-1 = ninguém)
 let bRunning=false, bOver=false, bRaf=0, flash=0, flashColor='255,255,180';
 let shake=0;            // screen shake (intensidade, decai a cada frame)
@@ -1695,7 +2638,7 @@ const PLAYER_TINT=['#ff5566','#4488ff','#44dd66','#ffcc33','#cc66ff','#33ddcc'];
 function makeFighter(slot, idx){
   const c=CHARS[slot.charId], cfg=slot.cfg;
   const baseHp=(c.hp||250)*cfg.hp;
-  const r=34*cfg.size;
+  const r=BALL_R*cfg.size;
   const f={
     slotIdx:idx, id:slot.charId, name:c.name, kind:c.kind, icon:c.icon,
     team:(slot.team!=null?slot.team:idx),
@@ -1743,6 +2686,17 @@ function makeFighter(slot, idx){
     bubbleTimer:90, bubbleCd:(c.bubbleCd||180)/cfg.fireRate, // Chronos: bolhas de tempo
     timeStopCd:360, timeStopCdMax:600, timeStopping:0, timeStopActive:0, burstFire:0, // Chronos: Time Stop
     isSummon:false, summonedBy:-1, // herói invocado pela skill lendária
+    // Vampire (roubo de vida + transformação Drácula)
+    blood:0, bloodMax:100, dracula:false,
+    biting:null, biteTimer:0, bitesLeft:0, drainCd:0,
+    vampFireCd:(c.fireCd||70)/cfg.fireRate,
+    // Soul Stealer (aura suga almas + 3 skills)
+    souls:0, soulMax:500, soulDebuff:0, ethereal:0, soulSkillCd:0,
+    // Hunter (rifle + cachorro + armadilha)
+    hunterCd:0, trapCd:0, dog:null,
+    // debuffs recebidos
+    soulCurse:0, markedBy:-1, stun:0,
+    preStunSpeed:0, accelBack:0, accelDir:0, accelCur:0,
     alive:true
   };
   return f;
@@ -1756,7 +2710,10 @@ function spawnPositions(n){
   else { cx=arena.x+arena.w/2;cy=arena.y+arena.h/2;rad=Math.min(arena.w,arena.h)*0.32; }
   for(let i=0;i<n;i++){
     const a=(i/n)*Math.PI*2 - Math.PI/2;
-    pts.push({x:cx+Math.cos(a)*rad, y:cy+Math.sin(a)*rad});
+    let p={x:cx+Math.cos(a)*rad, y:cy+Math.sin(a)*rad};
+    // se caiu num obstáculo (canto do plus, caixa central), empurra pra fora
+    if(!posInArena(p.x,p.y,36)){ p=clampInArena(p.x,p.y,36); }
+    pts.push(p);
   }
   return pts;
 }
@@ -1783,7 +2740,9 @@ function startBattle(){
   audioInit();stopMusic();
   show('scrBattle');
   bResize();
-  fighters = G.slots.map((s,i)=>makeFighter(s,i));
+  // usa só os slots ativos (ignora os bloqueados no Arena) e reindexa
+  const activeSlots=G.slots.filter(s=>!s.locked);
+  fighters = activeSlots.map((s,i)=>makeFighter(s,i));
   buildHpBars();
   // bandejas de itens só aparecem no modo Versus
   const stage=document.getElementById('bstage');
@@ -1796,7 +2755,8 @@ function startBattle(){
 let battleStats={ playerTookDamage:false };
 function beginRound(){
   bRunning=false;bOver=false;flash=0;auraGrad=null;
-  projectiles=[];sparks=[];booms=[];clones=[];pellets=[];bolts=[];fireTrails=[];slashFx=[];timeBubbles=[];timeStopOwner=-1;arenaItems=[];
+  projectiles=[];sparks=[];booms=[];clones=[];pellets=[];bolts=[];fireTrails=[];slashFx=[];timeBubbles=[];timeStopOwner=-1;arenaItems=[];dogs=[];ghosts=[];traps=[];
+  blackholeTimer=180; blackholePhase='idle'; blackholePulse=0;
   shards=[];shake=0;hitStop=0;
   computeArena();
   const pos=isVS()?spawnPositionsVS():spawnPositions(fighters.length);
@@ -1817,6 +2777,7 @@ function beginRound(){
   cancelAnimationFrame(bRaf);lastT=0;acc=0;
   updateHpBars();drawBattle();
   bRunning=true;bRaf=requestAnimationFrame(bLoop);
+  startBattleMusic(); // trilha "Batalha Veloz"
 }
 function resetFighter(f){
   const c=CHARS[f.pandoraOrig||f.id], cfg=f.cfg;
@@ -1894,8 +2855,17 @@ function updateHpBars(){
     if(f.kind==='soldier'&&f.vestHp>0)vest=` 🛡${Math.round(f.vestHp)}`;
     let shield='';
     if(f.iceShield>0)shield=` 🛡❄${Math.round(f.iceShield)}`; // escudo de gelo do Mago
+    let blood='';
+    if(f.kind==='vampire'){
+      const pct=Math.round((f.blood/f.bloodMax)*100);
+      blood = f.dracula ? ` 🧛${pct}%` : ` 🩸${pct}%`; // barra de sangue / forma Drácula
+    }
+    let soul='';
+    if(f.kind==='soulstealer') soul=` 🔮${Math.round(f.souls)}`; // almas na lanterna
+    if(f.soulCurse>0) soul+=` 👻${Math.round(f.soulCurse)}`;     // debuff de alma recebido
+    if(f.markedBy>=0) soul+=' 🎯';                                // marcado pelo cachorro
     const tag=isVS()?(f.team===0?'A':'B'):('P'+(i+1));
-    lbl.textContent=`${tag} ${f.name.slice(0,8)} · ${Math.max(0,Math.round(f.hp))}`+vest+shield+(extra?` +${extra}`:'')+(f.immortal?' ∞':'');
+    lbl.textContent=`${tag} ${f.name.slice(0,8)} · ${Math.max(0,Math.round(f.hp))}`+vest+shield+blood+soul+(extra?` +${extra}`:'')+(f.immortal?' ∞':'');
     const bar=document.getElementById('hp_'+i);if(bar)bar.style.opacity=f.alive?'1':'0.35';
   });
 }
@@ -1903,13 +2873,14 @@ function updateHpBars(){
 /* ---------- COLISÃO COM PAREDES (por mapa) ---------- */
 function wallBounce(b){
   let hit=false;
-  if(arena.shape==='square' || arena.shape==='boxbox'){
+  if(arena.shape==='square' || arena.shape==='boxbox' || arena.shape==='plus' || arena.shape==='blackhole'){
     const L=arena.x+b.r, R=arena.x+arena.w-b.r, T=arena.y+b.r, B=arena.y+arena.h-b.r;
     if(b.x<L){b.x=L;b.vx=Math.abs(b.vx);hit=true;}
     if(b.x>R){b.x=R;b.vx=-Math.abs(b.vx);hit=true;}
     if(b.y<T){b.y=T;b.vy=Math.abs(b.vy);hit=true;}
     if(b.y>B){b.y=B;b.vy=-Math.abs(b.vy);hit=true;}
     if(arena.shape==='boxbox'){ hit = collideBox(b) || hit; }
+    if(arena.shape==='plus'){ for(const c of arena.corners){ hit = collideRect(b,c) || hit; } }
   } else if(arena.shape==='circle'){
     const dx=b.x-arena.cx, dy=b.y-arena.cy, d=Math.hypot(dx,dy);
     const maxd=arena.R-b.r;
@@ -1926,10 +2897,79 @@ function wallBounce(b){
     if(sp<cap){b.vx*=1.04;b.vy*=1.04;} }
   return hit;
 }
+// prende uma posição {x,y} dentro dos limites da arena (sem ricochete). Retorna a posição corrigida.
+function clampInArena(x,y,r){
+  r=r||0;
+  if(arena.shape==='circle'){
+    const dx=x-arena.cx, dy=y-arena.cy, d=Math.hypot(dx,dy), maxd=arena.R-r;
+    if(d>maxd){ const nx=dx/(d||1), ny=dy/(d||1); x=arena.cx+nx*maxd; y=arena.cy+ny*maxd; }
+  } else {
+    x=Math.max(arena.x+r, Math.min(arena.x+arena.w-r, x));
+    y=Math.max(arena.y+r, Math.min(arena.y+arena.h-r, y));
+    // empurra pra fora da caixa central (boxbox)
+    if(arena.shape==='boxbox' && arena.box){
+      const bo=arena.box;
+      if(x>bo.x-r && x<bo.x+bo.w+r && y>bo.y-r && y<bo.y+bo.h+r){
+        const dl=(x)-(bo.x-r), dr=(bo.x+bo.w+r)-(x), dt=(y)-(bo.y-r), db=(bo.y+bo.h+r)-(y);
+        const m=Math.min(dl,dr,dt,db);
+        if(m===dl)x=bo.x-r; else if(m===dr)x=bo.x+bo.w+r; else if(m===dt)y=bo.y-r; else y=bo.y+bo.h+r;
+      }
+    }
+    // empurra pra fora dos cantos bloqueados (plus)
+    if(arena.shape==='plus' && arena.corners){
+      for(const bo of arena.corners){
+        if(x>bo.x-r && x<bo.x+bo.w+r && y>bo.y-r && y<bo.y+bo.h+r){
+          const dl=(x)-(bo.x-r), dr=(bo.x+bo.w+r)-(x), dt=(y)-(bo.y-r), db=(bo.y+bo.h+r)-(y);
+          const m=Math.min(dl,dr,dt,db);
+          if(m===dl)x=bo.x-r; else if(m===dr)x=bo.x+bo.w+r; else if(m===dt)y=bo.y-r; else y=bo.y+bo.h+r;
+        }
+      }
+    }
+  }
+  return {x,y};
+}
+// direção pra ir de (dog) até (tx,ty) desviando de paredes/obstáculo.
+// testa o caminho reto; se bloqueado, tenta ângulos alternados até achar um livre.
+function dogSteer(dog,tx,ty){
+  const base=Math.atan2(ty-dog.y, tx-dog.x);
+  const probe=dog.r+26; // o quão longe à frente ele "enxerga"
+  // caminho reto livre? (o ponto à frente está dentro da arena)
+  if(posInArena(dog.x+Math.cos(base)*probe, dog.y+Math.sin(base)*probe, dog.r)){
+    return {x:Math.cos(base), y:Math.sin(base)};
+  }
+  // bloqueado: tenta desviar em ângulos crescentes pros dois lados
+  for(let step=1;step<=6;step++){
+    const off=step*0.45; // ~26° por passo
+    for(const s of [1,-1]){
+      const a=base+off*s;
+      if(posInArena(dog.x+Math.cos(a)*probe, dog.y+Math.sin(a)*probe, dog.r)){
+        return {x:Math.cos(a), y:Math.sin(a)};
+      }
+    }
+  }
+  // nada livre à frente: segue reto (o clamp cuida de não atravessar)
+  return {x:Math.cos(base), y:Math.sin(base)};
+}
+// checa se uma posição está dentro da área jogável (fora dos obstáculos)
+function posInArena(x,y,r){
+  r=r||0;
+  if(arena.shape==='circle'){ return Math.hypot(x-arena.cx,y-arena.cy) <= arena.R-r; }
+  if(x<arena.x+r||x>arena.x+arena.w-r||y<arena.y+r||y>arena.y+arena.h-r) return false;
+  if(arena.shape==='boxbox' && arena.box){
+    const bo=arena.box;
+    if(x>bo.x-r && x<bo.x+bo.w+r && y>bo.y-r && y<bo.y+bo.h+r) return false; // dentro do obstáculo
+  }
+  if(arena.shape==='plus' && arena.corners){
+    for(const c of arena.corners){ if(x>c.x-r && x<c.x+c.w+r && y>c.y-r && y<c.y+c.h+r) return false; }
+  }
+  return true;
+}
 // colisão com a caixa central (box in box) — empurra a bola pra fora
-function collideBox(b){
-  const bo=arena.box;
-  // acha o ponto mais próximo da borda externa da caixa
+function collideBox(b){ return collideRect(b, arena.box); }
+// colisão genérica bola x retângulo (empurra a bola pra fora e reflete)
+function collideRect(b, bo){
+  if(!bo) return false;
+  // acha o ponto mais próximo da borda externa do retângulo
   const cx=Math.max(bo.x, Math.min(b.x, bo.x+bo.w));
   const cy=Math.max(bo.y, Math.min(b.y, bo.y+bo.h));
   const inside = b.x>bo.x && b.x<bo.x+bo.w && b.y>bo.y && b.y<bo.y+bo.h;
@@ -1954,9 +2994,9 @@ function collideBox(b){
 }
 // mesma colisão de caixa para projéteis (só reflete)
 function projBoxHit(p){
-  if(arena.shape!=='boxbox')return false;
-  const bo=arena.box;
-  return p.x>bo.x&&p.x<bo.x+bo.w&&p.y>bo.y&&p.y<bo.y+bo.h;
+  if(arena.shape==='boxbox'){ const bo=arena.box; return p.x>bo.x&&p.x<bo.x+bo.w&&p.y>bo.y&&p.y<bo.y+bo.h; }
+  if(arena.shape==='plus'){ for(const c of arena.corners){ if(p.x>c.x&&p.x<c.x+c.w&&p.y>c.y&&p.y<c.y+c.h)return true; } }
+  return false;
 }
 
 function collide(a,b){
@@ -2002,6 +3042,17 @@ function dealDamage(target, amount, isProjectile, force, attacker, isArea){
   if(!force && target.invuln&&target.invuln>0)return;
   // Arqueiro invisível: intangível a tudo, EXCETO dano de área (aura, fogo, explosão)
   if(target.stealth>0 && !isArea) return;
+  // Soul Stealer etéreo: 100% intangível a tudo
+  if(target.ethereal>0) return;
+  // DEBUFF do Soul Stealer: quanto mais alma roubada (0-100), mais dano DELE o alvo leva (até 2x)
+  const atk = (attacker!==undefined && attacker>=0) ? fighters[attacker] : null;
+  if(atk && atk.kind==='soulstealer' && target.soulCurse>0){
+    amount *= 1 + (target.soulCurse/100); // 100 de curse = 2x
+  }
+  // MARCA do cachorro do Hunter: alvo marcado POR ESTE Hunter leva 2x de dano do rifle dele
+  if(atk && atk.kind==='hunter' && target.markedBy===attacker){
+    amount *= 2;
+  }
   // registra quem causou o último dano (pra detectar suicídio)
   if(attacker!==undefined) target.lastHitBy=attacker;
   // se o jogador (time 0) leva dano, marca (pra conquista "sem levar dano")
@@ -2168,11 +3219,11 @@ function spawnBlink(x,y){
    ================================================================== */
 // tipos de item: cada um tem ícone, raio e comportamento
 const ITEM_TYPES = {
-  mine:   { icon:'💥', r:12, color:'#e05050', settle:true },  // explode em quem pisa
-  fruit:  { icon:'🍎', r:13, color:'#e04060', settle:true },  // cura aliado que pegar
-  bomb:   { icon:'💣', r:13, color:'#444', settle:true },     // explode ao parar
-  ice:    { icon:'❄️', r:16, color:'#7cc8ff', settle:true },  // poça que deixa lento
-  spikes: { icon:'🌵', r:14, color:'#3aa055', settle:true }   // dano a quem passar
+  mine:   { icon:'💥', r:12*SCALE, color:'#e05050', settle:true },  // explode em quem pisa
+  fruit:  { icon:'🍎', r:13*SCALE, color:'#e04060', settle:true },  // cura aliado que pegar
+  bomb:   { icon:'💣', r:13*SCALE, color:'#444', settle:true },     // explode ao parar
+  ice:    { icon:'❄️', r:16*SCALE, color:'#7cc8ff', settle:true },  // poça que deixa lento
+  spikes: { icon:'🌵', r:14*SCALE, color:'#3aa055', settle:true }   // dano a quem passar
 };
 // lança um item na arena com velocidade inicial (physics: quica no chão)
 function throwArenaItem(type, team, x, y, vx, vy){
@@ -2222,9 +3273,10 @@ function stepArenaItems(alive){
     if(it.type==='bomb'){
       it.fuse--;
       if(it.fuse<=0){ // explode em área (só inimigos de quem jogou)
-        booms.push({x:it.x,y:it.y,r:6,max:70,life:1,color:'#ff8030'});
+        const bR=70*SCALE;
+        booms.push({x:it.x,y:it.y,r:6,max:bR,life:1,color:'#ff8030'});
         for(const o of alive){ if(o.team===it.team)continue; // não fere o próprio time
-          if(Math.hypot(o.x-it.x,o.y-it.y)<70+o.r) dealDamage(o,40,false,false,-1,true); }
+          if(Math.hypot(o.x-it.x,o.y-it.y)<bR+o.r) dealDamage(o,40,false,false,-1,true); }
         setFlash(10,'255,150,60'); SFX.explosion(); it.used=true;
       }
       continue;
@@ -2239,9 +3291,9 @@ function stepArenaItems(alive){
           setFlash(6,'80,230,90'); SFX.clone(); it.used=true; break; }
       } else if(it.type==='mine'){
         // explode em quem pisa (só inimigos de quem jogou)
-        if(o.team!==it.team){ booms.push({x:it.x,y:it.y,r:6,max:60,life:1,color:'#ff5040'});
+        if(o.team!==it.team){ const mR=60*SCALE; booms.push({x:it.x,y:it.y,r:6,max:mR,life:1,color:'#ff5040'});
           for(const t of alive){ if(t.team===it.team)continue;
-            if(Math.hypot(t.x-it.x,t.y-it.y)<60+t.r) dealDamage(t,50,false,false,-1,true); }
+            if(Math.hypot(t.x-it.x,t.y-it.y)<mR+t.r) dealDamage(t,50,false,false,-1,true); }
           setFlash(10,'255,90,60'); SFX.explosion(); it.used=true; break; }
       } else if(it.type==='spikes'){
         // dano a inimigos que passam (cooldown por vítima, some após alguns hits)
@@ -2280,14 +3332,14 @@ function doChronos(f){
     timeStopOwner=f.slotIdx;                     // quem parou o tempo (aliados não congelam)
     setFlash(20,'150,200,255'); SFX.berserk();
   }
-  // durante o Time Stop, ataca 10x mais rápido (rajada de pulsos)
+  // durante o Time Stop, ataca 5x mais rápido (rajada de pulsos)
   if(f.timeStopActive>0){
     f.timeStopActive--;
     if(f.timeStopActive<=0){ timeStopOwner=-1; } // acabou o congelamento
-    // dispara pulsos numa cadência altíssima (10x): a cada 2 frames em vez de fireCd
+    // dispara pulsos numa cadência alta (5x): a cada 4 frames em vez de fireCd
     f.burstFire=(f.burstFire||0)-1;
     if(f.burstFire<=0){
-      f.burstFire=2;
+      f.burstFire=4;
       const en=fighters.filter(o=>o.alive&&!sameTeam(o,f)&&o!==f);
       if(en.length){
         const tgt=en[Math.floor(Math.random()*en.length)];
@@ -2395,16 +3447,16 @@ function mageSummon(f){
 }
 /* ---------- helper: fighter está preso ou executando agarrão/giro? ---------- */
 function isBusy(f){
-  // está agarrando/girando alguém, OU está sendo arremessado, OU está sendo agarrado/girado por outro
-  if(f.grabbing||f.spinning) return true;
+  // está agarrando/girando/mordendo alguém, OU está sendo arremessado, OU está sendo agarrado por outro
+  if(f.grabbing||f.spinning||f.biting) return true;
   if(f.knockback>0) return true;
   return heldByOther(f);
 }
-// algum OUTRO fighter está segurando/girando este fighter?
+// algum OUTRO fighter está segurando/girando/mordendo este fighter?
 function heldByOther(f){
   for(const o of fighters){
     if(!o.alive||o===f)continue;
-    if(o.grabbing===f||o.spinning===f) return true;
+    if(o.grabbing===f||o.spinning===f||o.biting===f) return true;
   }
   return false;
 }
@@ -2426,6 +3478,222 @@ function foeCanCounterGrab(f, foe){
 function winsGrabContest(f, foe){
   if(foeCanCounterGrab(f, foe)) return Math.random() < 0.5; // 50% real, independente da ordem
   return true; // sem disputa: agarra normalmente
+}
+// disputa justa entre vampiros: se o outro também é vampiro, livre, pronto e no alcance -> 50/50
+function vampWinsBiteContest(f, foe){
+  if(foe.kind==='vampire' && !isBusy(foe) && foe.drainCd<=0){
+    const dist=Math.hypot(foe.x-f.x,foe.y-f.y);
+    if(dist < f.r+foe.r+6) return Math.random() < 0.5;
+  }
+  return true;
+}
+/* ---------- VAMPIRE (agarra, morde 3x, vira Drácula) ---------- */
+// cada mordida: cura vida fixa + enche a barra de sangue; ao encher 100%, vira Drácula
+function vampBite(f){
+  if(!f || f.kind!=='vampire') return;
+  const heal = 1 * (f.dracula?2:1);        // cura 1 de vida por mordida (2 como Drácula)
+  f.hp = Math.min(f.maxhp, f.hp + heal);
+  burst(f.x, f.y, '#c0202a', 5);           // borrifo de cura
+  if(!f.dracula){
+    f.blood = Math.min(100, f.blood + 5);  // cada mordida = 5% de sangue
+    if(f.blood >= 100){                    // TRANSFORMA em Drácula
+      f.dracula=true; f.blood=100;
+      f.icon='🧛‍♂️'; f.color='#b01020'; f.dark='#5a0810';
+      setFlash(16,'180,20,40'); SFX.transform(); addShake(10);
+    }
+  }
+}
+function doVampire(f){
+  if(f.vampFireCd===undefined) f.vampFireCd=(CHARS[f.id].fireCd||70)/f.cfg.fireRate;
+  if(f.drainCd>0)f.drainCd--;
+  // ---- forma DRÁCULA: barra de sangue esvazia; quando zera, volta ao normal ----
+  if(f.dracula){
+    f.blood -= 100/600; // esvazia em ~10s
+    if(f.blood<=0){ f.blood=0; f.dracula=false;
+      f.icon=CHARS[f.id].icon; f.color=CHARS[f.id].color; f.dark=CHARS[f.id].dark;
+      setFlash(8,'120,120,130'); }
+  }
+  const dracMul=f.dracula?2:1;
+
+  // ---- ESTÁ AGARRANDO: segura o inimigo e dá 3 mordidas ----
+  if(f.biting){
+    const v=f.biting;
+    if(!v.alive){ f.biting=null; f.biteTimer=0; f.biteX=undefined; f.biteY=undefined; f.drainCd=Math.round(40/dracMul); return; }
+    // trava o vampiro no lugar onde começou a mordida (não desliza)
+    if(f.biteX!==undefined){ f.x=f.biteX; f.y=f.biteY; }
+    f.vx=0; f.vy=0;
+    // segura o inimigo colado na frente do vampiro (posição fixa, sem puxar)
+    const hold=f.r+v.r-4;
+    v.x=f.x+Math.cos(f.ang)*hold; v.y=f.y+Math.sin(f.ang)*hold;
+    v.vx=0; v.vy=0;
+    f.invuln=Math.max(f.invuln,2); // protegido enquanto executa a sugada
+    f.biteTimer--;
+    // dá uma mordida a cada intervalo, até completar as 3
+    if(f.biteTimer<=0 && f.bitesLeft>0){
+      f.bitesLeft--;
+      f.biteTimer=Math.round(12/dracMul); // ritmo das mordidas (mais rápido como Drácula)
+      const bite = 10 * dracMul;          // dano da mordida
+      dealDamage(v, bite, false, true, f.slotIdx);
+      vampBite(f);                        // cura + enche sangue
+      burst((f.x+v.x)/2,(f.y+v.y)/2,'#c0202a',6);
+      SFX.touch();
+    }
+    // acabou as 3 mordidas -> SEPARA: vampiro voa pra trás com força, inimigo empurrado de leve
+    if(f.biteTimer<=0 && f.bitesLeft<=0){
+      const push=f.r+v.r+6;
+      // o inimigo é "empurrado" pra frente (leve), na direção do olhar do vampiro
+      v.x=f.x+Math.cos(f.ang)*push; v.y=f.y+Math.sin(f.ang)*push;
+      v.vx=Math.cos(f.ang)*6*dracMul; v.vy=Math.sin(f.ang)*6*dracMul;
+      v.knockback=Math.max(v.knockback||0,8);
+      // o VAMPIRO é jogado pra trás com MAIS força (recuo grande)
+      f.vx=-Math.cos(f.ang)*13*dracMul; f.vy=-Math.sin(f.ang)*13*dracMul;
+      f.knockback=Math.max(f.knockback,12);
+      f.biting=null; f.biteTimer=0; f.biteX=undefined; f.biteY=undefined;
+      f.drainCd=Math.round(60/dracMul); // recarga antes de agarrar de novo
+      SFX.explosion();
+    }
+    return; // enquanto agarra, não faz mais nada
+  }
+
+  const foe=nearestEnemy(f); if(!foe)return;
+  const dist=Math.hypot(foe.x-f.x,foe.y-f.y);
+  // aponta pro inimigo
+  f.ang=Math.atan2(foe.y-f.y,foe.x-f.x);
+  // ---- AGARRA o inimigo perto (inicia as 3 mordidas) ----
+  if(dist < f.r+foe.r+6 && f.drainCd<=0 && !foe.immortal && !isBusy(foe) && vampWinsBiteContest(f,foe)){
+    f.biting=foe; f.bitesLeft=3; f.biteTimer=6;
+    f.biteX=f.x; f.biteY=f.y; // trava a posição do vampiro neste ponto
+    SFX.touch();
+    return;
+  }
+
+  // ---- ATAQUE À DISTÂNCIA: arremessa sangue (dano escala com a vida) ----
+  f.cd--;
+  if(f.cd>0) return;
+  f.cd = Math.round(f.vampFireCd / dracMul);
+  const hpRatio=Math.max(0.25, f.hp/f.maxhp);
+  const dmg = f.dmg * hpRatio * dracMul; // full vida = dano máximo
+  const aim=Math.atan2(foe.y-f.y,foe.x-f.x)+(Math.random()-0.5)*0.15;
+  const sx=f.x+Math.cos(aim)*(f.r+10), sy=f.y+Math.sin(aim)*(f.r+10);
+  projectiles.push({type:'bloodshot',x:sx,y:sy,vx:Math.cos(aim)*6,vy:Math.sin(aim)*6,
+    life:160,dmg,owner:f.slotIdx,color:'#b01828'});
+  burst(sx,sy,'#c0202a',4);
+  SFX.arrow();
+}
+
+/* ---------- SOUL STEALER (aura suga almas + 3 skills) ---------- */
+function doSoulStealer(f){
+  // forma etérea: intangível, não ataca, mas ainda suga almas de perto
+  if(f.ethereal>0){ f.ethereal--; f.invuln=Math.max(f.invuln,2); }
+  if(f.soulSkillCd>0)f.soulSkillCd--;
+
+  // AURA: suga almas dos inimigos por perto (debuff soulCurse 0-100)
+  const auraR=180*SCALE; // aura grande
+  for(const o of fighters){
+    if(!o.alive||sameTeam(o,f)||o===f)continue;
+    if(Math.hypot(o.x-f.x,o.y-f.y)<auraR+o.r){
+      if(o.soulCurse<100){ o.soulCurse=Math.min(100,(o.soulCurse||0)+0.6); }
+      // o Soul Stealer junta a alma roubada na lanterna (até 500)
+      if(f.souls<f.soulMax) f.souls=Math.min(f.soulMax, f.souls+0.5);
+      if(Math.random()<0.06) burst((f.x+o.x)/2,(f.y+o.y)/2,'#a86ce0',2);
+    }
+  }
+  // debuff decai devagar quando fora da aura (recupera alma aos poucos)
+  // (feito no passo global de decaimento pra todos)
+
+  if(f.ethereal>0) return; // etéreo não usa skills nem ataca
+
+  // ---- SKILLS: cada uma custa 50 de alma; saem automaticamente conforme junta ----
+  if(f.souls>=50 && f.soulSkillCd<=0){
+    f.souls-=50; f.soulSkillCd=90; // pequeno intervalo entre skills
+    const roll=Math.floor(Math.random()*3);
+    if(roll===0){
+      // SKILL 1: rajada enorme em volta (dano em área)
+      const R=140*SCALE;
+      booms.push({x:f.x,y:f.y,r:10,max:R,life:1,color:'#a86ce0'});
+      for(const o of fighters){ if(!o.alive||sameTeam(o,f)||o===f)continue;
+        if(Math.hypot(o.x-f.x,o.y-f.y)<R+o.r) dealDamage(o, 22, false, false, f.slotIdx, true); }
+      setFlash(12,'168,108,224'); addShake(8); SFX.explosion();
+    } else if(roll===1){
+      // SKILL 2: ressuscita um fantasma que corre até um inimigo aleatório
+      const enemies=fighters.filter(o=>o.alive&&!sameTeam(o,f)&&o!==f);
+      if(enemies.length){
+        const tgt=enemies[Math.floor(Math.random()*enemies.length)];
+        ghosts.push({x:f.x,y:f.y,r:18*SCALE,target:tgt,owner:f.slotIdx,dmg:30,life:300,color:'#c9a6f0'});
+        setFlash(8,'200,166,240'); SFX.transform();
+      } else { f.souls+=50; f.soulSkillCd=0; } // sem alvo: devolve a alma
+    } else {
+      // SKILL 3: vira alma (etéreo/intangível) por 2s
+      f.ethereal=120; setFlash(10,'180,150,240'); SFX.transform();
+    }
+  }
+
+  // ---- ATAQUE NORMAL: dispara uma bola de alma LENTA que PERSEGUE o inimigo ----
+  const foe=nearestEnemy(f); if(!foe)return;
+  f.cd=(f.cd||0)-1;
+  if(f.cd>0) return;
+  f.cd=80;
+  const aim=Math.atan2(foe.y-f.y,foe.x-f.x);
+  const sx=f.x+Math.cos(aim)*(f.r+10), sy=f.y+Math.sin(aim)*(f.r+10);
+  projectiles.push({type:'soulshot',x:sx,y:sy,vx:Math.cos(aim)*3,vy:Math.sin(aim)*3,
+    life:280,dmg:f.dmg,owner:f.slotIdx,color:'#a86ce0',homing:true,speed:3,turn:0.06});
+  burst(sx,sy,'#a86ce0',3); SFX.arrow();
+}
+
+/* ---------- HUNTER (rifle + cachorro que marca + armadilha) ---------- */
+function doHunter(f){
+  if(f.hunterCd>0)f.hunterCd--;
+  if(f.trapCd>0)f.trapCd--;
+  // cria o cachorro uma vez (companheiro que não morre)
+  if(!f.dog){
+    f.dog={x:f.x,y:f.y,r:15*SCALE,owner:f.slotIdx,team:f.team,state:'chase',
+      target:null,restCd:0,biteCd:0,color:'#8a5a2a'};
+    dogs.push(f.dog);
+  }
+
+  // ---- ARMADILHA: joga uma no chão de vez em quando ----
+  if(f.trapCd<=0 && traps.filter(t=>t.owner===f.slotIdx).length<3){
+    f.trapCd=300; // ~5s entre armadilhas
+    // nasce num anel ao redor (70-160px) pra não cair em cima do próprio Hunter,
+    // mas sempre DENTRO do mapa — tenta várias direções e pega a 1ª válida
+    let tx=f.x, ty=f.y, achou=false;
+    for(let tries=0;tries<12;tries++){
+      const ta=Math.random()*Math.PI*2, td=70+Math.random()*90;
+      const cx=f.x+Math.cos(ta)*td, cy=f.y+Math.sin(ta)*td;
+      if(posInArena(cx,cy,20)){ tx=cx; ty=cy; achou=true; break; }
+    }
+    if(!achou){ const cp=clampInArena(f.x,f.y,20); tx=cp.x; ty=cp.y; } // fallback: perto do Hunter
+    traps.push({x:tx,y:ty,r:16*SCALE,owner:f.slotIdx,team:f.team,armed:true});
+  }
+
+  // ---- RIFLE: tiro lento e forte, prioriza o inimigo MARCADO ----
+  const foe=huntTarget(f);
+  if(!foe) return;
+  if(f.hunterCd<=0){
+    f.hunterCd=300; // ~5s entre tiros
+    const aim=Math.atan2(foe.y-f.y,foe.x-f.x);
+    const sx=f.x+Math.cos(aim)*(f.r+12), sy=f.y+Math.sin(aim)*(f.r+12);
+    // tiro rápido (2-3x mais que a flecha): velocidade 15
+    projectiles.push({type:'bullet',x:sx,y:sy,vx:Math.cos(aim)*15,vy:Math.sin(aim)*15,
+      life:120,dmg:30,owner:f.slotIdx,color:'#ffe08a'});
+    setFlash(5,'255,224,138'); SFX.arrow(); addShake(3);
+  }
+}
+// alvo do rifle: prioriza o marcado (mesmo longe), a não ser que tenha parede no caminho
+function huntTarget(f){
+  const marked=fighters.find(o=>o.alive&&!sameTeam(o,f)&&o!==f&&o.markedBy===f.slotIdx);
+  if(marked && !wallBetween(f.x,f.y,marked.x,marked.y)) return marked;
+  return nearestEnemy(f);
+}
+// existe parede entre dois pontos? (só o mapa boxbox tem obstáculo central)
+function wallBetween(x1,y1,x2,y2){
+  if(!arena || !arena.box) return false;
+  const w=arena.box, steps=14;
+  for(let i=1;i<steps;i++){
+    const t=i/steps, px=x1+(x2-x1)*t, py=y1+(y2-y1)*t;
+    if(px>w.x&&px<w.x+w.w&&py>w.y&&py<w.y+w.h) return true;
+  }
+  return false;
 }
 /* ---------- BRAWLER (Berserker soqueiro) ---------- */
 function doBrawler(f){
@@ -2452,7 +3720,7 @@ function doBrawler(f){
       f.punchAnim=8; f.punchArm=(f.punchArm+1)%2;
       dealDamage(v, 5*(f.berserk?2:1), false, true); // 5 de dano por soco (força, ignora invuln)
       burst(v.x,v.y,f.berserk?'#ff6a00':'#ffcc33',7);
-      setFlash(4,'255,180,60'); SFX.sword();
+      setFlash(4,'255,180,60'); SFX.punch();
     }
     // acabou todos os socos -> CHUTE pra longe (20 de dano)
     if(f.grabTimer<=0 && f.punchesLeft<=0){
@@ -2463,6 +3731,9 @@ function doBrawler(f){
       v.vx=Math.cos(f.ang)*kick; v.vy=Math.sin(f.ang)*kick;
       v.knockback=14; // ignora colisão por alguns frames pra voar livre
       dealDamage(v, 20*(f.berserk?2:1), false, true); // chute = 20 de dano (força)
+      // RECUO: o Berserk é jogado pra trás (coice), metade da velocidade do chute
+      f.vx=-Math.cos(f.ang)*kick*0.5; f.vy=-Math.sin(f.ang)*kick*0.5;
+      f.knockback=Math.max(f.knockback,8); // desliza livre por alguns frames
       burst(v.x,v.y,'#ff4400',18); setFlash(10,'255,120,0'); SFX.explosion();
       f.grabbing=null; f.grabTimer=0;
       f.grabCd=f.grabCdMax; // recarga do especial
@@ -2495,7 +3766,7 @@ function doBrawler(f){
     // pequeno empurrão do soco
     foe.vx+=Math.cos(f.ang)*1.5; foe.vy+=Math.sin(f.ang)*1.5;
     burst(f.x+Math.cos(f.ang)*f.r, f.y+Math.sin(f.ang)*f.r, f.berserk?'#ff6a00':'#ffcc33',6);
-    setFlash(4,f.berserk?'255,120,0':'255,220,120'); SFX.sword();
+    setFlash(4,f.berserk?'255,120,0':'255,220,120'); SFX.punch();
   }
 }
 
@@ -2553,17 +3824,18 @@ function doHeavy(f){
   }
 }
 function explode(x,y,dmg,splash,owner,color){
-  booms.push({x,y,r:6,max:splash+30,life:1,color});
+  const m=30*SCALE; // margem base da explosão (escala com o tamanho geral)
+  booms.push({x,y,r:6,max:splash+m,life:1,color});
   for(const t of fighters){ if(!t.alive||t.slotIdx===owner)continue;
     if(!ownerCanHit(owner,t))continue;
-    if(Math.hypot(t.x-x,t.y-y)<(splash+30)+t.r) dealDamage(t,dmg,true,false,owner,true); }
+    if(Math.hypot(t.x-x,t.y-y)<(splash+m)+t.r) dealDamage(t,dmg,true,false,owner,true); }
   for(const c of clones){ if(c.owner===owner)continue;
-    if(Math.hypot(c.x-x,c.y-y)<(splash+30)+c.r) c.hp-=dmg; }
+    if(Math.hypot(c.x-x,c.y-y)<(splash+m)+c.r) c.hp-=dmg; }
   setFlash(6,'255,150,40'); SFX.explosion(); addShake(7);
 }
 function spawnClone(f){
   clones.push({ owner:f.slotIdx, color:f.baseColor, dark:f.baseDark, icon:f.icon,
-    x:f.x+(Math.random()-0.5)*40, y:f.y+(Math.random()-0.5)*40, r:22*f.cfg.size,
+    x:f.x+(Math.random()-0.5)*40, y:f.y+(Math.random()-0.5)*40, r:22*SCALE*f.cfg.size,
     vx:(Math.random()<.5?1:-1)*(3+Math.random()*2)*f.speedMul,
     vy:(Math.random()<.5?1:-1)*(3+Math.random()*2)*f.speedMul,
     hp:100,maxhp:100, touchDmg:(f.touchDmg||5)/2, hitCd:0 });
@@ -2595,7 +3867,7 @@ function doSoldier(f){
     const sx=f.x+Math.cos(aim)*(f.r+8), sy=f.y+Math.sin(aim)*(f.r+8);
     projectiles.push({type:'bullet',x:sx,y:sy,vx:Math.cos(ang)*8,vy:Math.sin(ang)*8,
       life:120,dmg:f.bulletDmg,owner:f.slotIdx,color:'#ffdd55'});
-    SFX.arrow();
+    SFX.gunshot();
     f.burstLeft--;
     if(f.burstLeft<=0){ f.reloadCd=f.reloadTime; } // acabou a rajada -> recarrega
   }
@@ -2624,7 +3896,7 @@ function doPacman(f){
     if(arena.shape==='circle'){ const a=Math.random()*Math.PI*2, rr=Math.random()*arena.R*0.7;
       px=arena.cx+Math.cos(a)*rr; py=arena.cy+Math.sin(a)*rr; }
     else { px=arena.x+40+Math.random()*(arena.w-80); py=arena.y+40+Math.random()*(arena.h-80); }
-    pellets.push({owner:f.slotIdx, x:px, y:py, r:9});
+    pellets.push({owner:f.slotIdx, x:px, y:py, r:9*SCALE});
   }
   // come pellet próprio?
   for(let i=pellets.length-1;i>=0;i--){
@@ -2703,18 +3975,64 @@ function pandoraTick(f){
 /* ---------- STEP ---------- */
 function stepMove(f){
   if(f.knockback>0){ f.knockback--; if(f.knockback===0 && f.thrownBy>=0){ f.thrownBy=-1; f.thrownDmg=0; } }
+  // stun (armadilha do Hunter): fica preso; ao acabar, acelera de volta gradualmente
+  if(f.stun>0){
+    f.stun--; f.vx*=0.5; f.vy*=0.5; f.hitCd=Math.max(0,f.hitCd-1);
+    if(f.stun<=0){ // saiu da armadilha: começa a recuperar velocidade numa direção nova
+      const a=Math.random()*Math.PI*2;
+      f.accelDir=a; f.accelBack=f.preStunSpeed||3; f.accelCur=0;
+    }
+    return;
+  }
+  // aceleração pós-stun: ganha 25% da velocidade alvo por frame até chegar (não fica parado)
+  if(f.accelBack>0){
+    f.accelCur=Math.min(f.accelBack, f.accelCur + f.accelBack*0.25);
+    f.vx=Math.cos(f.accelDir)*f.accelCur; f.vy=Math.sin(f.accelDir)*f.accelCur;
+    if(f.accelCur>=f.accelBack-0.01){ f.accelBack=0; f.preStunSpeed=0; } // chegou na velocidade original
+  }
   // invulnerabilidade temporária decai para TODOS, exceto quando é renovada ativamente
-  // (Samurai na ultimate = jumping; Berserker/Heavyweight no agarrão = grabbing/spinning)
-  if(f.invuln>0 && !f.jumping && !f.grabbing && !f.spinning) f.invuln--;
-  // Berserker agarrando ou Heavyweight girando ficam plantados
-  if(f.grabbing||f.spinning){ f.vx*=0.6; f.vy*=0.6; f.hitCd=Math.max(0,f.hitCd-1); return; }
+  // (Samurai na ultimate = jumping; Berserker/Heavyweight no agarrão = grabbing/spinning; Vampire = biting)
+  if(f.invuln>0 && !f.jumping && !f.grabbing && !f.spinning && !f.biting) f.invuln--;
+  // Berserker agarrando, Heavyweight girando ou Vampire mordendo ficam plantados
+  if(f.grabbing||f.spinning||f.biting){ f.vx*=0.6; f.vy*=0.6; f.hitCd=Math.max(0,f.hitCd-1); return; }
   // Samurai atravessando na ultimate: o movimento é controlado por doKatana
   if(f.dashV){ f.hitCd=Math.max(0,f.hitCd-1); return; }
   // Chronos: bolha de tempo lento; Gelo: poça que deixa lento — combinam
-  const tf=timeFactor(f)*iceFactor(f);
+  const tf=timeFactor(f)*iceFactor(f)*(f.slow>0?0.5:1);
   f.x+=f.vx*tf; f.y+=f.vy*tf; wallBounce(f);
   if(f.reach)f.ang+=f.spin*tf;
   f.hitCd=Math.max(0,f.hitCd-1);
+}
+/* ---------- BURACO NEGRO: puxa todos pro centro e depois arremessa ---------- */
+function stepBlackhole(alive){
+  const cx=arena.cx, cy=arena.cy;
+  blackholePulse*=0.9; // decai o brilho visual
+  blackholeTimer--;
+  if(blackholePhase==='idle'){
+    if(blackholeTimer<=0){ blackholePhase='pull'; blackholeTimer=140; } // ~2.3s puxando
+  } else if(blackholePhase==='pull'){
+    // puxa todos pro centro com força CRESCENTE (adiciona à inércia, não substitui)
+    const prog=1-(blackholeTimer/140); // 0 -> 1
+    for(const f of alive){
+      if(f.thrownBy>=0 && f.knockback>0) continue; // projétil humano ignora
+      const dx=cx-f.x, dy=cy-f.y, d=Math.hypot(dx,dy)||1;
+      const pull=(0.15+prog*0.55); // força de sucção sobe ao longo da fase
+      f.vx+=dx/d*pull; f.vy+=dy/d*pull;
+    }
+    blackholePulse=Math.min(1,blackholePulse+0.06);
+    if(blackholeTimer<=0){ // EXPLODE: arremessa todos pra longe
+      blackholePhase='burst'; blackholeTimer=40;
+      for(const f of alive){
+        const dx=f.x-cx, dy=f.y-cy, d=Math.hypot(dx,dy)||1;
+        const kick=14+Math.random()*4;
+        f.vx+=dx/d*kick; f.vy+=dy/d*kick; // joga pra fora (soma à inércia)
+      }
+      setFlash(16,'170,110,255'); addShake(12); SFX.explosion();
+      for(let k=0;k<40;k++){ const a=Math.random()*7; burst(cx+Math.cos(a)*20,cy+Math.sin(a)*20,'#b06cff',3); }
+    }
+  } else if(blackholePhase==='burst'){
+    if(blackholeTimer<=0){ blackholePhase='idle'; blackholeTimer=300+Math.floor(Math.random()*120); } // ~5-7s de descanso
+  }
 }
 function bStep(){
   // ENTRADA: as bolas caem do alto quicando antes da luta começar
@@ -2738,6 +4056,9 @@ function bStep(){
   const alive=fighters.filter(f=>f.alive);
   // mover
   for(const f of alive) stepMove(f);
+
+  // buraco negro: puxa todos pro centro e depois arremessa
+  if(arena.shape==='blackhole') stepBlackhole(alive);
 
   // habilidades
   for(const f of alive){
@@ -2781,6 +4102,12 @@ function bStep(){
     if(f.kind==='heavy') doHeavy(f);
     // Chronos
     if(f.kind==='chronos') doChronos(f);
+    // Vampire
+    if(f.kind==='vampire') doVampire(f);
+    // Soul Stealer
+    if(f.kind==='soulstealer') doSoulStealer(f);
+    // Hunter
+    if(f.kind==='hunter') doHunter(f);
     // Luciferus
     if(f.kind==='angel'){
       const foe=nearestEnemy(f); f.wingFlap+=0.15;f.auraPhase+=0.012;
@@ -2893,6 +4220,22 @@ function bStep(){
       const owner=fighters[timeStopOwner], po=fighters[p.owner];
       if(owner && (!po || po.team!==owner.team)) continue; // projétil inimigo fica parado
     }
+    // projétil perseguidor (homing): curva a velocidade em direção ao inimigo mais próximo
+    if(p.homing){
+      let best=null,bd=1e9;
+      for(const o of fighters){ if(!o.alive||!ownerCanHit(p.owner,o))continue;
+        const d=Math.hypot(o.x-p.x,o.y-p.y); if(d<bd){bd=d;best=o;} }
+      if(best){
+        const desired=Math.atan2(best.y-p.y,best.x-p.x);
+        let cur=Math.atan2(p.vy,p.vx);
+        let diff=desired-cur;
+        while(diff>Math.PI)diff-=Math.PI*2; while(diff<-Math.PI)diff+=Math.PI*2;
+        const turn=p.turn||0.06;
+        cur+=Math.max(-turn,Math.min(turn,diff)); // vira gradualmente
+        const sp=p.speed||Math.hypot(p.vx,p.vy);
+        p.vx=Math.cos(cur)*sp; p.vy=Math.sin(cur)*sp;
+      }
+    }
     p.x+=p.vx;p.y+=p.vy;p.life--;
     if(p.type==='arrow'){
       let bo=false;
@@ -2923,7 +4266,7 @@ function bStep(){
       // rastro de fogo: deixa poças no chão a cada poucos frames
       if(p.trail){ p.trailCd=(p.trailCd||0)-1;
         if(p.trailCd<=0){ p.trailCd=6;
-          fireTrails.push({x:p.x,y:p.y,r:16,life:1,owner:p.owner,hitCd:{}}); } }
+          fireTrails.push({x:p.x,y:p.y,r:16*SCALE,life:1,owner:p.owner,hitCd:{}}); } }
       let boom=false;
       if(arena.shape==='circle'){ if(Math.hypot(p.x-arena.cx,p.y-arena.cy)>arena.R-2)boom=true; }
       else { if(p.x<arena.x||p.x>arena.x+arena.w||p.y<arena.y||p.y>arena.y+arena.h||projBoxHit(p))boom=true; }
@@ -2932,11 +4275,25 @@ function bStep(){
       // corte da katana / pulso do Chronos: some ao sair da arena (não ricocheteia)
       if(arena.shape==='circle'){ if(Math.hypot(p.x-arena.cx,p.y-arena.cy)>arena.R-2)p.life=0; }
       else { if(p.x<arena.x||p.x>arena.x+arena.w||p.y<arena.y||p.y>arena.y+arena.h||projBoxHit(p))p.life=0; }
+    } else if(p.type==='soulshot'){
+      // bola de alma perseguidora: mantém dentro da arena (não some na parede)
+      if(arena.shape==='circle'){
+        const dx=p.x-arena.cx,dy=p.y-arena.cy,d=Math.hypot(dx,dy);
+        if(d>arena.R-4){const nx=dx/d,ny=dy/d;p.x=arena.cx+nx*(arena.R-5);p.y=arena.cy+ny*(arena.R-5);
+          const dot=p.vx*nx+p.vy*ny;p.vx-=2*dot*nx;p.vy-=2*dot*ny;}
+      } else {
+        if(p.x<arena.x+3){p.x=arena.x+3;p.vx=Math.abs(p.vx);}
+        if(p.x>arena.x+arena.w-3){p.x=arena.x+arena.w-3;p.vx=-Math.abs(p.vx);}
+        if(p.y<arena.y+3){p.y=arena.y+3;p.vy=Math.abs(p.vy);}
+        if(p.y>arena.y+arena.h-3){p.y=arena.y+arena.h-3;p.vy=-Math.abs(p.vy);}
+      }
     }
     for(const t of fighters){ if(!t.alive||t.slotIdx===p.owner||!ownerCanHit(p.owner,t))continue;
       if(Math.hypot(t.x-p.x,t.y-p.y)<t.r+4){
         if(p.type==='fireball'||p.type==='grenade')explode(p.x,p.y,p.dmg,p.splash,p.owner,p.color);
-        else{dealDamage(t,p.dmg,true);burst(p.x,p.y,p.color,5);}
+        else{
+          dealDamage(t,p.dmg,true);burst(p.x,p.y,p.color,5);
+        }
         p.life=0;break; } }
     if(p.life>0)for(const c of clones){ if(c.owner===p.owner)continue;
       if(Math.hypot(c.x-p.x,c.y-p.y)<c.r+4){
@@ -2945,6 +4302,94 @@ function bStep(){
         p.life=0;break; } }
   }
   projectiles=projectiles.filter(p=>p.life>0);
+
+  // ===== HUNTER: cachorro companheiro (não morre) =====
+  for(const dog of dogs){
+    const owner=fighters[dog.owner];
+    if(!owner||!owner.alive){ dog.dead=true; continue; }
+    if(dog.biteCd>0)dog.biteCd--;
+    if(dog.state==='rest'){
+      dog.restCd--;
+      // volta correndo pro dono e descansa perto dele (desviando de paredes)
+      const dd=Math.hypot(owner.x-dog.x, owner.y-dog.y)||1;
+      if(dd>owner.r+dog.r+10){ const dir=dogSteer(dog,owner.x,owner.y); dog.x+=dir.x*3.2; dog.y+=dir.y*3.2; }
+      else { const a=Math.atan2(owner.y-dog.y,owner.x-dog.x); dog.x+=Math.cos(a)*0.5; dog.y+=Math.sin(a)*0.5; }
+      if(dog.restCd<=0){ dog.state='chase'; dog.target=null; }
+    } else {
+      // escolhe um alvo se não tiver
+      if(!dog.target||!dog.target.alive){
+        const en=fighters.filter(o=>o.alive&&o.team!==dog.team);
+        dog.target = en.length ? en[Math.floor(Math.random()*en.length)] : null;
+      }
+      if(dog.target){
+        const d=Math.hypot(dog.target.x-dog.x, dog.target.y-dog.y)||1;
+        const dir=dogSteer(dog,dog.target.x,dog.target.y); // corre atrás desviando de paredes
+        dog.x+=dir.x*2.8; dog.y+=dir.y*2.8;
+        if(d<dog.r+dog.target.r+2 && dog.biteCd<=0){
+          // MORDE: 5 de dano, slow, e MARCA o inimigo (só 1 marcado por ESTE Hunter)
+          dealDamage(dog.target,5,false,false,dog.owner);
+          dog.target.slow=Math.max(dog.target.slow||0,90); // slow ~1.5s
+          fighters.forEach(o=>{ if(o.markedBy===dog.owner) o.markedBy=-1; }); // tira a marca antiga deste Hunter
+          dog.target.markedBy=dog.owner;
+          burst(dog.target.x,dog.target.y,'#ffcf6a',6); SFX.touch();
+          // volta pro dono e descansa ~4s
+          dog.state='rest'; dog.restCd=240; dog.biteCd=240; dog.target=null;
+        }
+      } else { dog.x+=(owner.x-dog.x)*0.03; dog.y+=(owner.y-dog.y)*0.03; }
+    }
+    // mantém o cachorro dentro do mapa (não atravessa paredes nem o obstáculo central)
+    const cp=clampInArena(dog.x,dog.y,dog.r); dog.x=cp.x; dog.y=cp.y;
+  }
+  dogs=dogs.filter(d=>!d.dead);
+
+  // ===== SOUL STEALER: fantasmas que correm até um alvo e explodem no toque =====
+  for(const g of ghosts){
+    g.life--;
+    if(!g.target||!g.target.alive){
+      const en=fighters.filter(o=>o.alive&&o.team!==fighters[g.owner].team);
+      g.target=en.length?en[Math.floor(Math.random()*en.length)]:null;
+    }
+    if(g.target){
+      const dx=g.target.x-g.x, dy=g.target.y-g.y, d=Math.hypot(dx,dy)||1;
+      g.x+=dx/d*5; g.y+=dy/d*5;
+      if(d<g.r+g.target.r){ dealDamage(g.target,g.dmg,false,false,g.owner,true);
+        burst(g.x,g.y,g.color,14); setFlash(6,'200,166,240'); g.life=0; }
+    }
+    if(Math.random()<0.3) burst(g.x+(Math.random()-0.5)*20,g.y+(Math.random()-0.5)*20,g.color,1);
+  }
+  ghosts=ghosts.filter(g=>g.life>0);
+
+  // ===== HUNTER: armadilhas no chão =====
+  for(const tr of traps){
+    if(!tr.armed)continue;
+    for(const o of fighters){ if(!o.alive)continue;
+      if(Math.hypot(o.x-tr.x,o.y-tr.y)<tr.r+o.r){
+        if(o.team===tr.team){
+          // pisou na PRÓPRIA armadilha (Hunter ou aliado): sem dano, só fica lento
+          o.slow=Math.max(o.slow||0,180); // ~3s de lentidão
+          burst(tr.x,tr.y,'#c9a24a',8); SFX.touch();
+        } else {
+          // inimigo: dano + stun (preso). Guarda a velocidade que tinha pra recuperar depois
+          dealDamage(o,10,false,false,tr.owner);
+          o.stun=Math.max(o.stun||0,90); // ~1.5s preso
+          o.preStunSpeed=Math.max(o.preStunSpeed||0, Math.hypot(o.vx,o.vy)||3);
+          burst(tr.x,tr.y,'#c9a24a',10); setFlash(6,'201,162,74'); SFX.explosion();
+        }
+        tr.armed=false; tr.gone=true; break;
+      }
+    }
+  }
+  traps=traps.filter(t=>!t.gone);
+
+  // ===== decaimento de debuffs por frame =====
+  for(const f of fighters){ if(!f.alive)continue;
+    if(f.slow>0)f.slow--;
+    // soulCurse decai devagar quando o Soul Stealer não está por perto
+    if(f.soulCurse>0){
+      const near=fighters.some(o=>o.alive&&o.kind==='soulstealer'&&!sameTeam(o,f)&&Math.hypot(o.x-f.x,o.y-f.y)<190*SCALE+o.r);
+      if(!near) f.soulCurse=Math.max(0,f.soulCurse-0.15);
+    }
+  }
 
   // rastros de fogo do Mago: duram ~3,5s e dão 5 de dano por toque
   for(const ft of fireTrails){
@@ -3119,6 +4564,7 @@ function updateVictory(){
 }
 function showVictoryCard(){
   bOver=true;
+  stopBattleMusic(); // para a trilha de batalha; o tema de vitória assume
   const W=victory.winner;
   const card=document.getElementById('victoryCard');
   const face=document.getElementById('vFace');
@@ -3128,20 +4574,21 @@ function showVictoryCard(){
     face.textContent=W.icon; face.style.background=W.color; face.style.color=W.color;
     nm.textContent=W.name;
     if(victory.isTeam){
-      const teamName=victory.team===0?'Time A · Você':'Time B · Adversário';
+      const teamName=victory.team===0?t('teamAYou'):t('teamB');
       const teamColor=victory.team===0?'#33ddcc':'#ff5566';
       nm.textContent=teamName;
-      sub.textContent=`Liderado por ${W.name}`;
+      // "Liderado por" em texto claro + nome do líder destacado na cor dele
+      sub.innerHTML=t('ledBy')+' <span style="color:'+W.color+';font-weight:900;text-shadow:0 0 16px '+W.color+'">'+W.name+'</span>';
       nm.style.color=teamColor;
     } else {
-      sub.textContent=`Jogador ${W.slotIdx+1} · Vencedor`;
+      sub.textContent=t('player')+' '+(W.slotIdx+1)+' · '+t('winner');
       nm.style.color=W.color;
     }
     // toca o tema de vitória único do personagem (usa a identidade original do Pandora)
     const themeId = W.pandoraOrig || W.id;
     playVictoryTheme(themeId);
   } else {
-    face.textContent='—'; face.style.background='#555'; nm.textContent='Empate'; sub.textContent='Ninguém sobreviveu';
+    face.textContent='—'; face.style.background='#555'; nm.textContent=t('draw'); sub.textContent=t('nobodySurvived');
     nm.style.color='#fff';
   }
   card.classList.add('show');
@@ -3184,7 +4631,7 @@ function drawArenaBg(){
     bx.globalAlpha=1;
   }
   bx.save();
-  if(arena.shape==='square'||arena.shape==='boxbox'){
+  if(arena.shape==='square'||arena.shape==='boxbox'||arena.shape==='plus'||arena.shape==='blackhole'){
     bx.fillStyle='#fbfbfd';bx.strokeStyle='#000';bx.lineWidth=3;
     bx.beginPath();bx.rect(arena.x,arena.y,arena.w,arena.h);bx.fill();bx.stroke();
     // grade sutil
@@ -3198,6 +4645,16 @@ function drawArenaBg(){
       bx.strokeStyle='rgba(255,255,255,0.08)';bx.lineWidth=1;
       bx.strokeRect(bo.x+4,bo.y+4,bo.w-8,bo.h-8);
     }
+    if(arena.shape==='plus'){
+      // 4 cantos bloqueados (obstáculos)
+      bx.fillStyle='#2a2140';bx.strokeStyle='#000';bx.lineWidth=3;
+      for(const c of arena.corners){ bx.beginPath();bx.rect(c.x,c.y,c.w,c.h);bx.fill();bx.stroke();
+        bx.strokeStyle='rgba(255,255,255,0.07)';bx.lineWidth=1;bx.strokeRect(c.x+4,c.y+4,c.w-8,c.h-8);
+        bx.strokeStyle='#000';bx.lineWidth=3; }
+    }
+    if(arena.shape==='blackhole'){
+      drawBlackhole();
+    }
   } else if(arena.shape==='circle'){
     bx.fillStyle='#fbfbfd';bx.strokeStyle='#000';bx.lineWidth=3;
     bx.beginPath();bx.arc(arena.cx,arena.cy,arena.R,0,7);bx.fill();bx.stroke();
@@ -3205,6 +4662,43 @@ function drawArenaBg(){
     for(let rr=34;rr<arena.R;rr+=34){bx.beginPath();bx.arc(arena.cx,arena.cy,rr,0,7);bx.stroke();}
   }
   bx.restore();
+}
+// desenha o buraco negro no centro (disco + anel de acreção; pulsa quando puxa)
+function drawBlackhole(){
+  const cx=arena.cx, cy=arena.cy;
+  const pulling=(blackholePhase==='pull');
+  const baseR=24, R=baseR+(blackholePulse||0)*18;
+  // halo de sucção (linhas espirais quando está puxando)
+  if(pulling && G.settings.particles){
+    bx.save(); bx.globalAlpha=0.4;
+    const t=Date.now()/200;
+    for(let i=0;i<10;i++){
+      const a=t+i*(Math.PI*2/10);
+      const r1=120, r2=R+6;
+      bx.strokeStyle='rgba(150,90,255,0.5)'; bx.lineWidth=2;
+      bx.beginPath();
+      bx.moveTo(cx+Math.cos(a)*r1, cy+Math.sin(a)*r1);
+      bx.quadraticCurveTo(cx+Math.cos(a+0.6)*r1*0.5, cy+Math.sin(a+0.6)*r1*0.5, cx+Math.cos(a+1.0)*r2, cy+Math.sin(a+1.0)*r2);
+      bx.stroke();
+    }
+    bx.restore();
+  }
+  // disco de acreção (anel brilhante)
+  const gl=bx.createRadialGradient(cx,cy,R*0.4,cx,cy,R+30);
+  gl.addColorStop(0,'rgba(90,40,160,0)');
+  gl.addColorStop(0.6,'rgba(150,80,255,0.5)');
+  gl.addColorStop(1,'rgba(90,40,160,0)');
+  bx.fillStyle=gl; bx.beginPath(); bx.arc(cx,cy,R+30,0,7); bx.fill();
+  // borda de luz girando
+  bx.save(); bx.translate(cx,cy); bx.rotate(Date.now()/600);
+  bx.strokeStyle='rgba(200,150,255,0.8)'; bx.lineWidth=3; bx.setLineDash([10,8]);
+  bx.beginPath(); bx.arc(0,0,R+8,0,7); bx.stroke(); bx.restore();
+  // núcleo preto
+  bx.fillStyle='#08060f'; bx.strokeStyle='#4a2a7a'; bx.lineWidth=2;
+  bx.beginPath(); bx.arc(cx,cy,R,0,7); bx.fill(); bx.stroke();
+  // brilho interno
+  bx.fillStyle='rgba(120,70,200,0.3)';
+  bx.beginPath(); bx.arc(cx-R*0.2,cy-R*0.2,R*0.35,0,7); bx.fill();
 }
 function drawSword(b){
   const len=b.r+b.reach;
@@ -3364,6 +4858,25 @@ function drawBall(b,radius,label,tint){
       bx.fillText(label,b.x,b.y+1); }
     bx.restore();return;
   }
+  // asas de morcego do Vampire (atrás da bola)
+  if(b.kind==='vampire'){
+    const flap=Math.sin((b.wingFlap||0))*0.35;
+    b.wingFlap=(b.wingFlap||0)+0.14;
+    bx.fillStyle=b.dracula?'#3a0810':'#2a2a30'; bx.strokeStyle='#000'; bx.lineWidth=2;
+    for(const sgn of [-1,1]){
+      bx.save(); bx.translate(b.x,b.y); bx.scale(sgn,1); bx.rotate(flap);
+      bx.beginPath();
+      bx.moveTo(radius*0.5,-radius*0.2);
+      bx.quadraticCurveTo(radius*1.7,-radius*1.0, radius*2.0,-radius*0.1);
+      bx.lineTo(radius*1.5,0);
+      bx.lineTo(radius*1.8,radius*0.4);
+      bx.lineTo(radius*1.2,radius*0.25);
+      bx.lineTo(radius*1.4,radius*0.7);
+      bx.quadraticCurveTo(radius*0.9,radius*0.35, radius*0.5,radius*0.25);
+      bx.closePath(); bx.fill(); bx.stroke();
+      bx.restore();
+    }
+  }
   bx.fillStyle=b.color;bx.strokeStyle='#000';bx.lineWidth=3;
   bx.beginPath();bx.arc(b.x,b.y,radius,0,7);bx.fill();bx.stroke();
   // manchas de camuflagem do Soldier
@@ -3376,6 +4889,18 @@ function drawBall(b,radius,label,tint){
   }
   // anel de tint do jogador
   if(tint){ bx.strokeStyle=tint;bx.lineWidth=2.5;bx.beginPath();bx.arc(b.x,b.y,radius+3,0,7);bx.stroke(); }
+  // presas de vampiro (2 dentinhos na parte de baixo)
+  if(b.kind==='vampire'){
+    bx.fillStyle='#fff'; bx.strokeStyle='#000'; bx.lineWidth=1;
+    for(const sgn of [-1,1]){
+      const fx=b.x+sgn*radius*0.22, fy=b.y+radius*0.28;
+      bx.beginPath();
+      bx.moveTo(fx-radius*0.07,fy);
+      bx.lineTo(fx+radius*0.07,fy);
+      bx.lineTo(fx,fy+radius*0.26);
+      bx.closePath(); bx.fill(); bx.stroke();
+    }
+  }
   if(label){
     bx.fillStyle=b.kind==='soldier'?'#fff':'#000';bx.font='900 '+(radius*0.55)+'px Arial';bx.textAlign='center';bx.textBaseline='middle';
     if(b.kind==='soldier'){bx.strokeStyle='#000';bx.lineWidth=3;bx.strokeText(label,b.x,b.y+1);}
@@ -3608,6 +5133,49 @@ function drawBattle(){
   // espadas / clones / bolas
   for(const f of fighters){ if(f.alive&&f.reach&&!(f.introZ>0))drawSword(f); }
   for(const c of clones)drawBall(c,c.r,'',null);
+  // ===== armadilhas do Hunter (no chão) =====
+  for(const tr of traps){ if(!tr.armed)continue;
+    bx.save(); bx.translate(tr.x,tr.y);
+    bx.strokeStyle='#c9a24a'; bx.fillStyle='rgba(120,90,30,0.35)'; bx.lineWidth=2.5;
+    bx.beginPath(); bx.arc(0,0,tr.r,0,7); bx.fill(); bx.stroke();
+    // dentes da armadilha
+    bx.fillStyle='#e0c060';
+    for(let i=0;i<8;i++){ const a=i/8*Math.PI*2;
+      bx.beginPath(); bx.moveTo(Math.cos(a)*tr.r*0.5,Math.sin(a)*tr.r*0.5);
+      bx.lineTo(Math.cos(a+0.2)*tr.r,Math.sin(a+0.2)*tr.r);
+      bx.lineTo(Math.cos(a-0.2)*tr.r,Math.sin(a-0.2)*tr.r); bx.closePath(); bx.fill(); }
+    bx.restore();
+  }
+  // ===== fantasmas do Soul Stealer =====
+  for(const g of ghosts){
+    bx.save(); bx.globalAlpha=0.75;
+    const gl=bx.createRadialGradient(g.x,g.y,2,g.x,g.y,g.r+8);
+    gl.addColorStop(0,'rgba(220,200,255,0.9)'); gl.addColorStop(1,'rgba(150,110,220,0)');
+    bx.fillStyle=gl; bx.beginPath(); bx.arc(g.x,g.y,g.r+8,0,7); bx.fill();
+    bx.fillStyle='#e8dcff'; bx.font='900 '+(g.r*1.4)+'px Arial'; bx.textAlign='center'; bx.textBaseline='middle';
+    bx.fillText('👻',g.x,g.y); bx.restore();
+  }
+  // ===== cachorro do Hunter =====
+  for(const dog of dogs){
+    bx.save(); bx.translate(dog.x,dog.y);
+    // sombra
+    bx.fillStyle='rgba(0,0,0,0.25)'; bx.beginPath(); bx.ellipse(0,dog.r*0.7,dog.r*0.9,dog.r*0.4,0,0,7); bx.fill();
+    // corpo
+    bx.fillStyle=dog.color; bx.strokeStyle='#000'; bx.lineWidth=2.5;
+    bx.beginPath(); bx.arc(0,0,dog.r,0,7); bx.fill(); bx.stroke();
+    // orelhas
+    bx.fillStyle='#5a3a18';
+    bx.beginPath(); bx.ellipse(-dog.r*0.6,-dog.r*0.6,dog.r*0.35,dog.r*0.5,-0.5,0,7); bx.fill();
+    bx.beginPath(); bx.ellipse(dog.r*0.6,-dog.r*0.6,dog.r*0.35,dog.r*0.5,0.5,0,7); bx.fill();
+    // focinho + olhos
+    bx.fillStyle='#000'; bx.beginPath(); bx.arc(0,dog.r*0.2,dog.r*0.22,0,7); bx.fill();
+    bx.beginPath(); bx.arc(-dog.r*0.3,-dog.r*0.1,dog.r*0.13,0,7); bx.fill();
+    bx.beginPath(); bx.arc(dog.r*0.3,-dog.r*0.1,dog.r*0.13,0,7); bx.fill();
+    // Zzz quando descansando
+    if(dog.state==='rest'){ bx.fillStyle='#fff'; bx.font='900 11px Arial'; bx.fillText('z',dog.r*0.8,-dog.r); }
+    bx.restore();
+  }
+
   for(const f of fighters){ if(!f.alive)continue;
     // aura azul do Pacman powered
     if(f.kind==='pacman'&&f.powered>0){ bx.save();bx.globalAlpha=0.4+0.2*Math.sin(Date.now()/100);
@@ -3623,11 +5191,32 @@ function drawBattle(){
       const g=bx.createRadialGradient(f.x,f.y,f.r*0.4,f.x,f.y,f.r+10);
       g.addColorStop(0,'rgba(255,120,40,0.7)');g.addColorStop(1,'rgba(255,80,0,0)');
       bx.fillStyle=g;bx.beginPath();bx.arc(f.x,f.y,f.r+10,0,7);bx.fill();bx.restore(); }
-    // Arqueiro invisível: quase transparente (fantasma), com leve brilho de camuflagem
+    // aura roxa do Soul Stealer (suga almas) — grande
+    if(f.kind==='soulstealer'){ bx.save();
+      const ph=Date.now()/400;
+      bx.globalAlpha=0.22+0.08*Math.sin(ph);
+      const AR=180*SCALE;
+      const g=bx.createRadialGradient(f.x,f.y,f.r,f.x,f.y,AR);
+      g.addColorStop(0,'rgba(168,108,224,0.45)');g.addColorStop(0.7,'rgba(140,80,200,0.18)');g.addColorStop(1,'rgba(106,60,168,0)');
+      bx.fillStyle=g;bx.beginPath();bx.arc(f.x,f.y,AR,0,7);bx.fill();
+      // anel girando na borda da aura
+      bx.globalAlpha=0.3; bx.strokeStyle='#c9a6f0'; bx.lineWidth=2; bx.setLineDash([6,10]);
+      bx.lineDashOffset=-Date.now()/40; bx.beginPath(); bx.arc(f.x,f.y,AR-6,0,7); bx.stroke();
+      bx.restore();
+    }
+    // marca do cachorro sobre o inimigo (alvo prioritário)
+    if(f.markedBy>=0){ bx.save(); bx.globalAlpha=0.7+0.3*Math.sin(Date.now()/150);
+      bx.strokeStyle='#ff5a3d'; bx.lineWidth=2.5;
+      const mr=f.r+8;
+      bx.beginPath(); bx.arc(f.x,f.y,mr,0,7); bx.setLineDash([4,4]); bx.stroke(); bx.restore();
+    }
+    // Arqueiro invisível: quase transparente; Soul Stealer etéreo: semi-transparente brilhante
     const stealthed = f.stealth>0;
+    const etherealNow = f.ethereal>0;
     if(stealthed){ bx.save(); bx.globalAlpha=0.12; }
+    else if(etherealNow){ bx.save(); bx.globalAlpha=0.4; }
     drawBall(f,f.r,'',f.kind==='pacman'?null:f.tint);
-    if(stealthed){ bx.restore(); }
+    if(stealthed||etherealNow){ bx.restore(); }
     if(f.isPandora&&f.pandoraBlink>0){const a=f.pandoraBlink/18;bx.save();bx.globalAlpha=a*0.9;
       bx.fillStyle='#fff';bx.beginPath();bx.arc(f.x,f.y,f.r+a*10,0,7);bx.fill();bx.restore();}
   }
@@ -3761,11 +5350,11 @@ function bLoop(now){
   if(!bOver)bRaf=requestAnimationFrame(bLoop);
 }
 
-document.getElementById('vBack').addEventListener('click',()=>{audioInit();stopVictoryMusic();SFX.confirm();
+document.getElementById('vBack').addEventListener('click',()=>{audioInit();stopVictoryMusic();stopBattleMusic();SFX.confirm();
   bRunning=false;bOver=true;victory=null;cancelAnimationFrame(bRaf);
   document.getElementById('victoryCard').classList.remove('show');
   buildSelect();show('scrSelect',true);});
-document.getElementById('bMenu').addEventListener('click',()=>{audioInit();stopVictoryMusic();SFX.back();
+document.getElementById('bMenu').addEventListener('click',()=>{audioInit();stopVictoryMusic();stopBattleMusic();SFX.back();
   bRunning=false;bOver=true;victory=null;cancelAnimationFrame(bRaf);
   document.getElementById('victoryCard').classList.remove('show');show('scrTitle');});
 document.getElementById('bSound').addEventListener('click',function(){audioInit();
@@ -3863,6 +5452,10 @@ window.addEventListener('resize',()=>{bgResize();});
    INIT
    ================================================================== */
 loadSave(); updateCoinDisplay();
+// aplica o idioma salvo em toda a interface + marca o seletor
+applyLang(); if(typeof updateLangSel==='function')updateLangSel();
+const vfxValEl=document.getElementById('vfxVal');
+if(vfxValEl){ vfxValEl.textContent=t(['low','medium','high'][G.settings.vfx]||'high'); }
 initBg();bgLoop();
 // primeiro toque libera áudio + música
 document.body.addEventListener('pointerdown',function once(){ audioInit();
