@@ -157,7 +157,10 @@ html,body{height:100%;overflow:hidden;background:var(--bg0);color:var(--ink);
   display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;
   transition:transform .12s,border-color .15s;position:relative;overflow:hidden;}
 .rchar:active{transform:scale(.92);}
-.rchar.hl{border-color:var(--neon);animation:pop .3s;}
+.rchar.pop{animation:pop .3s;}
+.rchar.sel{border-color:var(--neon);box-shadow:0 0 10px rgba(255,60,120,.5);}
+.themeBtn.playing{animation:themePulse .6s ease-in-out infinite;background:var(--gold)!important;color:#1a1420!important;}
+@keyframes themePulse{0%,100%{transform:scale(1);}50%{transform:scale(1.12);}}
 @keyframes pop{0%{transform:scale(.85)}60%{transform:scale(1.08)}100%{transform:scale(1)}}
 .rchar .rface{width:38px;height:38px;border-radius:50%;border:2px solid #000;
   display:flex;align-items:center;justify-content:center;font-size:20px;}
@@ -228,6 +231,19 @@ input[type=range]::-webkit-slider-thumb{appearance:none;width:20px;height:20px;b
 /* ====== BATALHA ====== */
 #scrBattle{overflow:hidden;background:var(--bg0);}
 .b-top{display:flex;flex-wrap:wrap;gap:5px;padding:8px 10px 6px;flex:none;}
+/* bandejas de itens do modo Versus */
+.item-tray{position:absolute;left:50%;transform:translateX(-50%);z-index:8;
+  display:none;gap:8px;padding:6px 10px;border-radius:14px;
+  background:rgba(20,12,30,0.72);border:1px solid var(--panel-b);backdrop-filter:blur(4px);}
+#bstage.vs-on .item-tray{display:flex;}
+.teamB-tray{top:6px;}
+.teamA-tray{bottom:6px;}
+.item-btn{width:42px;height:42px;border-radius:10px;display:flex;align-items:center;justify-content:center;
+  font-size:22px;background:var(--panel);border:1px solid var(--panel-b);cursor:grab;
+  transition:transform .08s,background .12s;touch-action:none;user-select:none;}
+.item-btn:active{cursor:grabbing;transform:scale(1.15);background:var(--panel-b);}
+.teamB-tray .item-btn{border-color:rgba(255,85,102,.45);}
+.teamA-tray .item-btn{border-color:rgba(51,221,204,.45);}
 #bHpBarsBottom{padding:6px 10px 8px;}
 /* no VS, as barras de cima ficam de cabeça pra baixo (viradas pro adversário) */
 #bHpBars.flip .b-hp{transform:rotate(180deg);}
@@ -416,6 +432,21 @@ input[type=range]::-webkit-slider-thumb{appearance:none;width:20px;height:20px;b
   <div class="screen" id="scrBattle">
     <div class="b-top" id="bHpBars"></div>
     <div id="bstage"><canvas id="bcv"></canvas>
+      <!-- bandejas de itens (só no modo Versus) -->
+      <div class="item-tray teamB-tray" id="trayB">
+        <div class="item-btn" data-item="mine">💥</div>
+        <div class="item-btn" data-item="fruit">🍎</div>
+        <div class="item-btn" data-item="bomb">💣</div>
+        <div class="item-btn" data-item="ice">❄️</div>
+        <div class="item-btn" data-item="spikes">🌵</div>
+      </div>
+      <div class="item-tray teamA-tray" id="trayA">
+        <div class="item-btn" data-item="mine">💥</div>
+        <div class="item-btn" data-item="fruit">🍎</div>
+        <div class="item-btn" data-item="bomb">💣</div>
+        <div class="item-btn" data-item="ice">❄️</div>
+        <div class="item-btn" data-item="spikes">🌵</div>
+      </div>
       <div id="victoryCard">
         <div class="vrays"></div>
         <div class="vwrap">
@@ -481,9 +512,11 @@ const CHARS = {
   pacman:{ name:'Pacman', color:'#f2d42e', dark:'#b8a010', icon:'🟡',
     kind:'pacman', hp:250, touchDmg:18, pelletCd:300, powerTime:180 },
   heavyweight:{ name:'Heavyweight', color:'#7a5230', dark:'#4a3018', icon:'🤼',
-    kind:'heavy', hp:350, touchDmg:8, spinDmg:10, throwDmg:50, throwCd:150 }
+    kind:'heavy', hp:350, touchDmg:8, spinDmg:10, throwDmg:50, throwCd:150 },
+  chronos:{ name:'Chronos', color:'#4a90d9', dark:'#2a5a8a', icon:'⏳',
+    kind:'chronos', hp:250, dmg:8, fireCd:90, bubbleCd:180 }
 };
-const ORDER=['berserker','samurai','arqueiro','mago','clonador','luciferus','pandora','soldier','pacman','heavyweight'];
+const ORDER=['berserker','samurai','arqueiro','mago','clonador','luciferus','pandora','soldier','pacman','heavyweight','chronos'];
 
 /* ---------- ALMANAC: descrições dos personagens ---------- */
 const ALMANAC = {
@@ -516,7 +549,10 @@ const ALMANAC = {
     skill:'Atravessa os oponentes dando uma mordida por passagem. A cada 5s gera uma pílula própria; ao comê-la, fica AZUL por 3s com o dobro de velocidade e dano.' },
   heavyweight:{ hp:350, creator:'Renan',
     desc:'Brutamontes do wrestling. Causa dano ao toque e é muito resistente.',
-    skill:'Especial: agarra o inimigo e o gira de 1 a 10 vezes (10 de dano por giro), depois o ARREMESSA numa direção aleatória. Quem foi arremessado vira um "projétil humano": se bater em alguém, causa 50 de dano (mas não machuca aliados de quem arremessou). Não agarra outro Heavyweight.' }
+    skill:'Especial: agarra o inimigo e o gira de 1 a 10 vezes (10 de dano por giro), depois o ARREMESSA numa direção aleatória. Quem foi arremessado vira um "projétil humano": se bater em alguém, causa 50 de dano (mas não machuca aliados de quem arremessou). Não agarra outro Heavyweight.' },
+  chronos:{ hp:250, creator:'Feito por IA',
+    desc:'Guardião do tempo. Manipula o fluxo temporal para dominar o campo de batalha.',
+    skill:'Cria BOLHAS DE TEMPO LENTO sobre os inimigos: quem entra na bolha se move em câmera lenta (cerca de 1/3 da velocidade), inclusive os projéteis. Também dispara pulsos temporais que causam dano. ULTIMATE (só com vida abaixo de 20%): PARA O TEMPO — todos os inimigos e seus projéteis congelam por 2 segundos, enquanto o Chronos ataca 10x mais rápido, despejando uma rajada de pulsos temporais. Uma virada desesperada quando está quase morrendo. O Chronos e seus aliados nunca são afetados.' }
 };
 
 /* ---------- CONQUISTAS ---------- */
@@ -777,27 +813,52 @@ let musicTimer=null, musicStep=0, musicBus=null, musicStarted=false;
 function hz(m){ return 440*Math.pow(2,(m-69)/12); }
 // escala menor (mais épica/tensa): raiz A
 const KEY=57; // A3 em MIDI
-// padrão de baixo (semínima em semicolcheias) — root/5th walking, 16 passos
-const EDM_BASS=[0,0,0,0, 0,0,7,0, 3,3,0,0, 5,5,0,0].map(x=>x); // graus na escala menor
 const MINOR=[0,2,3,5,7,8,10,12]; // A menor natural
 function scaleNote(deg, oct){ // deg pode passar de 7 -> sobe oitava
   let o=oct||0; let d=deg;
   while(d>=7){d-=7;o++;} while(d<0){d+=7;o--;}
   return KEY + MINOR[d] + o*12;
 }
-// riff do lead (semicolcheias, 32 passos) — melodia empolgante
+// PROGRESSÃO ÉPICA/HEROICA: Am - F - C - G (um acorde por compasso, 8 compassos = 2 voltas)
+// cada acorde: [raiz, terça, quinta] em graus MIDI relativos à raiz A
+const EDM_CHORDS=[
+  {root:57, notes:[57,60,64]},  // Am (A C E)
+  {root:53, notes:[53,57,60]},  // F  (F A C)
+  {root:60, notes:[60,64,67]},  // C  (C E G)
+  {root:55, notes:[55,59,62]},  // G  (G B D)
+  {root:57, notes:[57,60,64]},  // Am
+  {root:53, notes:[53,57,60]},  // F
+  {root:60, notes:[60,64,67]},  // C
+  {root:55, notes:[55,59,62]}   // G
+];
+// baixo segue a raiz de cada acorde, com um groove de oitavas/quintas (16 passos)
+const EDM_BASSPAT=[0,0,7,0, 0,0,0,7, 0,0,7,0, 0,7,0,7]; // offset em semitons sobre a raiz
+// LEAD heroico: melodia que sobe e resolve, memorável (32 passos, 2 compassos, MIDI absoluto)
+// -1 = silêncio, notas escolhidas pra soar por cima de Am-F-C-G
 const EDM_LEAD=[
-  7,-1,7,-1, 5,-1,7,9, 10,-1,9,7, 5,-1,-1,-1,
-  7,-1,7,9, 10,-1,10,12, 11,-1,9,-1, 7,-1,5,-1
-]; // -1 = silêncio
-// arpejo brilhante (16 passos, tríade)
-const EDM_ARP=[0,3,7,10, 12,10,7,3, 0,3,7,10, 12,14,12,10];
+  76,-1,-1,74, 72,-1,74,-1, 72,-1,69,-1, 67,-1,-1,-1,
+  69,-1,72,-1, 74,-1,-1,72, 76,-1,79,-1, 76,-1,74,72
+]; // A4=69 ... E5=76, G5=79
+// contra-melodia/arpejo brilhante seguindo os acordes (16 passos, índice no acorde)
+const EDM_ARP=[0,1,2,1, 0,1,2,1, 0,1,2,1, 0,2,1,2];
 
 function makeMusicBus(){
   // cadeia master: compressor leve + reverb curto pra dar "cola"
   const comp=AC.createDynamicsCompressor();
   comp.threshold.value=-18;comp.ratio.value=4;comp.attack.value=0.003;comp.release.value=0.15;
   const master=AC.createGain(); master.gain.value=1;
+  // reverb curto (convolver) pra dar espaço épico
+  let wet=null;
+  try{
+    const conv=AC.createConvolver();
+    const rlen=Math.floor(AC.sampleRate*1.1);
+    const rb=AC.createBuffer(2,rlen,AC.sampleRate);
+    for(let ch=0;ch<2;ch++){const d=rb.getChannelData(ch);
+      for(let i=0;i<rlen;i++)d[i]=(Math.random()*2-1)*Math.pow(1-i/rlen,2.5);}
+    conv.buffer=rb;
+    wet=AC.createGain();wet.gain.value=0.22;
+    comp.connect(conv);conv.connect(wet);wet.connect(master);
+  }catch(e){}
   comp.connect(master); master.connect(AC.destination);
   return {input:comp, master};
 }
@@ -865,19 +926,19 @@ function edmBass(midi,t,dur){
 }
 function edmLead(midi,t,dur){
   const g=AC.createGain();
-  g.gain.setValueAtTime(0,t);g.gain.linearRampToValueAtTime(0.16*vol(),t+0.008);
+  g.gain.setValueAtTime(0,t);g.gain.linearRampToValueAtTime(0.22*vol(),t+0.008);
   g.gain.exponentialRampToValueAtTime(0.001,t+dur);
-  const f=AC.createBiquadFilter();f.type='lowpass';f.frequency.value=3500;f.Q.value=2;
+  const f=AC.createBiquadFilter();f.type='lowpass';f.frequency.value=4200;f.Q.value=2.5;
   g.connect(musicBus.input);f.connect(g);
-  // supersaw: 3 osc desafinados
-  [-12,0,12].forEach(det=>{
+  // supersaw: 5 osc desafinados (mais gordo e épico)
+  [-14,-7,0,7,14].forEach(det=>{
     const o=AC.createOscillator();o.type='sawtooth';o.frequency.value=hz(midi);o.detune.value=det;
     o.connect(f);o.start(t);o.stop(t+dur+0.02);
   });
-  // oitava acima suave pra brilho
+  // oitava acima pra brilho heroico
   const o2=AC.createOscillator(),g2=AC.createGain();
   o2.type='triangle';o2.frequency.value=hz(midi+12);
-  g2.gain.setValueAtTime(0.06*vol(),t);g2.gain.exponentialRampToValueAtTime(0.001,t+dur);
+  g2.gain.setValueAtTime(0.09*vol(),t);g2.gain.exponentialRampToValueAtTime(0.001,t+dur);
   o2.connect(g2);g2.connect(musicBus.input);o2.start(t);o2.stop(t+dur+0.02);
 }
 function edmArp(midi,t,dur){
@@ -887,6 +948,37 @@ function edmArp(midi,t,dur){
   g.gain.exponentialRampToValueAtTime(0.001,t+dur);
   const f=AC.createBiquadFilter();f.type='highpass';f.frequency.value=600;
   o.connect(f);f.connect(g);g.connect(musicBus.input);o.start(t);o.stop(t+dur+0.02);
+}
+// PAD: acorde sustentado (várias notas juntas) — a "cama" épica de fundo
+function edmPad(notes,t,dur){
+  const g=AC.createGain();
+  g.gain.setValueAtTime(0,t);
+  g.gain.linearRampToValueAtTime(0.09*vol(),t+dur*0.15); // ataque suave
+  g.gain.setValueAtTime(0.09*vol(),t+dur*0.7);
+  g.gain.exponentialRampToValueAtTime(0.001,t+dur);
+  const f=AC.createBiquadFilter();f.type='lowpass';f.frequency.value=2200;f.Q.value=0.5;
+  g.connect(musicBus.input);f.connect(g);
+  notes.forEach(midi=>{
+    [0,7].forEach(det=>{ // leve chorus desafinado
+      const o=AC.createOscillator();o.type='sawtooth';o.frequency.value=hz(midi);o.detune.value=det;
+      o.connect(f);o.start(t);o.stop(t+dur+0.05);
+    });
+  });
+}
+// BRASS heroico: acorde curto e forte tipo "metais" (dá o impacto épico nos acentos)
+function edmBrass(notes,t,dur){
+  const g=AC.createGain();
+  g.gain.setValueAtTime(0,t);g.gain.linearRampToValueAtTime(0.13*vol(),t+0.02);
+  g.gain.exponentialRampToValueAtTime(0.001,t+dur);
+  const f=AC.createBiquadFilter();f.type='lowpass';f.frequency.setValueAtTime(3000,t);
+  f.frequency.exponentialRampToValueAtTime(1400,t+dur);f.Q.value=1;
+  g.connect(musicBus.input);f.connect(g);
+  notes.forEach(midi=>{
+    [-6,6].forEach(det=>{
+      const o=AC.createOscillator();o.type='sawtooth';o.frequency.value=hz(midi);o.detune.value=det;
+      o.connect(f);o.start(t);o.stop(t+dur+0.02);
+    });
+  });
 }
 function edmRiser(t,dur){
   // sweep de ruído subindo (build-up)
@@ -906,49 +998,65 @@ function edmRiser(t,dur){
 function startMusic(){
   if(!G.settings.music||!AC||musicTimer)return;
   if(!musicBus)musicBus=makeMusicBus();
-  const BPM=128, stepDur=60/BPM/4; // semicolcheia
+  const BPM=130, stepDur=60/BPM/4; // semicolcheia
   musicStep=0;
   const schedule=()=>{
     if(!G.settings.music){stopMusic();return;}
     const now=AC.currentTime+0.03;
-    const s=musicStep%128;           // posição no loop de 8 compassos (128 semicolcheias)
+    const s=musicStep%128;           // loop de 8 compassos (128 semicolcheias)
     const bar=Math.floor(s/16);      // compasso 0-7
     const st=s%16;                   // passo dentro do compasso
-    const drop = (bar>=2 && bar!==6); // seções com batida forte
+    const chord=EDM_CHORDS[bar];     // acorde atual da progressão épica
+    // seções: 0-1 intro (leve) | 2-5 groove cheio | 6 build | 7 clímax
+    const intro = (bar<2);
+    const full  = (bar>=2 && bar<6);
     const build = (bar===6);
+    const climax= (bar===7);
+    const groove= full||climax;
 
-    // KICK four-on-the-floor nas seções com batida
-    if(drop && st%4===0) edmKick(now);
+    // === PAD de acordes (sempre presente, base épica) — troca a cada compasso ===
+    if(st===0){
+      const padNotes=chord.notes.map(n=>n); // acorde na oitava média
+      edmPad(padNotes, now, stepDur*16*1.02);
+    }
+
+    // === BATERIA ===
+    if(groove && st%4===0) edmKick(now);              // four-on-the-floor
+    if(intro && st===0) edmKick(now);                 // batida leve na intro
     if(build){ // build acelera o kick
       if(st%4===0||st%4===2) edmKick(now);
       if(st===0) edmRiser(now, stepDur*16);
     }
-    // hi-hats offbeat
-    if(drop && st%2===1) edmHat(now, st%8===7);
-    // clap no 2 e 4
-    if(drop && (st===4||st===12)) edmClap(now);
+    if(groove && st%2===1) edmHat(now, st%8===7);     // hi-hats offbeat
+    if(groove && (st===4||st===12)) edmClap(now);     // clap no 2 e 4
 
-    // BAIXO (sempre que há groove)
-    if(drop || bar<2){
+    // === BAIXO (segue a raiz do acorde) ===
+    if(groove || intro){
       if(st%2===0){
-        const deg=EDM_BASS[st];
-        edmBass(scaleNote(deg,-1), now, stepDur*1.9);
+        const off=EDM_BASSPAT[st];
+        edmBass(chord.root-12+off, now, stepDur*1.9); // uma oitava abaixo da raiz
       }
     }
-    // ARPEJO brilhante (intro e grooves)
-    if(bar<2 || bar===2 || bar===4){
-      const an=EDM_ARP[st];
-      edmArp(scaleNote(an,1), now, stepDur*1.2);
+
+    // === ARPEJO brilhante (segue as notas do acorde) ===
+    if(intro || full){
+      const idx=EDM_ARP[st];
+      edmArp(chord.notes[idx]+12, now, stepDur*1.2); // oitava acima
     }
-    // LEAD (compassos 4-5 e 7, a "melodia de luta")
-    if(bar===4||bar===5||bar===7){
-      const idx=((bar-4)*16+st)%EDM_LEAD.length;
-      const ln=EDM_LEAD[st%EDM_LEAD.length];
-      if(ln>=0 && st%1===0) edmLead(scaleNote(ln,0), now, stepDur*1.6);
+
+    // === LEAD heroico (melodia principal nos compassos 4-5 e no clímax 7) ===
+    if(bar===4||bar===5||climax){
+      const ln=EDM_LEAD[st + (bar%2===1?16:0)]; // usa a metade certa do riff de 32 passos
+      if(ln>=0) edmLead(ln, now, stepDur*2.2);
     }
+
+    // === BRASS heroico: acordes fortes nos acentos das seções cheias e no clímax ===
+    if((full||climax) && (st===0||st===8)){
+      edmBrass(chord.notes, now, stepDur*4);
+    }
+
     musicStep++;
   };
-  // roda no tempo das semicolcheias
   musicTimer=setInterval(schedule, stepDur*1000);
   musicStarted=true;
 }
@@ -962,7 +1070,8 @@ const NOTE={C3:130.8,Cs3:138.6,D3:146.8,Ds3:155.6,E3:164.8,F3:174.6,Fs3:185,G3:1
   C4:261.6,D4:293.7,E4:329.6,F4:349.2,G4:392,A4:440,B4:493.9,
   C5:523.3,D5:587.3,E5:659.3,F5:698.5,G5:784,A5:880,B5:987.8,
   Cs4:277.2,Ds4:311.1,Fs4:370,Gs4:415.3,As4:466.2,
-  Cs5:554.4,Ds5:622.3,Fs5:740,Gs5:830.6,As5:932.3};
+  Cs5:554.4,Ds5:622.3,Fs5:740,Gs5:830.6,As5:932.3,
+  C6:1046.5,D6:1174.7,E6:1318.5};
 const N=NOTE;
 // cada tema: {tempo(ms/nota), wave, gain, notes:[[nota,duração]], bass?, arp?}
 const VICTORY_THEMES={
@@ -1007,6 +1116,31 @@ const VICTORY_THEMES={
     notes:[['C4',1],['Fs4',1],['A4',1],['Ds4',1],['G5',1],['Cs4',1],['E5',2],
            ['As4',1],['D5',1],['Gs4',1],['C5',2]],
     bassNotes:['C3','Fs3','A3','Ds3'], bassWave:'sawtooth', glitch:true
+  },
+  soldier:{ // marcha militar, marcial e triunfante
+    tempo:130, wave:'square', gain:0.13,
+    notes:[['G4',1],['G4',1],['G4',2],['C5',2],['G4',1],['E4',1],
+           ['G4',1],['C5',1],['E5',2],['D5',1],['C5',1],['G4',3]],
+    bassNotes:['C3','C3','G3','C3'], bassWave:'square'
+  },
+  pacman:{ // fliperama clássico: saltitante, brilhante, cheio de bleeps arcade (melodia original)
+    tempo:105, wave:'square', gain:0.13,
+    notes:[['E5',1],['C5',1],['G4',1],['C5',1], ['E5',1],['G5',1],['E5',2],
+           ['F5',1],['D5',1],['A4',1],['D5',1], ['F5',1],['A5',1],['G5',1],['E5',1],
+           ['C5',1],['E5',1],['G5',1],['C6',2], ['B5',1],['G5',1],['E5',1],['C5',2]],
+    bassNotes:['C4','G3','A3','G3'], bassWave:'square', echo:true, arcade:true
+  },
+  heavyweight:{ // pesado, poderoso, entrada triunfal de campeão
+    tempo:180, wave:'sawtooth', gain:0.15,
+    notes:[['C3',2],['C3',1],['G3',1],['C4',2],['G3',1],['C4',1],
+           ['Ds4',2],['D4',1],['C4',1],['G3',2],['C4',3]],
+    bassNotes:['C3','C3','G3','C3'], bassWave:'square', detune:12
+  },
+  chronos:{ // temporal, etéreo, notas que ecoam como um relógio parando
+    tempo:170, wave:'sine', gain:0.13,
+    notes:[['A4',1],['E5',1],['A5',2],['G5',1],['E5',1],['D5',2],
+           ['E5',1],['A4',1],['C5',1],['E5',1],['A5',3]],
+    bassNotes:['A3','A3','E3','A3'], bassWave:'sine', shimmer:true
   }
 };
 // perfil de produção por personagem (timbre, filtro, bateria)
@@ -1017,7 +1151,11 @@ const THEME_FX={
   mago:{ wave:'sine', detune:[0], filt:{type:'lowpass',freq:2600}, sub:0.15, shimmer:true, reverb:true, delay:true, drums:'none', gain:0.14 },
   clonador:{ wave:'triangle', detune:[-5,5], filt:{type:'bandpass',freq:1400,q:1.2}, sub:0.1, echo:true, reverb:true, delay:true, drums:'soft', gain:0.12 },
   luciferus:{ wave:'sine', detune:[0], filt:{type:'lowpass',freq:4000}, sub:0.1, choir:true, reverb:true, drums:'none', gain:0.13 },
-  pandora:{ wave:'square', detune:[-12,12], filt:{type:'lowpass',freq:2400,env:900}, sub:0.2, glitch:true, reverb:true, drums:'glitch', gain:0.11 }
+  pandora:{ wave:'square', detune:[-12,12], filt:{type:'lowpass',freq:2400,env:900}, sub:0.2, glitch:true, reverb:true, drums:'glitch', gain:0.11 },
+  soldier:{ wave:'square', detune:[-6,6], filt:{type:'lowpass',freq:2800}, sub:0.25, drums:'metal', reverb:false, gain:0.14 },
+  pacman:{ wave:'square', detune:[0], filt:{type:'lowpass',freq:5200}, sub:0, echo:true, drums:'fast', delay:true, reverb:false, arcade:true, gain:0.12 },
+  heavyweight:{ wave:'sawtooth', detune:[-16,0,16], filt:{type:'lowpass',freq:1300,env:500}, sub:0.6, drums:'metal', reverb:true, gain:0.15 },
+  chronos:{ wave:'sine', detune:[-4,4], filt:{type:'lowpass',freq:2800}, sub:0.15, shimmer:true, reverb:true, delay:true, echo:true, drums:'soft', gain:0.13 }
 };
 function themeDrum(kind, t, accent){
   if(kind==='none')return;
@@ -1064,6 +1202,11 @@ function playVictoryTheme(charId){
       // harmonia extra (oitava acima) a partir da 2ª repetição, deixa mais grandioso
       if(rep>=1) synth({t,freq:f*2,dur:len*0.9,wave:fx.wave,gain:g0*0.22,filter:{type:'lowpass',freq:4000},reverb:fx.reverb,isMusic:true,victory:1,a:0.01,r:len*0.4});
       if(fx.glitch&&Math.random()<0.4) synth({t:t+len*0.3,freq:f*(1+Math.random()*0.5),dur:len*0.4,wave:'square',gain:g0*0.3,filter:{type:'bandpass',freq:2000,q:3},isMusic:true,victory:1});
+      // ARCADE: bleeps agudos e curtos entre as notas (vibe fliperama)
+      if(fx.arcade){
+        synth({t:t+len*0.5,freq:f*2,dur:len*0.3,wave:'square',gain:g0*0.28,filter:{type:'highpass',freq:1500},isMusic:true,victory:1,a:0.002,r:len*0.2});
+        if(rep>=1) synth({t:t+len*0.25,freq:f*3,dur:len*0.15,wave:'square',gain:g0*0.15,isMusic:true,victory:1,a:0.002,r:len*0.1});
+      }
       t+=len;
     }
   }
@@ -1097,7 +1240,10 @@ function show(id, zoom){
   document.querySelectorAll('.screen').forEach(s=>s.classList.remove('on','zoomin'));
   const el=document.getElementById(id);
   el.classList.add('on'); if(zoom)el.classList.add('zoomin');
+  const prev=G.screen;
   G.screen=id;
+  // ao sair do Grimório, corta qualquer tema de vitória que esteja tocando
+  if(prev==='scrAlmanac' && id!=='scrAlmanac' && typeof stopVictoryMusic==='function') stopVictoryMusic();
   // música só no menu
   if(id==='scrBattle') stopMusic(); else startMusic();
 }
@@ -1138,14 +1284,40 @@ function buildAlmanac(){
     card.innerHTML=
       `<div style="display:flex;align-items:center;gap:12px;margin-bottom:10px;">`
       +`<div style="width:52px;height:52px;flex:none;border-radius:50%;border:3px solid #000;display:flex;align-items:center;justify-content:center;font-size:26px;background:${c.color};">${c.icon}</div>`
-      +`<div><div style="font-size:18px;font-weight:900;color:var(--ink);">${c.name}</div>`
-      +`<div style="font-size:11px;color:var(--dim);letter-spacing:.04em;">Criado por ${a.creator||'Renan'}</div></div></div>`
+      +`<div style="flex:1;"><div style="font-size:18px;font-weight:900;color:var(--ink);">${c.name}</div>`
+      +`<div style="font-size:11px;color:var(--dim);letter-spacing:.04em;">Criado por ${a.creator||'Renan'}</div></div>`
+      +`<button class="themeBtn" data-theme="${id}" title="Ouvir tema de vitória" style="flex:none;width:44px;height:44px;border-radius:50%;border:2px solid var(--gold);background:var(--bg0);color:var(--gold);font-size:18px;cursor:pointer;display:flex;align-items:center;justify-content:center;">▶</button></div>`
       +`<div style="display:flex;gap:8px;margin-bottom:10px;flex-wrap:wrap;">`
       +`<span style="font-size:11px;font-weight:800;background:var(--bg0);border:1px solid var(--panel-b);border-radius:6px;padding:4px 9px;color:#ff6b6b;">❤ ${a.hp||c.hp||250} vida</span>`
       +`</div>`
       +`<div style="font-size:12.5px;color:var(--ink);line-height:1.5;margin-bottom:8px;">${a.desc||''}</div>`
       +`<div style="font-size:12px;color:var(--dim);line-height:1.55;border-left:2px solid var(--gold);padding-left:10px;">${a.skill||''}</div>`;
     box.appendChild(card);
+  });
+  // liga os botões de tema de vitória
+  let themeTimer=null;
+  box.querySelectorAll('.themeBtn').forEach(btn=>{
+    btn.addEventListener('click',()=>{
+      audioInit();
+      const id=btn.dataset.theme;
+      // para qualquer tema tocando antes e reseta os ícones
+      stopVictoryMusic();
+      if(themeTimer){ clearTimeout(themeTimer); themeTimer=null; }
+      box.querySelectorAll('.themeBtn').forEach(b=>{ b.textContent='▶'; b.classList.remove('playing'); });
+      if(!G.settings.music){ // avisa se a música está desligada
+        btn.textContent='🔇'; setTimeout(()=>{btn.textContent='▶';},900); return;
+      }
+      // PAUSA a música do menu pra não sobrepor o tema
+      stopMusic();
+      btn.textContent='♪'; btn.classList.add('playing');
+      playVictoryTheme(id);
+      // quando o tema termina (~4s): volta o ícone e RELIGA a música do menu
+      themeTimer=setTimeout(()=>{
+        btn.textContent='▶'; btn.classList.remove('playing');
+        themeTimer=null;
+        if(G.screen==='scrAlmanac' && G.settings.music) startMusic(); // só se ainda estiver no Grimório
+      }, 4200);
+    });
   });
 }
 
@@ -1310,12 +1482,21 @@ function buildSelect(){
     const c=CHARS[id];
     const el=document.createElement('div');
     el.className='rchar';
+    el.dataset.id=id;
     el.innerHTML=`<div class="rface" style="background:${c.color}">${c.icon}</div>`
       +`<div class="rnm">${c.name}</div>`;
     el.addEventListener('click',()=>pickChar(id,el));
     grid.appendChild(el);
   });
+  updateRosterSel();
   updateStartBtn();
+}
+// marca no roster (borda vermelha) apenas os personagens que estão nos slots ativos
+function updateRosterSel(){
+  const chosen=new Set(G.slots.map(s=>s.charId).filter(Boolean));
+  document.querySelectorAll('#rosterGrid .rchar').forEach(el=>{
+    el.classList.toggle('sel', chosen.has(el.dataset.id));
+  });
 }
 function renderSlots(){
   const box=document.getElementById('pslots');box.innerHTML='';
@@ -1356,7 +1537,7 @@ function mkSlot(s,i){
 }
 function pickChar(id, el){
   audioInit();SFX.select();
-  el.classList.remove('hl');void el.offsetWidth;el.classList.add('hl');
+  el.classList.remove('pop');void el.offsetWidth;el.classList.add('pop');
   // zoom transition estilo smash
   playZoom(id);
   G.slots[G.activeSlot].charId=id;
@@ -1365,7 +1546,7 @@ function pickChar(id, el){
   let next=G.slots.findIndex((s,idx)=>idx>G.activeSlot && !s.charId);
   if(next<0) next=G.slots.findIndex(s=>!s.charId);
   if(next>=0) G.activeSlot=next;
-  renderSlots();updateStartBtn();
+  renderSlots();updateRosterSel();updateStartBtn();
 }
 function playZoom(id){
   const c=CHARS[id];
@@ -1381,7 +1562,7 @@ document.getElementById('randomFill').addEventListener('click',()=>{
   audioInit();SFX.select();
   // sorteia TODOS os slots de novo a cada clique (não só os vazios)
   G.slots.forEach(s=>{ s.charId=ORDER[Math.floor(Math.random()*ORDER.length)]; s.cfg=defaultCfg(); });
-  renderSlots();updateStartBtn();
+  renderSlots();updateRosterSel();updateStartBtn();
 });
 document.getElementById('startMatch').addEventListener('click',()=>{
   if(G.slots.some(s=>!s.charId))return;
@@ -1497,7 +1678,15 @@ let mix=(c1,c2,t)=>{
 
 let fighters=[], projectiles=[], sparks=[], booms=[], clones=[];
 let bolts=[], fireTrails=[], slashFx=[]; // Mago: raios e rastros; Samurai: efeitos de corte
+let timeBubbles=[]; // Chronos: bolhas de tempo lento
+let arenaItems=[]; // Versus: itens jogados na arena (minas, frutas, etc.)
+let timeStopOwner=-1; // Chronos: quem ativou o Time Stop (-1 = ninguém)
 let bRunning=false, bOver=false, bRaf=0, flash=0, flashColor='255,255,180';
+let shake=0;            // screen shake (intensidade, decai a cada frame)
+let hitStop=0;          // hit-stop: congela a simulação por N frames (impacto)
+let shards=[];          // cacos da morte (pedaços da bola estilhaçada)
+let introDrop=0;        // entrada dos lutadores (frames restantes da queda)
+function addShake(v){ if(G.settings.flash) shake=Math.max(shake,v); }
 let auraGrad=null;
 
 // paleta pra distinguir jogadores com mesmo personagem
@@ -1551,6 +1740,8 @@ function makeFighter(slot, idx){
     slashCd:(c.slashCd||45)/cfg.fireRate, ultCd:0, ultCdMax:(c.ultCd||300)/cfg.fireRate,
     jumping:false, jumpsLeft:0, jumpTimer:0, jumpTarget:null, jumpDelay:0,
     dashV:null, dashLeft:0, dashTarget:null, dashHit:false,
+    bubbleTimer:90, bubbleCd:(c.bubbleCd||180)/cfg.fireRate, // Chronos: bolhas de tempo
+    timeStopCd:360, timeStopCdMax:600, timeStopping:0, timeStopActive:0, burstFire:0, // Chronos: Time Stop
     isSummon:false, summonedBy:-1, // herói invocado pela skill lendária
     alive:true
   };
@@ -1594,6 +1785,9 @@ function startBattle(){
   bResize();
   fighters = G.slots.map((s,i)=>makeFighter(s,i));
   buildHpBars();
+  // bandejas de itens só aparecem no modo Versus
+  const stage=document.getElementById('bstage');
+  if(isVS()) stage.classList.add('vs-on'); else stage.classList.remove('vs-on');
   // conta a partida e prepara rastreio de conquistas
   SAVE.games++; persistSave();
   battleStats={ playerTookDamage:false };
@@ -1602,7 +1796,8 @@ function startBattle(){
 let battleStats={ playerTookDamage:false };
 function beginRound(){
   bRunning=false;bOver=false;flash=0;auraGrad=null;
-  projectiles=[];sparks=[];booms=[];clones=[];pellets=[];bolts=[];fireTrails=[];slashFx=[];
+  projectiles=[];sparks=[];booms=[];clones=[];pellets=[];bolts=[];fireTrails=[];slashFx=[];timeBubbles=[];timeStopOwner=-1;arenaItems=[];
+  shards=[];shake=0;hitStop=0;
   computeArena();
   const pos=isVS()?spawnPositionsVS():spawnPositions(fighters.length);
   fighters.forEach((f,i)=>{
@@ -1612,7 +1807,10 @@ function beginRound(){
     const sp=(2.5+Math.random()*1.5)*f.speedMul;
     const a=Math.random()*Math.PI*2;
     f.vx=Math.cos(a)*sp;f.vy=Math.sin(a)*sp;
+    // ENTRADA: cada bola cai do alto quicando (escalonadas)
+    f.introZ=220+i*55+Math.random()*30; f.introVz=0; f.introSettled=false;
   });
+  introDrop=1;
   document.getElementById('victoryCard').classList.remove('show');
   victory=null;
   if(typeof stopVictoryMusic==='function')stopVictoryMusic();
@@ -1645,6 +1843,8 @@ function resetFighter(f){
   f.stealth=0;f.stealthUsed=false;f.iceShield=0;
   f.jumping=false;f.jumpsLeft=0;f.jumpTimer=0;f.jumpTarget=null;f.jumpDelay=0;f.ultCd=0;
   f.dashV=null;f.dashLeft=0;f.dashTarget=null;f.dashHit=false;
+  f.bubbleTimer=90;
+  f.timeStopCd=360;f.timeStopping=0;f.timeStopActive=0;f.burstFire=0;
   f.alive=true;
 }
 
@@ -1954,12 +2154,188 @@ function spawnSlashFx(x,y,crit){
   const col= crit>=5?'#ff4040' : crit>=2?'#ffcc40' : '#dfff80';
   burst(x,y,col, crit>=5?24:crit>=2?16:10);
   slashFx.push({x,y,life:1,crit,ang:Math.random()*7});
+  if(crit>=5){ addShake(8); hitStop=Math.max(hitStop,3); } // crítico 5x: PAM!
+  else if(crit>=2){ addShake(4); }
 }
 // nuvem de teleporte (aparece/some do Samurai na ultimate)
 function spawnBlink(x,y){
   if(!G.settings.particles)return;
   for(let i=0;i<12;i++){ const a=Math.random()*7,sp=1.5+Math.random()*3;
     sparks.push({x,y,vx:Math.cos(a)*sp,vy:Math.sin(a)*sp,life:1,color:'#c8ff9e'}); }
+}
+/* ==================================================================
+   ITENS DA ARENA (modo Versus) — arremesso com física
+   ================================================================== */
+// tipos de item: cada um tem ícone, raio e comportamento
+const ITEM_TYPES = {
+  mine:   { icon:'💥', r:12, color:'#e05050', settle:true },  // explode em quem pisa
+  fruit:  { icon:'🍎', r:13, color:'#e04060', settle:true },  // cura aliado que pegar
+  bomb:   { icon:'💣', r:13, color:'#444', settle:true },     // explode ao parar
+  ice:    { icon:'❄️', r:16, color:'#7cc8ff', settle:true },  // poça que deixa lento
+  spikes: { icon:'🌵', r:14, color:'#3aa055', settle:true }   // dano a quem passar
+};
+// lança um item na arena com velocidade inicial (physics: quica no chão)
+function throwArenaItem(type, team, x, y, vx, vy){
+  const t=ITEM_TYPES[type]; if(!t)return;
+  arenaItems.push({
+    type, team, x, y, vx, vy, r:t.r, color:t.color, icon:t.icon,
+    z:24, vz:3.5,          // altura simulada (quica): z sobe/desce
+    settled:false,         // já parou no chão?
+    life:1, armed:false,   // mina/bomba: armada depois de parar
+    fuse:0, used:false
+  });
+}
+// atualiza a física e o comportamento de todos os itens da arena
+function stepArenaItems(alive){
+  for(const it of arenaItems){
+    if(it.used)continue;
+    if(!it.settled){
+      // voa com física: gravidade na altura (z) e atrito no chão (x,y)
+      it.x+=it.vx; it.y+=it.vy;
+      it.vz-=0.5; it.z+=it.vz;   // gravidade
+      // quicou no chão?
+      if(it.z<=0){ it.z=0;
+        if(Math.abs(it.vz)>1.2){ it.vz=-it.vz*0.5; } // quica perdendo energia
+        else { it.vz=0; }
+        it.vx*=0.7; it.vy*=0.7;  // atrito ao tocar o chão
+      }
+      // bate nas paredes da arena e volta
+      if(arena.shape==='circle'){
+        const dx=it.x-arena.cx,dy=it.y-arena.cy,d=Math.hypot(dx,dy);
+        if(d>arena.R-it.r){ const nx=dx/d,ny=dy/d,dot=it.vx*nx+it.vy*ny;
+          it.vx-=2*dot*nx;it.vy-=2*dot*ny;it.vx*=0.6;it.vy*=0.6;
+          it.x=arena.cx+nx*(arena.R-it.r);it.y=arena.cy+ny*(arena.R-it.r); }
+      } else {
+        if(it.x<arena.x+it.r){it.x=arena.x+it.r;it.vx=Math.abs(it.vx)*0.6;}
+        if(it.x>arena.x+arena.w-it.r){it.x=arena.x+arena.w-it.r;it.vx=-Math.abs(it.vx)*0.6;}
+        if(it.y<arena.y+it.r){it.y=arena.y+it.r;it.vy=Math.abs(it.vy)*0.6;}
+        if(it.y>arena.y+arena.h-it.r){it.y=arena.y+arena.h-it.r;it.vy=-Math.abs(it.vy)*0.6;}
+      }
+      // parou de se mover E está no chão? -> assenta (fica ativo)
+      if(it.z<=0 && Math.hypot(it.vx,it.vy)<0.4){
+        it.settled=true; it.armed=true; it.vx=0; it.vy=0;
+        if(it.type==='bomb'){ it.fuse=30; } // bomba explode logo após parar
+      }
+      continue;
+    }
+    // === JÁ ASSENTADO: comportamento por tipo ===
+    if(it.type==='bomb'){
+      it.fuse--;
+      if(it.fuse<=0){ // explode em área (só inimigos de quem jogou)
+        booms.push({x:it.x,y:it.y,r:6,max:70,life:1,color:'#ff8030'});
+        for(const o of alive){ if(o.team===it.team)continue; // não fere o próprio time
+          if(Math.hypot(o.x-it.x,o.y-it.y)<70+o.r) dealDamage(o,40,false,false,-1,true); }
+        setFlash(10,'255,150,60'); SFX.explosion(); it.used=true;
+      }
+      continue;
+    }
+    // itens que reagem ao toque de um personagem
+    for(const o of alive){
+      const touching=Math.hypot(o.x-it.x,o.y-it.y)<it.r+o.r;
+      if(!touching)continue;
+      if(it.type==='fruit'){
+        // cura só quem é do MESMO time de quem jogou
+        if(o.team===it.team){ o.hp=Math.min(o.maxhp,o.hp+60); burst(it.x,it.y,'#40e060',14);
+          setFlash(6,'80,230,90'); SFX.clone(); it.used=true; break; }
+      } else if(it.type==='mine'){
+        // explode em quem pisa (só inimigos de quem jogou)
+        if(o.team!==it.team){ booms.push({x:it.x,y:it.y,r:6,max:60,life:1,color:'#ff5040'});
+          for(const t of alive){ if(t.team===it.team)continue;
+            if(Math.hypot(t.x-it.x,t.y-it.y)<60+t.r) dealDamage(t,50,false,false,-1,true); }
+          setFlash(10,'255,90,60'); SFX.explosion(); it.used=true; break; }
+      } else if(it.type==='spikes'){
+        // dano a inimigos que passam (cooldown por vítima, some após alguns hits)
+        if(o.team!==it.team){ if(!it.hitCd)it.hitCd={};
+          if(!it.hitCd[o.slotIdx]||it.hitCd[o.slotIdx]<=0){
+            dealDamage(o,12,false,false,-1,true); it.hitCd[o.slotIdx]=30;
+            burst(it.x,it.y,'#3aa055',6); it.life-=0.34;
+            if(it.life<=0)it.used=true; } }
+      }
+    }
+    // espinhos: decai cooldown por vítima
+    if(it.type==='spikes'&&it.hitCd){ for(const k in it.hitCd)if(it.hitCd[k]>0)it.hitCd[k]--; }
+  }
+  arenaItems=arenaItems.filter(it=>!it.used);
+}
+// fator de lentidão do gelo (poça): inimigo em cima anda devagar
+function iceFactor(f){
+  for(const it of arenaItems){
+    if(it.type!=='ice'||!it.settled)continue;
+    if(it.team===f.team)continue; // não afeta o próprio time
+    if(Math.hypot(f.x-it.x,f.y-it.y)<it.r+f.r) return 0.45;
+  }
+  return 1;
+}
+
+/* ---------- CHRONOS: bolhas de tempo lento + Time Stop (ultimate) ---------- */
+function doChronos(f){
+  const foe=nearestEnemy(f); if(!foe)return;
+
+  // === TIME STOP (ultimate): só ativa quando a vida está abaixo de 20% ===
+  if(f.timeStopCd>0)f.timeStopCd--;
+  // ativa quando pronto (cooldown) E em perigo (vida < 20%)
+  if(f.timeStopCd<=0 && !f.timeStopping && f.hp <= f.maxhp*0.2){
+    f.timeStopping=180+0; f.timeStopActive=120; // 2s de congelamento (120 frames)
+    f.timeStopCd=f.timeStopCdMax;
+    timeStopOwner=f.slotIdx;                     // quem parou o tempo (aliados não congelam)
+    setFlash(20,'150,200,255'); SFX.berserk();
+  }
+  // durante o Time Stop, ataca 10x mais rápido (rajada de pulsos)
+  if(f.timeStopActive>0){
+    f.timeStopActive--;
+    if(f.timeStopActive<=0){ timeStopOwner=-1; } // acabou o congelamento
+    // dispara pulsos numa cadência altíssima (10x): a cada 2 frames em vez de fireCd
+    f.burstFire=(f.burstFire||0)-1;
+    if(f.burstFire<=0){
+      f.burstFire=2;
+      const en=fighters.filter(o=>o.alive&&!sameTeam(o,f)&&o!==f);
+      if(en.length){
+        const tgt=en[Math.floor(Math.random()*en.length)];
+        const aim=Math.atan2(tgt.y-f.y,tgt.x-f.x)+(Math.random()-0.5)*0.3;
+        projectiles.push({type:'chronoball',x:f.x+Math.cos(aim)*(f.r+8),y:f.y+Math.sin(aim)*(f.r+8),
+          vx:Math.cos(aim)*7,vy:Math.sin(aim)*7,life:120,dmg:f.dmg,owner:f.slotIdx,color:f.color});
+        SFX.arrow();
+      }
+    }
+    return; // durante o time stop, só faz a rajada
+  }
+
+  // === comportamento normal (fora da ultimate) ===
+  // cria uma bolha de tempo lento periodicamente, em cima de um inimigo
+  f.bubbleTimer=(f.bubbleTimer||0)-1;
+  if(f.bubbleTimer<=0){
+    f.bubbleTimer=f.bubbleCd;
+    const en=fighters.filter(o=>o.alive&&!sameTeam(o,f)&&o!==f);
+    if(en.length){
+      const target=en[Math.floor(Math.random()*en.length)];
+      timeBubbles.push({x:target.x, y:target.y, r:64, life:1, maxLife:300, owner:f.slotIdx});
+      setFlash(6,'120,180,240'); SFX.transform();
+    }
+  }
+  // ataque leve de contato: lança um pulso temporal no inimigo próximo
+  f.cd--;
+  if(f.cd<=0){
+    f.cd=f.fireCd;
+    const aim=Math.atan2(foe.y-f.y,foe.x-f.x);
+    projectiles.push({type:'chronoball',x:f.x+Math.cos(aim)*(f.r+8),y:f.y+Math.sin(aim)*(f.r+8),
+      vx:Math.cos(aim)*4,vy:Math.sin(aim)*4,life:120,dmg:f.dmg,owner:f.slotIdx,color:f.color});
+    SFX.arrow();
+  }
+}
+// retorna o fator de lentidão se o fighter está numa bolha inimiga OU se o tempo está parado
+function timeFactor(f){
+  // Time Stop: tudo que não é o dono (nem aliado dele) fica 100% congelado
+  if(timeStopOwner>=0 && f.slotIdx!==timeStopOwner){
+    const owner=fighters[timeStopOwner];
+    if(!owner || !sameTeam(owner,f)) return 0; // congelado
+  }
+  if(!timeBubbles.length)return 1;
+  for(const b of timeBubbles){
+    if(b.owner===f.slotIdx)continue;           // dono não é afetado
+    if(fighters[b.owner] && sameTeam(fighters[b.owner], f))continue; // aliados do dono não são afetados
+    if(Math.hypot(f.x-b.x, f.y-b.y) < b.r+f.r) return 0.32; // dentro da bolha: câmera lenta
+  }
+  return 1;
 }
 /* ---------- MAGO: 3 skills aleatórias + 1 lendária ---------- */function doMage(f){
   const foe=nearestEnemy(f); if(!foe)return;
@@ -2183,7 +2559,7 @@ function explode(x,y,dmg,splash,owner,color){
     if(Math.hypot(t.x-x,t.y-y)<(splash+30)+t.r) dealDamage(t,dmg,true,false,owner,true); }
   for(const c of clones){ if(c.owner===owner)continue;
     if(Math.hypot(c.x-x,c.y-y)<(splash+30)+c.r) c.hp-=dmg; }
-  setFlash(6,'255,150,40'); SFX.explosion();
+  setFlash(6,'255,150,40'); SFX.explosion(); addShake(7);
 }
 function spawnClone(f){
   clones.push({ owner:f.slotIdx, color:f.baseColor, dark:f.baseDark, icon:f.icon,
@@ -2334,17 +2710,39 @@ function stepMove(f){
   if(f.grabbing||f.spinning){ f.vx*=0.6; f.vy*=0.6; f.hitCd=Math.max(0,f.hitCd-1); return; }
   // Samurai atravessando na ultimate: o movimento é controlado por doKatana
   if(f.dashV){ f.hitCd=Math.max(0,f.hitCd-1); return; }
-  f.x+=f.vx;f.y+=f.vy;wallBounce(f);
-  if(f.reach)f.ang+=f.spin;
+  // Chronos: bolha de tempo lento; Gelo: poça que deixa lento — combinam
+  const tf=timeFactor(f)*iceFactor(f);
+  f.x+=f.vx*tf; f.y+=f.vy*tf; wallBounce(f);
+  if(f.reach)f.ang+=f.spin*tf;
   f.hitCd=Math.max(0,f.hitCd-1);
 }
 function bStep(){
+  // ENTRADA: as bolas caem do alto quicando antes da luta começar
+  if(introDrop>0){
+    let allSettled=true;
+    for(const f of fighters){
+      if(f.introSettled)continue;
+      f.introVz+=0.55; f.introZ-=f.introVz;      // gravidade
+      if(f.introZ<=0){ f.introZ=0;
+        if(f.introVz>2.2){ f.introVz=-f.introVz*0.45; // quica
+          if(G.settings.particles)for(let k=0;k<6;k++){const a=Math.random()*Math.PI;
+            sparks.push({x:f.x,y:f.y+f.r*0.7,vx:Math.cos(a)*2*(Math.random()<0.5?1:-1),vy:-Math.random()*1.5,life:0.7,color:f.color});}
+          addShake(3);
+        } else { f.introVz=0; f.introSettled=true; }
+      }
+      if(!f.introSettled)allSettled=false;
+    }
+    if(allSettled){ introDrop=0; setFlash(8,'255,255,200'); }
+    return; // combate só começa depois que todos aterrissam
+  }
   const alive=fighters.filter(f=>f.alive);
   // mover
   for(const f of alive) stepMove(f);
 
   // habilidades
   for(const f of alive){
+    // Time Stop do Chronos: inimigos congelados não executam NENHUMA ação
+    if(timeStopOwner>=0 && timeFactor(f)===0) continue;
     if(f.isPandora) pandoraTick(f);
     // Samurai: mais forte com menos vida
     if(f.id==='samurai'){
@@ -2381,6 +2779,8 @@ function bStep(){
     if(f.kind==='pacman') doPacman(f);
     // Heavyweight
     if(f.kind==='heavy') doHeavy(f);
+    // Chronos
+    if(f.kind==='chronos') doChronos(f);
     // Luciferus
     if(f.kind==='angel'){
       const foe=nearestEnemy(f); f.wingFlap+=0.15;f.auraPhase+=0.012;
@@ -2488,6 +2888,11 @@ function bStep(){
 
   // projéteis
   for(const p of projectiles){
+    // Time Stop: projéteis de inimigos congelam; só os do dono (e aliados) se movem
+    if(timeStopOwner>=0){
+      const owner=fighters[timeStopOwner], po=fighters[p.owner];
+      if(owner && (!po || po.team!==owner.team)) continue; // projétil inimigo fica parado
+    }
     p.x+=p.vx;p.y+=p.vy;p.life--;
     if(p.type==='arrow'){
       let bo=false;
@@ -2523,8 +2928,8 @@ function bStep(){
       if(arena.shape==='circle'){ if(Math.hypot(p.x-arena.cx,p.y-arena.cy)>arena.R-2)boom=true; }
       else { if(p.x<arena.x||p.x>arena.x+arena.w||p.y<arena.y||p.y>arena.y+arena.h||projBoxHit(p))boom=true; }
       if(boom){ explode(p.x,p.y,p.dmg,p.splash,p.owner,p.color);p.life=0; }
-    } else if(p.type==='slash'){
-      // corte da katana: some ao sair da arena (não ricocheteia)
+    } else if(p.type==='slash'||p.type==='chronoball'){
+      // corte da katana / pulso do Chronos: some ao sair da arena (não ricocheteia)
       if(arena.shape==='circle'){ if(Math.hypot(p.x-arena.cx,p.y-arena.cy)>arena.R-2)p.life=0; }
       else { if(p.x<arena.x||p.x>arena.x+arena.w||p.y<arena.y||p.y>arena.y+arena.h||projBoxHit(p))p.life=0; }
     }
@@ -2561,9 +2966,18 @@ function bStep(){
   // efeitos de corte do Samurai
   for(const sfx of slashFx)sfx.life-=0.08;
   slashFx=slashFx.filter(sfx=>sfx.life>0);
+  // bolhas de tempo do Chronos: encolhem e somem ao longo do tempo
+  for(const b of timeBubbles){ b.maxLife--; b.life=Math.min(1,b.maxLife/60); }
+  timeBubbles=timeBubbles.filter(b=>b.maxLife>0);
+  // itens da arena (Versus): física e comportamento
+  if(arenaItems.length)stepArenaItems(alive);
 
   booms.forEach(b=>{b.r+=(b.max-b.r)*0.3;b.life-=0.06;});booms=booms.filter(b=>b.life>0);
   sparks.forEach(p=>{p.x+=p.vx;p.y+=p.vy;p.vx*=.9;p.vy*=.9;p.life-=.05;});sparks=sparks.filter(p=>p.life>0);
+  // cacos da morte: caem com gravidade, giram e desvanecem
+  shards.forEach(s=>{s.x+=s.vx;s.y+=s.vy;s.vy+=s.grav;s.vx*=0.985;s.rot+=s.vrot;s.life-=0.016;});
+  shards=shards.filter(s=>s.life>0);
+  if(shake>0)shake*=0.85; if(shake<0.3)shake=0;
   if(flash>0)flash--;
 
   // mortes
@@ -2585,8 +2999,22 @@ function bStep(){
       if(f.lastHitBy===f.slotIdx || (killer && killer.team===f.team)) SAVE.suicides++;
     }
     persistSave();
-    for(let k=0;k<20;k++){const a=Math.random()*7,sp=1+Math.random()*4;
-      if(G.settings.particles)sparks.push({x:f.x,y:f.y,vx:Math.cos(a)*sp,vy:Math.sin(a)*sp,life:1,color:f.color});} } }
+    // ESTILHAÇAMENTO: a bola racha em cacos (fatias) que voam com física
+    if(G.settings.particles){
+      const N=7+Math.floor(Math.random()*4);
+      for(let k=0;k<N;k++){
+        const a0=(k/N)*Math.PI*2, a1=((k+1)/N)*Math.PI*2;
+        const mid=(a0+a1)/2, sp=1.5+Math.random()*3.5;
+        shards.push({ x:f.x, y:f.y, vx:Math.cos(mid)*sp, vy:Math.sin(mid)*sp-1.5,
+          rot:mid, vrot:(Math.random()-0.5)*0.3, r:f.r, a0, a1,
+          color:f.color, dark:f.dark, life:1, grav:0.12 });
+      }
+      // faíscas extras junto
+      for(let k=0;k<14;k++){const a=Math.random()*7,sp=1+Math.random()*4;
+        sparks.push({x:f.x,y:f.y,vx:Math.cos(a)*sp,vy:Math.sin(a)*sp,life:1,color:f.color});}
+    }
+    addShake(10); hitStop=Math.max(hitStop,4); // impacto dramático na morte
+    } }
 
   updateHpBars();
   const rem=fighters.filter(f=>f.alive);
@@ -2727,8 +3155,34 @@ function isDeadF(f){
 }
 
 /* ---------- DESENHO ---------- */
+// FUNDO VIVO: partículas de poeira flutuando ao redor da arena
+let bgFloat=[];
+function initBgFloat(){
+  bgFloat=[];
+  for(let i=0;i<26;i++){
+    bgFloat.push({ x:Math.random()*BW, y:Math.random()*BH,
+      r:0.8+Math.random()*2.2, sp:0.15+Math.random()*0.35,
+      drift:(Math.random()-0.5)*0.2, ph:Math.random()*7,
+      hue:Math.random()<0.7?265:190 }); // roxo e ciano
+  }
+}
 function drawArenaBg(){
   bx.clearRect(0,0,BW,BH);
+  // partículas flutuando devagar (sobem e derivam, brilho pulsante)
+  if(G.settings.particles){
+    if(!bgFloat.length)initBgFloat();
+    const t=Date.now()/1000;
+    for(const p of bgFloat){
+      p.y-=p.sp; p.x+=p.drift+Math.sin(t+p.ph)*0.1;
+      if(p.y<-6){ p.y=BH+6; p.x=Math.random()*BW; }
+      if(p.x<-6)p.x=BW+6; if(p.x>BW+6)p.x=-6;
+      const tw=0.35+0.3*Math.sin(t*2+p.ph); // cintilação
+      bx.globalAlpha=tw;
+      bx.fillStyle='hsl('+p.hue+',70%,70%)';
+      bx.beginPath();bx.arc(p.x,p.y,p.r,0,7);bx.fill();
+    }
+    bx.globalAlpha=1;
+  }
   bx.save();
   if(arena.shape==='square'||arena.shape==='boxbox'){
     bx.fillStyle='#fbfbfd';bx.strokeStyle='#000';bx.lineWidth=3;
@@ -2878,6 +3332,20 @@ function drawWizardHat(b){
 }
 function drawBall(b,radius,label,tint){
   bx.save();
+  // ENTRADA: bola caindo do alto — sombra no chão cresce conforme se aproxima
+  const iz=b.introZ||0;
+  if(iz>0){
+    const sh=Math.max(0.25,1-iz/320);
+    bx.fillStyle='rgba(0,0,0,'+(0.32*sh)+')';
+    bx.beginPath();bx.ellipse(b.x,b.y+radius*0.55,radius*sh,radius*0.42*sh,0,0,7);bx.fill();
+    bx.translate(0,-iz);
+  }
+  // GLOW: brilho suave da cor do personagem atrás dele
+  if(G.settings.particles){
+    const gl=bx.createRadialGradient(b.x,b.y,radius*0.6,b.x,b.y,radius*1.9);
+    gl.addColorStop(0,b.color+'55'); gl.addColorStop(1,'rgba(0,0,0,0)');
+    bx.fillStyle=gl; bx.beginPath(); bx.arc(b.x,b.y,radius*1.9,0,7); bx.fill();
+  }
   if(b.kind==='pacman'){
     // Pacman: setor com boca animada, apontando na direção do movimento
     const dir=Math.atan2(b.vy,b.vx);
@@ -2995,6 +3463,10 @@ function drawLuciFront(b){
 }
 function drawBattle(){
   drawArenaBg();
+  // SCREEN SHAKE: desloca a cena inteira aleatoriamente conforme a intensidade
+  const shaking = shake>0.3;
+  if(shaking){ bx.save();
+    bx.translate((Math.random()-0.5)*shake*2,(Math.random()-0.5)*shake*2); }
   // câmera cinematográfica durante a vitória
   const camApplied = victory && victory.cam.zoom>1.01;
   if(camApplied){
@@ -3024,6 +3496,42 @@ function drawBattle(){
     const g=bx.createRadialGradient(b.x,b.y,0,b.x,b.y,b.r);
     g.addColorStop(0,'rgba(255,240,120,'+b.life+')');g.addColorStop(0.5,'rgba(255,110,0,'+(b.life*0.7)+')');g.addColorStop(1,'rgba(200,0,0,0)');
     bx.fillStyle=g;bx.beginPath();bx.arc(b.x,b.y,b.r,0,7);bx.fill();bx.restore();}
+  // bolhas de tempo do Chronos (no chão, câmera lenta)
+  for(const b of timeBubbles){ bx.save();
+    const a=b.life*0.5, t=Date.now()/1000;
+    // domo azulado translúcido
+    const g=bx.createRadialGradient(b.x,b.y,b.r*0.2,b.x,b.y,b.r);
+    g.addColorStop(0,'rgba(120,180,240,'+(a*0.15)+')');
+    g.addColorStop(0.7,'rgba(90,150,220,'+(a*0.35)+')');
+    g.addColorStop(1,'rgba(60,110,190,'+(a*0.55)+')');
+    bx.fillStyle=g;bx.beginPath();bx.arc(b.x,b.y,b.r*b.life,0,7);bx.fill();
+    // borda brilhante
+    bx.strokeStyle='rgba(150,200,255,'+(a*0.9)+')';bx.lineWidth=2;
+    bx.beginPath();bx.arc(b.x,b.y,b.r*b.life,0,7);bx.stroke();
+    // ponteiros de relógio girando devagar (marca o tempo lento)
+    bx.translate(b.x,b.y); bx.globalAlpha=a*0.8;
+    bx.strokeStyle='rgba(200,230,255,0.9)';bx.lineWidth=2.5;bx.lineCap='round';
+    const hr=t*0.5, mn=t*0.9; // ponteiros lentos
+    bx.beginPath();bx.moveTo(0,0);bx.lineTo(Math.cos(hr)*b.r*0.3,Math.sin(hr)*b.r*0.3);bx.stroke();
+    bx.beginPath();bx.moveTo(0,0);bx.lineTo(Math.cos(mn)*b.r*0.45,Math.sin(mn)*b.r*0.45);bx.stroke();
+    bx.restore(); }
+  // itens da arena (Versus): sombra no chão + ícone flutuando na altura z
+  for(const it of arenaItems){ bx.save();
+    // sombra (menor quanto mais alto)
+    const shShrink=1-Math.min(0.5,it.z/60);
+    bx.fillStyle='rgba(0,0,0,0.28)';
+    bx.beginPath();bx.ellipse(it.x,it.y,it.r*shShrink,it.r*0.5*shShrink,0,0,7);bx.fill();
+    // brilho de "armado" pra mina (pisca sutil)
+    if(it.type==='mine'&&it.armed){ const pl=0.4+0.3*Math.sin(Date.now()/200);
+      bx.fillStyle='rgba(255,80,60,'+pl*0.4+')';bx.beginPath();bx.arc(it.x,it.y,it.r+4,0,7);bx.fill(); }
+    // poça de gelo: círculo translúcido no chão
+    if(it.type==='ice'&&it.settled){ bx.fillStyle='rgba(120,200,255,0.32)';
+      bx.beginPath();bx.arc(it.x,it.y,it.r,0,7);bx.fill();
+      bx.strokeStyle='rgba(180,230,255,0.6)';bx.lineWidth=1.5;bx.stroke(); }
+    // ícone do item (elevado pela altura z)
+    bx.font=(it.r*1.7)+'px system-ui';bx.textAlign='center';bx.textBaseline='middle';
+    bx.fillText(it.icon, it.x, it.y - it.z);
+    bx.restore(); }
   // rastros de fogo do Mago (no chão, atrás dos personagens)
   for(const ft of fireTrails){ bx.save();
     const a=Math.min(1,ft.life)*0.75, pulse=0.85+0.15*Math.sin(Date.now()/90+ft.x);
@@ -3070,6 +3578,16 @@ function drawBattle(){
       bx.strokeStyle='#ffffff'; bx.lineWidth=w*0.5;
       bx.beginPath(); bx.arc(-arcR*0.5,0,arcR,-0.95,0.95); bx.stroke();
       bx.restore();
+    } else if(p.type==='chronoball'){
+      // pulso temporal: anel azul girando com brilho
+      bx.save();
+      const t=Date.now()/200;
+      const g=bx.createRadialGradient(p.x,p.y,0,p.x,p.y,10);
+      g.addColorStop(0,'#e0f0ff');g.addColorStop(0.5,p.color);g.addColorStop(1,'rgba(74,144,217,0)');
+      bx.fillStyle=g;bx.beginPath();bx.arc(p.x,p.y,10,0,7);bx.fill();
+      bx.strokeStyle='rgba(180,220,255,0.8)';bx.lineWidth=2;
+      bx.beginPath();bx.arc(p.x,p.y,7,t,t+4);bx.stroke();
+      bx.restore();
     } else {const g=bx.createRadialGradient(p.x,p.y,0,p.x,p.y,9);
       g.addColorStop(0,'#fff3a0');g.addColorStop(0.5,p.color);g.addColorStop(1,'rgba(0,0,0,0)');
       bx.fillStyle=g;bx.beginPath();bx.arc(p.x,p.y,9,0,7);bx.fill();}
@@ -3088,7 +3606,7 @@ function drawBattle(){
   // coletes do Soldier (atrás das bolas)
   for(const f of fighters){ if(f.alive&&f.kind==='soldier')drawVest(f); }
   // espadas / clones / bolas
-  for(const f of fighters){ if(f.alive&&f.reach)drawSword(f); }
+  for(const f of fighters){ if(f.alive&&f.reach&&!(f.introZ>0))drawSword(f); }
   for(const c of clones)drawBall(c,c.r,'',null);
   for(const f of fighters){ if(!f.alive)continue;
     // aura azul do Pacman powered
@@ -3114,6 +3632,7 @@ function drawBattle(){
       bx.fillStyle='#fff';bx.beginPath();bx.arc(f.x,f.y,f.r+a*10,0,7);bx.fill();bx.restore();}
   }
   for(const f of fighters){ if(!f.alive)continue;
+    if(f.introZ>0)continue; // acessórios aparecem quando a bola aterrissa
     const st = f.stealth>0;
     if(st){ bx.save(); bx.globalAlpha=0.12; }
     if(f.kind==='brawler')drawFists(f);
@@ -3173,6 +3692,16 @@ function drawBattle(){
   // sparks
   if(G.settings.particles)for(const p of sparks){bx.globalAlpha=p.life;bx.fillStyle=p.color;
     bx.beginPath();bx.arc(p.x,p.y,3,0,7);bx.fill();bx.globalAlpha=1;}
+  // cacos da morte: fatias da bola girando e caindo
+  for(const s of shards){ bx.save();
+    bx.globalAlpha=Math.min(1,s.life*1.6);
+    bx.translate(s.x,s.y); bx.rotate(s.rot);
+    const sc=0.5+s.life*0.5; // encolhe um pouco ao sumir
+    bx.fillStyle=s.color; bx.strokeStyle=s.dark; bx.lineWidth=2;
+    bx.beginPath(); bx.moveTo(0,0);
+    bx.arc(0,0,s.r*sc,s.a0,s.a1); bx.closePath(); bx.fill(); bx.stroke();
+    bx.restore(); }
+  bx.globalAlpha=1;
 
   // pó de desintegração (Marvel snap)
   if(victory && victory.dust.length){
@@ -3197,13 +3726,36 @@ function drawBattle(){
     bx.restore();
   }
 
+  // overlay do TIME STOP: tela azulada com linhas de energia quando o tempo para
+  if(timeStopOwner>=0){
+    bx.save();
+    if(arena.shape==='circle'){bx.beginPath();bx.arc(arena.cx,arena.cy,arena.R,0,7);bx.clip();}
+    else{bx.beginPath();bx.rect(arena.x,arena.y,arena.w,arena.h);bx.clip();}
+    // véu azul translúcido
+    bx.fillStyle='rgba(80,140,220,0.18)';bx.fillRect(0,0,BW,BH);
+    // linhas horizontais de "tempo travado" deslizando
+    bx.strokeStyle='rgba(180,220,255,0.12)';bx.lineWidth=1;
+    const off=(Date.now()/40)%18;
+    for(let y=arena.y-18+off;y<arena.y+arena.h;y+=18){
+      bx.beginPath();bx.moveTo(arena.x,y);bx.lineTo(arena.x+arena.w,y);bx.stroke();
+    }
+    bx.restore();
+  }
+
   if(camApplied) bx.restore();
+  if(shaking) bx.restore();
+  // VINHETA: bordas escurecidas sutilmente (foco no centro da ação)
+  const vg=bx.createRadialGradient(BW/2,BH/2,Math.min(BW,BH)*0.45,BW/2,BH/2,Math.max(BW,BH)*0.75);
+  vg.addColorStop(0,'rgba(0,0,0,0)');vg.addColorStop(1,'rgba(0,0,0,0.34)');
+  bx.fillStyle=vg;bx.fillRect(0,0,BW,BH);
 }
 
 let lastT=0,acc=0;const STEP=1000/60;
 function bLoop(now){
   if(!lastT)lastT=now;let dt=now-lastT;lastT=now;if(dt>100)dt=100;
-  if(bRunning){acc+=dt;let g=0;while(acc>=STEP&&g<5){bStep();acc-=STEP;g++;}}
+  if(bRunning){acc+=dt;let g=0;while(acc>=STEP&&g<5){
+    if(hitStop>0){ hitStop--; acc-=STEP; g++; continue; } // hit-stop: pausa dramática no impacto
+    bStep();acc-=STEP;g++;}}
   else if(victory && victory.phase!=='card'){ updateVictory(); }
   drawBattle();
   if(!bOver)bRaf=requestAnimationFrame(bLoop);
@@ -3240,6 +3792,72 @@ function bgLoop(){
   requestAnimationFrame(bgLoop);
 }
 window.addEventListener('resize',()=>{bgResize();});
+
+/* ==================================================================
+   ARREMESSO DE ITENS (Versus): segura, arrasta e solta pra jogar
+   ================================================================== */
+(function setupItemThrow(){
+  let drag=null; // {type, team, el, ghost, points:[{x,y,t}]}
+  const stage=document.getElementById('bstage');
+
+  function stageXY(e){
+    const r=stage.getBoundingClientRect();
+    return { x:e.clientX-r.left, y:e.clientY-r.top };
+  }
+
+  function onDown(e, btn){
+    if(!bRunning)return; // só durante a luta
+    e.preventDefault();
+    const type=btn.dataset.item;
+    const team=btn.closest('.teamA-tray')?0:1; // bandeja de baixo = Time A(0), cima = Time B(1)
+    const p=stageXY(e);
+    // cria um "fantasma" que segue o dedo
+    const ghost=document.createElement('div');
+    ghost.style.cssText='position:absolute;z-index:20;font-size:30px;pointer-events:none;transform:translate(-50%,-50%);';
+    ghost.textContent=btn.textContent;
+    stage.appendChild(ghost);
+    ghost.style.left=p.x+'px'; ghost.style.top=p.y+'px';
+    drag={ type, team, ghost, points:[{x:p.x,y:p.y,t:performance.now()}] };
+    window.addEventListener('pointermove', onMove);
+    window.addEventListener('pointerup', onUp);
+  }
+  function onMove(e){
+    if(!drag)return;
+    const p=stageXY(e);
+    drag.ghost.style.left=p.x+'px'; drag.ghost.style.top=p.y+'px';
+    drag.points.push({x:p.x,y:p.y,t:performance.now()});
+    if(drag.points.length>6)drag.points.shift(); // guarda só os últimos pontos
+  }
+  function onUp(e){
+    window.removeEventListener('pointermove', onMove);
+    window.removeEventListener('pointerup', onUp);
+    if(!drag)return;
+    const p=stageXY(e);
+    // velocidade = deslocamento nos últimos pontos (impulso do arremesso)
+    const pts=drag.points, first=pts[0], last=pts[pts.length-1];
+    const dt=Math.max(16,(last.t-first.t));
+    let vx=(last.x-first.x)/dt*16, vy=(last.y-first.y)/dt*16;
+    // limita a velocidade máxima
+    const sp=Math.hypot(vx,vy), MAX=14;
+    if(sp>MAX){ vx=vx/sp*MAX; vy=vy/sp*MAX; }
+    // se mal arrastou, dá um empurrãozinho pra dentro da arena
+    if(sp<1.5){ const cx=arena.shape==='circle'?arena.cx:arena.x+arena.w/2,
+                      cy=arena.shape==='circle'?arena.cy:arena.y+arena.h/2;
+      const a=Math.atan2(cy-p.y,cx-p.x); vx=Math.cos(a)*3; vy=Math.sin(a)*3; }
+    // só lança se soltou DENTRO da arena (ou perto)
+    const inArena = arena.shape==='circle'
+      ? Math.hypot(p.x-arena.cx,p.y-arena.cy)<arena.R+40
+      : (p.x>arena.x-40&&p.x<arena.x+arena.w+40&&p.y>arena.y-40&&p.y<arena.y+arena.h+40);
+    if(inArena){ throwArenaItem(drag.type, drag.team, p.x, p.y, vx, vy); SFX.arrow&&SFX.arrow(); }
+    drag.ghost.remove();
+    drag=null;
+  }
+
+  // liga os listeners em todos os botões de item
+  document.querySelectorAll('.item-btn').forEach(btn=>{
+    btn.addEventListener('pointerdown',(e)=>onDown(e,btn));
+  });
+})();
 
 /* ==================================================================
    INIT
