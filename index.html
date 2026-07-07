@@ -158,6 +158,7 @@ html,body{height:100%;overflow:hidden;background:var(--bg0);color:var(--ink);
 /* carta LENDÁRIA: brilho dourado pulsante + faixa de shimmer que atravessa (holográfico) */
 @keyframes legendGlow{0%,100%{box-shadow:0 8px 22px rgba(0,0,0,.5),0 0 0 1px #8a6510,inset 0 1px 0 rgba(255,255,255,.4),0 0 18px rgba(255,200,60,.7)}50%{box-shadow:0 8px 26px rgba(0,0,0,.5),0 0 0 1px #8a6510,inset 0 1px 0 rgba(255,255,255,.55),0 0 34px rgba(255,215,90,1)}}
 @keyframes classGlow{0%,100%{box-shadow:0 8px 22px rgba(0,0,0,.5),0 0 18px rgba(230,70,55,.7)}50%{box-shadow:0 8px 26px rgba(0,0,0,.5),0 0 36px rgba(255,90,70,1)}}
+@keyframes sssGlow{0%{box-shadow:0 0 26px 6px rgba(242,193,78,.8),inset 0 0 18px rgba(255,240,160,.7)}100%{box-shadow:0 0 44px 12px rgba(255,235,140,1),inset 0 0 28px rgba(255,248,200,.95)}}
 /* explosão de fogos (hanabi) na revelação de lendária/classe */
 @keyframes fwburst{0%{transform:translate(0,0) scale(1);opacity:1}70%{opacity:1}100%{transform:translate(var(--fdx),var(--fdy)) scale(.2);opacity:0}}
 @keyframes fwflash{0%{transform:scale(.2);opacity:.95}100%{transform:scale(2.6);opacity:0}}
@@ -1393,16 +1394,31 @@ const CHARS = {
     kind:'soulstealer', hp:200, dmg:10 },
   hunter:{ name:'Hunter', color:'#b5722e', dark:'#6e4318', icon:'🔫',
     kind:'hunter', hp:250, dmg:30 },
+  boku:{ name:'Boku', color:'#ff8a1e', dark:'#b85800', icon:'🥋',
+    kind:'boku', hp:1000, dmg:15, punchDmg:12, fireCd:52, kiMax:1000 }, // Goku paródia
   // --- INIMIGOS-BASE do Adventure Mode (bem mais fracos que os heróis) ---
   zombie:{ name:'Zumbi', color:'#5fa845', dark:'#35651f', icon:'🧟',
     kind:'zombie', hp:50, touchDmg:4 },              // verde, dá dano ao encostar
   skeleton:{ name:'Esqueleto', color:'#e8e8e0', dark:'#9a9a90', icon:'💀',
     kind:'skeleton', hp:45, dmg:5, fireCd:150 }       // branco, atira flechas
 };
-const ORDER=['berserker','samurai','arqueiro','mago','clonador','luciferus','pandora','soldier','pacman','heavyweight','chronos','vampire','soulstealer','hunter'];
+const ORDER=['berserker','samurai','arqueiro','mago','clonador','luciferus','pandora','soldier','pacman','heavyweight','chronos','vampire','soulstealer','hunter','boku'];
 // personagens LIVRES por padrão; o resto trava e precisa comprar/gacha (Arena)
 const FREE_CHARS=['berserker','samurai','arqueiro','mago'];
 const LOCKABLE_CHARS=ORDER.filter(id=>!FREE_CHARS.includes(id));
+// personagens de classe SSS (ultra raros no gacha)
+const SSS_CHARS=['boku'];
+function isSSS(id){ return SSS_CHARS.includes(id); }
+const SSS_CHANCE=0.001; // 0,1% de chance de tirar um SSS na roleta (1 em 1.000)
+// sorteia um personagem do gacha: SSS (ex.: Boku) tem 0,01%; o resto divide o restante igualmente
+function rollGachaChar(){
+  if(Math.random() < SSS_CHANCE){
+    const sss=SSS_CHARS.filter(id=>LOCKABLE_CHARS.includes(id));
+    if(sss.length) return sss[Math.floor(Math.random()*sss.length)];
+  }
+  const pool=LOCKABLE_CHARS.filter(id=>!isSSS(id));
+  return pool[Math.floor(Math.random()*pool.length)];
+}
 function isCharUnlocked(id){ return FREE_CHARS.includes(id) || !!(typeof SAVE!=='undefined'&&SAVE.chars&&SAVE.chars[id]); }
 
 /* ---------- ALMANAC: descrições dos personagens ---------- */
@@ -1448,7 +1464,10 @@ const ALMANAC = {
     skill:'AURA: suga a alma dos inimigos por perto, dando-lhes um debuff de ALMA (0 a 100). Quanto mais alma perdida, mais dano DELE o inimigo recebe (100 = dobro de dano). A alma sugada vai pra lanterna (até 500). A cada 50 de alma, dispara automaticamente uma de 3 skills: 1) RAJADA — explosão em área ao redor; 2) FANTASMA — invoca um espírito que corre até um inimigo aleatório e some ao acertar; 3) FORMA ETÉREA — vira alma e fica 100% intangível por 2s (não ataca, mas continua sugando almas de quem estiver perto).' },
   hunter:{ hp:250, creator:'Renan',
     desc:'Caçador com rifle e um cão de caça fiel que nunca morre.',
-    skill:'CACHORRO: corre até um inimigo aleatório, morde (5 de dano), deixa lento e MARCA o alvo; depois descansa um tempo. O inimigo marcado recebe o DOBRO de dano do rifle. Só existe 1 marcado por vez — nova mordida transfere a marca. RIFLE: tiro lento (a cada ~5s) e rápido, 30 de dano (60 no marcado). Sempre prioriza o inimigo marcado, mesmo longe, a não ser que haja parede no caminho. ARMADILHA: joga armadilhas no chão; inimigos que pisarem levam 10 de dano e ficam presos (stun) por alguns segundos. O próprio Hunter também pode pisar nas suas armadilhas — mas não leva dano, só fica lento por um tempo.' }
+    skill:'CACHORRO: corre até um inimigo aleatório, morde (5 de dano), deixa lento e MARCA o alvo; depois descansa um tempo. O inimigo marcado recebe o DOBRO de dano do rifle. Só existe 1 marcado por vez — nova mordida transfere a marca. RIFLE: tiro lento (a cada ~5s) e rápido, 30 de dano (60 no marcado). Sempre prioriza o inimigo marcado, mesmo longe, a não ser que haja parede no caminho. ARMADILHA: joga armadilhas no chão; inimigos que pisarem levam 10 de dano e ficam presos (stun) por alguns segundos. O próprio Hunter também pode pisar nas suas armadilhas — mas não leva dano, só fica lento por um tempo.' },
+  boku:{ hp:1000, creator:'Renan',
+    desc:'Guerreiro lendário inspirado no Goku. Atira bolas de energia azul semi-guiadas e soca de perto. Sua barra de KI enche sozinha (0→1000) e desbloqueia transformações.',
+    skill:'KI: enche sozinho até 1000. Ao encher, vira SUPER SAIYAJIN — dourado, 3x de vida/dano/velocidade, ataques e recargas 2x mais rápidos e KI máximo dobra pra 2000. KAMEHAMEHA (só em SSJ, com 1200 de ki): carrega uns segundos, TELETRANSPORTA pras costas do inimigo e dispara um laser reto gigante à queima-roupa — 500 de dano e joga o alvo bem longe. KAIOKEN (abaixo de 20% de vida): perde o Super Saiyajin, fica TODO VERMELHO e vai perdendo vida devagar, mas seu ataque fica 20x mais forte — um último recurso desesperado.' }
 };
 
 // traduções do Grimório (descrição + habilidade) por idioma; PT vem do ALMANAC acima
@@ -1481,7 +1500,9 @@ const ALMANAC_I18N = {
     soulstealer:{ desc:'A soul reaper carrying a glowing lantern. An aura around him drains the souls of nearby enemies.',
       skill:'AURA: drains the souls of nearby enemies, applying a SOUL debuff (0 to 100). The more soul lost, the more damage they take from HIM (100 = double). Drained souls fill his lantern (up to 500). Every 50 soul he auto-casts one of 3 skills: 1) BLAST — area explosion around him; 2) GHOST — summons a spirit that rushes a random enemy and vanishes on hit; 3) ETHEREAL — becomes a soul, 100% intangible for 2s (cannot attack, but still drains nearby souls).' },
     hunter:{ desc:'A hunter with a rifle and a loyal hound that never dies.',
-      skill:'DOG: runs to a random enemy, bites (5 dmg), slows and MARKS them, then rests. The marked target takes DOUBLE rifle damage. Only 1 mark at a time — a new bite transfers it. RIFLE: slow (every ~5s) but fast shot, 30 dmg (60 on the marked). Always prioritizes the marked enemy, even far away, unless a wall blocks the line. TRAP: drops traps on the ground; enemies who step on one take 10 dmg and are stunned for a few seconds. The Hunter can step on his own traps too — but takes no damage, just gets slowed for a while.' }
+      skill:'DOG: runs to a random enemy, bites (5 dmg), slows and MARKS them, then rests. The marked target takes DOUBLE rifle damage. Only 1 mark at a time — a new bite transfers it. RIFLE: slow (every ~5s) but fast shot, 30 dmg (60 on the marked). Always prioritizes the marked enemy, even far away, unless a wall blocks the line. TRAP: drops traps on the ground; enemies who step on one take 10 dmg and are stunned for a few seconds. The Hunter can step on his own traps too — but takes no damage, just gets slowed for a while.' },
+    boku:{ desc:'A legendary warrior inspired by Goku. Fires semi-homing blue energy balls and punches up close. His KI bar fills on its own (0→1000) and unlocks transformations.',
+      skill:'KI: fills on its own up to 1000. When full, he turns SUPER SAIYAN — golden, with 3x HP/damage/speed, attacks and cooldowns 2x faster and max KI doubled to 2000. KAMEHAMEHA (SSJ only, needs 1200 ki): charges for a few seconds, TELEPORTS behind the enemy and fires a huge straight laser point-blank — 500 damage and flings the target far away. KAIOKEN (below 20% HP): loses Super Saiyan, turns ALL RED and slowly bleeds HP, but his attack becomes 20x stronger — a desperate last resort.' }
   },
   ja:{
     berserker:{ desc:'怒れる格闘家。敵に近づいて殴りかかる。',
@@ -1511,7 +1532,9 @@ const ALMANAC_I18N = {
     soulstealer:{ desc:'光るランタンを持つ魂の刈り取り手。周囲のオーラが近くの敵の魂を吸い取る。',
       skill:'オーラ：近くの敵の魂を吸い、「ソウル」デバフ（0〜100）を与える。魂を失うほど、彼から受けるダメージが増える（100で2倍）。吸った魂はランタンにたまる（最大500）。ソウル50ごとに3つのスキルから自動発動：1) 爆発——周囲に範囲ダメージ；2) 亡霊——ランダムな敵に突進し命中で消える霊を召喚；3) 霊体化——魂になり2秒間100%無敵（攻撃不可だが近くの魂は吸い続ける）。' },
     hunter:{ desc:'ライフルと、決して死なない忠実な猟犬を連れた狩人。',
-      skill:'犬：ランダムな敵に走り噛みつき（5ダメージ）、鈍足にして「マーク」を付け、その後休む。マークされた敵はライフルのダメージが2倍。マークは同時に1体のみ——新たに噛むと移る。ライフル：低速（約5秒毎）だが速い弾、30ダメージ（マーク時60）。壁が無い限り、遠くてもマークした敵を優先。トラップ：地面に罠を設置；敵が踏むと10ダメージと数秒のスタン。狩人自身も自分の罠を踏むことがあるが、ダメージは無くしばらく鈍足になるだけ。' }
+      skill:'犬：ランダムな敵に走り噛みつき（5ダメージ）、鈍足にして「マーク」を付け、その後休む。マークされた敵はライフルのダメージが2倍。マークは同時に1体のみ——新たに噛むと移る。ライフル：低速（約5秒毎）だが速い弾、30ダメージ（マーク時60）。壁が無い限り、遠くてもマークした敵を優先。トラップ：地面に罠を設置；敵が踏むと10ダメージと数秒のスタン。狩人自身も自分の罠を踏むことがあるが、ダメージは無くしばらく鈍足になるだけ。' },
+    boku:{ desc:'悟空にインスパイアされた伝説の戦士。半誘導の青いエネルギー弾を撃ち、近づけば殴る。KIゲージは自動でたまり（0→1000）、変身を解放する。',
+      skill:'KI：自動で1000までたまる。満タンでスーパーサイヤ人に変身——金色になり、HP・ダメージ・速度が3倍、攻撃と再チャージが2倍速く、KI最大値も2000に倍増。かめはめ波（SSJ限定・KI1200必要）：数秒チャージし、敵の背後にテレポートして至近距離で巨大な直線レーザーを放つ——500ダメージ＋敵を遠くへ吹き飛ばす。界王拳（HP20%以下）：スーパーサイヤ人を失い、全身が真っ赤になりHPが徐々に減るが、攻撃力が20倍になる——絶望的な最後の切り札。' }
   }
 };
 // retorna {desc, skill} do personagem no idioma atual
@@ -1966,7 +1989,7 @@ const SFX={
   nav(){ synth({freq:520,dur:0.09,wave:'triangle',gain:0.10,glide:640,filter:{type:'lowpass',freq:2600},delay:true,r:0.06}); },
   select(){ synth({freq:660,dur:0.12,wave:'square',gain:0.11,glide:990,filter:{type:'lowpass',freq:3200,env:1400},delay:true}); },
   back(){ synth({freq:440,dur:0.11,wave:'triangle',gain:0.10,glide:300,filter:{type:'lowpass',freq:1800}}); },
-  confirm(){ // acorde ascendente brilhante
+  confirm(){ if(!AC)return; // acorde ascendente brilhante
     synth({freq:523,dur:0.14,wave:'sawtooth',gain:0.10,detune:[-8,8],filter:{type:'lowpass',freq:2400,env:3200},reverb:true});
     synth({t:AC.currentTime+0.08,freq:784,dur:0.18,wave:'sawtooth',gain:0.11,detune:[-8,8],filter:{type:'lowpass',freq:3000,env:4000},reverb:true,delay:true}); },
   lock(){ synth({freq:200,dur:0.16,wave:'sawtooth',gain:0.12,glide:130,filter:{type:'lowpass',freq:800,env:300}}); hit({dur:0.08,gain:0.08,freq:400}); },
@@ -2065,10 +2088,10 @@ const SFX={
   clone(){ if(canPlay('clone',35))synth({freq:520,dur:0.14,wave:'triangle',gain:0.11,glide:920,filter:{type:'lowpass',freq:2600},delay:true,reverb:true}); },
   berserk(){ synth({freq:110,dur:0.6,wave:'sawtooth',gain:0.20,glide:330,detune:[-14,14],filter:{type:'lowpass',freq:900,env:1600},reverb:true});
     hit({dur:0.5,gain:0.22,freq:700,shape:0.7}); drumKick(null,0.9); },
-  transform(){ synth({freq:300,dur:0.7,wave:'sawtooth',gain:0.20,glide:70,detune:[-10,10],filter:{type:'lowpass',freq:1200,env:400},reverb:true});
+  transform(){ if(!AC)return; synth({freq:300,dur:0.7,wave:'sawtooth',gain:0.20,glide:70,detune:[-10,10],filter:{type:'lowpass',freq:1200,env:400},reverb:true});
     hit({dur:0.6,gain:0.22,freq:600,shape:0.8,reverb:true});
     synth({t:AC.currentTime+0.1,freq:600,dur:0.5,wave:'triangle',gain:0.10,glide:1400,filter:{type:'highpass',freq:500}}); },
-  win(){ [523,659,784,1047].forEach((f,i)=>synth({t:AC.currentTime+i*0.1,freq:f,dur:0.3,wave:'sawtooth',gain:0.12,detune:[-8,8],filter:{type:'lowpass',freq:3000,env:4000},reverb:true,delay:i===3})); }
+  win(){ if(!AC)return; [523,659,784,1047].forEach((f,i)=>synth({t:AC.currentTime+i*0.1,freq:f,dur:0.3,wave:'sawtooth',gain:0.12,detune:[-8,8],filter:{type:'lowpass',freq:3000,env:4000},reverb:true,delay:i===3})); }
 };
 
 /* ==================================================================
@@ -3041,11 +3064,18 @@ document.querySelectorAll('#titleMenu .menu-item').forEach(it=>{
 })();
 function tryQuit(){
   stopMusic();
-  document.getElementById('app').innerHTML=
-    '<div style="height:100svh;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:14px;text-align:center;padding:30px;">'
-    +'<div style="font-size:22px;font-weight:900;color:var(--gold);letter-spacing:.1em;text-transform:uppercase;">'+t('quitBye')+'</div>'
-    +'<div style="font-size:13px;color:var(--dim);">'+t('quitClose')+'</div>'
-    +'<button onclick="location.reload()" style="margin-top:10px;padding:12px 26px;border:none;border-radius:9px;background:var(--panel);color:var(--ink);font-weight:800;letter-spacing:.08em;text-transform:uppercase;cursor:pointer;">'+t('back')+'</button></div>';
+  // 1) EXE (pywebview): fecha a janela de verdade
+  try{ if(window.pywebview && window.pywebview.api && window.pywebview.api.quit){ window.pywebview.api.quit(); return; } }catch(e){}
+  // 2) APK/TWA e navegadores: tenta fechar o app/aba
+  try{ window.close(); }catch(e){}
+  // 3) fallback (se o SO não deixou fechar): tela de saída
+  setTimeout(()=>{
+    document.getElementById('app').innerHTML=
+      '<div style="height:100svh;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:14px;text-align:center;padding:30px;">'
+      +'<div style="font-size:22px;font-weight:900;color:var(--gold);letter-spacing:.1em;text-transform:uppercase;">'+t('quitBye')+'</div>'
+      +'<div style="font-size:13px;color:var(--dim);">'+t('quitClose')+'</div>'
+      +'<button onclick="location.reload()" style="margin-top:10px;padding:12px 26px;border:none;border-radius:9px;background:var(--panel);color:var(--ink);font-weight:800;letter-spacing:.08em;text-transform:uppercase;cursor:pointer;">'+t('back')+'</button></div>';
+  }, 250);
 }
 
 /* ---------- ALMANAC (pokédex) ---------- */
@@ -3211,8 +3241,8 @@ function gachaRoll(n){
   SAVE.coins-=cost;
   const results=[];
   for(let i=0;i<rolls;i++){
-    // sorteia entre TODOS os personagens do gacha (chance igual); repetido (já tem) vira 50 moedas
-    const id=LOCKABLE_CHARS[Math.floor(Math.random()*LOCKABLE_CHARS.length)];
+    // sorteia com raridade: SSS (Boku) = 0,01%; o resto divide igualmente. Repetido vira 50 moedas
+    const id=rollGachaChar();
     if(SAVE.chars[id]){ SAVE.coins+=50; results.push({id,dup:true}); }
     else { SAVE.chars[id]=true; results.push({id,dup:false}); }
   }
@@ -3301,11 +3331,23 @@ function showGachaResult(results){
           o.strip.style.transition='transform '+dur.toFixed(2)+'s cubic-bezier(.12,.72,.16,1)';
           o.strip.style.transform='translateX('+finalX(o)+'px)';
           setTimeout(()=>{
-            o.reel.style.borderColor=o.r.dup?'var(--panel-b)':'var(--gold)';
-            o.reel.style.boxShadow=o.r.dup?'none':'0 0 16px rgba(242,193,78,.75)';
+            const sss=isSSS(o.r.id);
+            if(sss){
+              // SSS: quadrado TODO DOURADO BRILHANTE (pulsando) + selo "SSS"
+              o.reel.style.background='linear-gradient(135deg,#fff3b0,#f2c14e 40%,#c8912b 75%,#fff3b0)';
+              o.reel.style.borderColor='#fff0a8';
+              o.reel.style.boxShadow='0 0 34px 8px rgba(242,193,78,.95), inset 0 0 22px rgba(255,240,160,.85)';
+              o.reel.style.animation='sssGlow 0.9s ease-in-out infinite alternate';
+              o.tag.textContent=o.r.dup?'SSS +50🪙':'SSS'; o.tag.style.color='#7a4a00';
+              o.tag.style.textShadow='0 0 10px rgba(255,240,160,1)';
+            } else {
+              o.reel.style.borderColor=o.r.dup?'var(--panel-b)':'var(--gold)';
+              o.reel.style.boxShadow=o.r.dup?'none':'0 0 16px rgba(242,193,78,.75)';
+            }
             o.tag.style.opacity='1';
-            // herói NOVO toca o som de "new hero"; repetido só um clique seco
-            if(o.r.dup){ try{ (SFX.lock||function(){})(); }catch(e){} }
+            // SSS toca o som "rare hero"; herói novo toca "new hero"; repetido = clique seco
+            if(sss){ try{ if(G.settings.sfx){ const a=new Audio('assets/sfx/rarehero.mp3'); a.volume=(G.settings.vol/100)*0.9; a.play().catch(()=>{}); } }catch(e){} }
+            else if(o.r.dup){ try{ (SFX.lock||function(){})(); }catch(e){} }
             else { try{ if(G.settings.sfx){ const a=new Audio('assets/sfx/newhero.mp3'); a.volume=(G.settings.vol/100)*0.75; a.play().catch(()=>{}); } }catch(e){} }
             if(++landed>=reels.length){ stopSlot(); btn.disabled=false; btn.style.opacity='1'; btn.textContent='✓ '+t('gachaContinue'); }
           }, dur*1000);
@@ -4147,6 +4189,21 @@ try{ if('virtualKeyboard' in navigator){ navigator.virtualKeyboard.overlaysConte
   }
 })();
 
+// ===== ALTURA FIXA DO #app (ignora o teclado) — correção robusta p/ WebView antigo =====
+// Fixa a altura do app em PIXELS no load/rotação. Quando o teclado sobe, a altura da janela
+// diminui, mas NÃO atualizamos (senão o layout inteiro reflui/"desce"). O teclado só cobre o rodapé.
+let _appW = window.innerWidth;
+function setAppHeight(force){
+  const app=document.getElementById('app'); if(!app)return;
+  const w=window.innerWidth, h=window.innerHeight;
+  if(force || w!==_appW){ _appW=w; app.style.height=h+'px'; }
+}
+setAppHeight(true);
+window.addEventListener('load', ()=>setAppHeight(true));
+window.addEventListener('orientationchange', ()=>{ setTimeout(()=>setAppHeight(true),300); });
+// resize: se a LARGURA mudou = rotação (atualiza). Se só a altura mudou = teclado (ignora).
+window.addEventListener('resize', ()=>setAppHeight(false));
+
 // define a geometria da arena conforme o mapa
 function computeArena(){
   const m=MAPS[G.map];
@@ -4212,6 +4269,9 @@ let bolts=[], fireTrails=[]; // Mago: raios e rastros
 let timeBubbles=[]; // Chronos: bolhas de tempo lento
 let arenaItems=[]; // Versus: itens jogados na arena (minas, frutas, etc.)
 let dogs=[], ghosts=[], traps=[]; // Hunter: cachorro/armadilhas; Soul Stealer: fantasmas
+let kameBeams=[]; // Boku: lasers do Kamehameha
+let floorCracks=[]; // rachaduras no chão (impacto do Boku na parede)
+let slowMoT=0;    // slow-motion global (frames reais): usado no Kamehameha
 let pendingSlashes=[]; // Samurai: cortes em sequência da ultimate (um por vez, com som)
 let blackholeTimer=0, blackholePhase='idle', blackholePulse=0; // ciclo do buraco negro
 let timeStopOwner=-1; // Chronos: quem ativou o Time Stop (-1 = ninguém)
@@ -4300,6 +4360,10 @@ function makeFighter(slot, idx){
     extraAttack:cfg.extraAttack||0,      // +N repetições de ataque básico
     extraSkill:cfg.extraSkill||0,        // +N repetições de skill
     lifesteal:cfg.lifesteal||0,          // fração do dano causado que volta como vida
+    // --- Boku (Goku paródia): ki, Super Saiyajin, Kamehameha, Kaioken ---
+    ki:0, kiMax:(c.kiMax||1000), ssj:false, kaioken:false, kaiokenUsed:false,
+    kameCharge:0, kameCd:0, kameTarget:null, bokuBlink:0, kameAng:0,
+    bokuBase:{ dmg:(c.dmg||0)*cfg.dmg, punchDmg:(c.punchDmg||0)*cfg.dmg, maxhp:baseHp, fireCd:(c.fireCd||40)/cfg.fireRate, speed:cfg.speed },
     alive:true
   };
   // --- Distance/Área: aplica reachBonus só em quem tem alcance nativo ---
@@ -5858,7 +5922,7 @@ function beginRound(){
     return Array.prototype.push.call(this,p);
   };
   blackholeTimer=180; blackholePhase='idle'; blackholePulse=0;
-  shards=[];shake=0;hitStop=0;
+  shards=[];shake=0;hitStop=0;slowMoT=0;kameBeams=[];floorCracks=[];stopBokuAura();
   computeArena();
   const pos=isVS()?spawnPositionsVS():spawnPositions(fighters.length);
   fighters.forEach((f,i)=>{
@@ -5982,6 +6046,9 @@ function updateHpBars(){
     if(f.kind==='soulstealer') soul=` 🔮${Math.round(f.souls)}`; // almas na lanterna
     if(f.soulCurse>0) soul+=` 👻${Math.round(f.soulCurse)}`;     // debuff de alma recebido
     if(f.markedBy>=0) soul+=' 🎯';                                // marcado pelo cachorro
+    if(f.kind==='boku'){ // estado do Boku: Kaioken / SSJ / carga de ki
+      soul += f.kaioken ? ' 🔴KAIOKEN' : f.ssj ? ` ⭐SSJ ⚡${Math.floor(f.ki)}` : ` ⚡${Math.floor(f.ki)}`;
+    }
     let tag;
     if(isVS()) tag=(f.team===0?'A':'B');
     else if(advBattleActive) tag=(f.icon||(f.team===0?'★':'•')); // ícone do bicho/herói
@@ -6244,6 +6311,176 @@ function tickRepeat(f){
 }
 
 /* ---------- ARQUEIRO: 2 skills (50/50) + passiva de invisibilidade ---------- */
+/* ---------- BOKU (Goku paródia): Ki, Super Saiyajin, Kamehameha, Kaioken ---------- */
+function bokuApplyState(f){
+  const b=f.bokuBase;
+  let dmgMul=1, spdMul=1, hpMul=1, fireMul=1, kiMax=1000;
+  if(f.ssj){ dmgMul=3; spdMul=3; hpMul=3; fireMul=0.5; kiMax=2000; } // Super Saiyajin
+  if(f.kaioken){ dmgMul=20; spdMul=1.6; hpMul=1; fireMul=1; kiMax=1000; } // Kaioken (ataque 20x)
+  const oldMax=f.maxhp||b.maxhp;
+  f.maxhp=b.maxhp*hpMul;
+  f.hp=Math.min(f.maxhp, f.hp*(f.maxhp/oldMax)); // mantém a proporção de vida
+  f.dmg=b.dmg*dmgMul; f.punchDmg=b.punchDmg*dmgMul;
+  f.fireCd=b.fireCd*fireMul; f.speedMul=b.speed*spdMul; f.kiMax=kiMax;
+  f.color = f.kaioken ? '#ff2a2a' : (f.ssj ? '#ffe23a' : f.baseColor);
+  f.dark  = f.kaioken ? '#8a0000' : (f.ssj ? '#c0982a' : f.baseDark);
+}
+function doBoku(f){
+  // carrega o KI sozinho (2x mais rápido em SSJ). Kaioken não usa ki.
+  if(!f.kaioken){ f.ki=Math.min(f.kiMax, f.ki + (f.ssj?2.2:1.1)); }
+  // TRANSFORMAÇÃO: 1000 de ki -> Super Saiyajin
+  if(!f.ssj && !f.kaioken && f.ki>=1000){
+    f.ssj=true; bokuApplyState(f); setFlash(24,'255,230,80'); addShake(10);
+    playSfxFile('auraburst',0.85); startBokuAura(); // burst dourado + loop da super aura
+    for(let k=0;k<40;k++){ const a=Math.random()*7; burst(f.x+Math.cos(a)*f.r,f.y+Math.sin(a)*f.r,'#ffe23a',3); }
+  }
+  // KAIOKEN: SSJ com <20% de vida -> perde SSJ, fica vermelho, +20x ataque, perde vida
+  if(f.ssj && !f.kaiokenUsed && f.hp <= f.maxhp*0.20){
+    f.ssj=false; f.kaioken=true; f.kaiokenUsed=true; f.kameCharge=0;
+    bokuApplyState(f); stopBokuAura(); setFlash(20,'255,40,40'); addShake(8); // saiu do SSJ -> para o loop
+    try{ SFX.berserk&&SFX.berserk(); }catch(e){}
+    for(let k=0;k<36;k++){ const a=Math.random()*7; burst(f.x+Math.cos(a)*f.r,f.y+Math.sin(a)*f.r,'#ff3030',3); }
+  }
+  // Kaioken: dreno de vida lento
+  if(f.kaioken){ f.hp -= f.maxhp*0.0006; if(f.hp<1)f.hp=1; }
+  // aura de partículas (SSJ dourada / Kaioken vermelha)
+  if(G.settings.particles && (f.ssj||f.kaioken) && Math.random()<0.55){
+    const a=Math.random()*7, col=f.kaioken?'#ff5050':'#ffe884';
+    sparks.push({x:f.x+Math.cos(a)*f.r,y:f.y+Math.sin(a)*f.r,vx:Math.cos(a)*0.5,vy:-1.1-Math.random(),life:0.8,color:col});
+  }
+  if(f.bokuBlink>0)f.bokuBlink--;
+  if(f.punchAnim>0)f.punchAnim--; // animação do punho
+  // SOCO-AGARRÃO em andamento (habilidade dos 10s)
+  if(f.bokuGrab){ doBokuGrabPunch(f); return; }
+  // KAMEHAMEHA em andamento (carregando/disparando)
+  if(f.kameCharge>0){ doKamehameha(f); return; }
+  if(f.kameCd>0)f.kameCd--;
+  if(f.bokuSkillCd==null)f.bokuSkillCd=600; if(f.bokuSkillCd>0)f.bokuSkillCd--; // habilidade a cada ~10s
+  const foe=nearestEnemy(f); if(!foe)return;
+  const dist=Math.hypot(foe.x-f.x,foe.y-f.y);
+  // KAMEHAMEHA: só em Super Saiyajin, precisa de 1200 de ki e cooldown pronto
+  if(f.ssj && f.ki>=1200 && f.kameCd<=0){ startKamehameha(f, foe); return; }
+  // HABILIDADE (a cada 10s, custa 100 de ki): teleporta atrás, agarra e dá um soco brutal
+  if(f.bokuSkillCd<=0 && f.ki>=100){ startBokuSkill(f, foe); return; }
+  // vira o corpo pro inimigo
+  const aim=Math.atan2(foe.y-f.y,foe.x-f.x); f.ang=aim;
+  // SOCO se o inimigo está perto
+  if(dist < f.r+foe.r+10 && f.hitCd<=0){
+    f.hitCd=(f.ssj?7:12);
+    f.punchAnim=8; f.punchArm=(f.punchArm+1)%2; // soco visível (braço/punho)
+    dealDamage(foe, f.punchDmg, false, true, f.slotIdx);
+    foe.vx+=Math.cos(aim)*2.5; foe.vy+=Math.sin(aim)*2.5;
+    burst((f.x+foe.x)/2,(f.y+foe.y)/2, f.kaioken?'#ff5050':'#ffcc55', 7);
+    setFlash(4,'255,200,90'); try{SFX.punch&&SFX.punch();}catch(e){}
+    return;
+  }
+  // ATAQUE BÁSICO: bola de energia azul semi-guiada (curvas largas, pode errar)
+  f.cd--; if(f.cd>0)return; f.cd=f.fireCd;
+  const sx=f.x+Math.cos(aim)*(f.r+14), sy=f.y+Math.sin(aim)*(f.r+14);
+  const sp=(f.ssj?9:7);
+  projectiles.push({type:'kiball', x:sx, y:sy, vx:Math.cos(aim)*sp, vy:Math.sin(aim)*sp,
+    life:170, dmg:f.dmg, owner:f.slotIdx, color:'#3aa0ff', homing:1, turn:0.045, speed:sp, r:6+(f.ssj?2:0)});
+  try{ SFX.fireball ? SFX.fireball() : (SFX.arrow&&SFX.arrow()); }catch(e){}
+}
+// inicia o Kamehameha: teleporta ATRÁS do inimigo e começa a carregar
+function startKamehameha(f, foe){
+  f.ki-=1200; f.kameTarget=foe;
+  const bang=Math.atan2(foe.y-f.y, foe.x-f.x);
+  f.x=foe.x - Math.cos(bang)*(foe.r+f.r+28);
+  f.y=foe.y - Math.sin(bang)*(foe.r+f.r+28);
+  f.kameAng=Math.atan2(foe.y-f.y, foe.x-f.x); // mira no alvo a queima-roupa
+  f.kameCharge=70; f.vx=0; f.vy=0; f.invuln=Math.max(f.invuln,150); f.bokuBlink=24;
+  setFlash(18,'120,200,255'); addShake(10);
+  // clarão de teletransporte na posição antiga e nova
+  for(let k=0;k<26;k++){ const a=Math.random()*7; burst(f.x+Math.cos(a)*f.r, f.y+Math.sin(a)*f.r, '#8ad4ff', 4); }
+  playSfxFile('teleport',0.8); playSfxFile('kamehameha',0.9); // teleporte + grito de carga do Kamehameha
+}
+// carrega e dispara o Kamehameha (tela tremendo + esfera de energia crescendo)
+function doKamehameha(f){
+  f.invuln=Math.max(f.invuln,4); f.vx=0; f.vy=0; f.kameCharge--;
+  const prog=1-(f.kameCharge/70); // 0 -> 1 conforme carrega
+  // TELA TREMENDO: aumenta conforme a carga chega no fim
+  addShake(2+prog*6);
+  // esfera de energia na mão puxando partículas pra dentro (mais intenso perto do fim)
+  if(G.settings.particles){
+    const n=2+Math.floor(prog*4);
+    for(let i=0;i<n;i++){ const a=Math.random()*7, d=f.r+22+Math.random()*40;
+      const px=f.x+Math.cos(f.kameAng)*(f.r+10)+Math.cos(a)*d, py=f.y+Math.sin(f.kameAng)*(f.r+10)+Math.sin(a)*d;
+      sparks.push({x:px,y:py,vx:(f.x+Math.cos(f.kameAng)*(f.r+10)-px)*0.12,vy:(f.y+Math.sin(f.kameAng)*(f.r+10)-py)*0.12,life:0.5,color:i%2?'#bfeaff':'#4ab8ff'}); }
+  }
+  f.kameGlow=prog; // usado no desenho (esfera crescendo)
+  if(f.kameCharge<=0){ fireKamehamehaBeam(f); f.kameCd=Math.round(360/(f.ssj?2:1)); }
+}
+function fireKamehamehaBeam(f){
+  const ang=f.kameAng, len=Math.max(BW,BH)*2.2, w=132; // 3x mais grosso e bem mais longo (sai da arena)
+  const ox=f.x+Math.cos(ang)*(f.r+6), oy=f.y+Math.sin(ang)*(f.r+6);
+  kameBeams.push({x:ox, y:oy, ang, len, w, life:34, color:'#4ab8ff'});
+  const dx=Math.cos(ang), dy=Math.sin(ang);
+  for(const o of fighters){ if(!o.alive || sameTeam(o,f) || o===f) continue;
+    const rx=o.x-ox, ry=o.y-oy, proj=rx*dx+ry*dy; if(proj<-o.r||proj>len)continue;
+    const perp=Math.abs(rx*(-dy)+ry*dx); if(perp>w/2+o.r)continue;
+    dealDamage(o, 500, false, true, f.slotIdx);
+    o.vx=dx*34; o.vy=dy*34; o.knockback=Math.max(o.knockback||0,26); burst(o.x,o.y,'#8ad4ff',28);
+  }
+  // EXPLOSÃO na boca do laser + partículas ao longo do feixe
+  if(G.settings.particles){
+    for(let i=0;i<40;i++){ const t=Math.random()*len*0.6, a=(Math.random()-0.5)*w;
+      sparks.push({x:ox+dx*t - dy*a, y:oy+dy*t + dx*a, vx:(Math.random()-0.5)*3, vy:(Math.random()-0.5)*3, life:0.6, color:Math.random()<0.5?'#bfeaff':'#4ab8ff'}); }
+  }
+  // SLOW-MOTION + TELA TREMENDO forte no disparo
+  slowMoT=Math.max(slowMoT,80);
+  setFlash(28,'180,230,255'); addShake(42);
+  playSfxFile('dbzexplosion',0.9); // explosão do feixe
+}
+// HABILIDADE dos 10s: teleporta atrás do inimigo e o AGARRA por um instante
+function startBokuSkill(f, foe){
+  f.ki=Math.max(0,f.ki-100); f.bokuSkillCd=600; // custa 100 de ki, reinicia o timer (~10s)
+  const bang=Math.atan2(foe.y-f.y, foe.x-f.x);
+  f.x=foe.x - Math.cos(bang)*(foe.r+f.r+18);
+  f.y=foe.y - Math.sin(bang)*(foe.r+f.r+18);
+  f.ang=Math.atan2(foe.y-f.y, foe.x-f.x);
+  f.bokuGrab=foe; f.bokuGrabT=16; f.vx=0; f.vy=0; f.invuln=Math.max(f.invuln,30); f.bokuBlink=18;
+  for(let k=0;k<20;k++){ const a=Math.random()*7; burst(f.x+Math.cos(a)*f.r, f.y+Math.sin(a)*f.r, '#8ad4ff', 4); }
+  setFlash(10,'150,210,255'); addShake(6);
+  playSfxFile('teleport',0.8);
+}
+// segura o inimigo colado por alguns frames e depois solta o SOCO BRUTAL
+function doBokuGrabPunch(f){
+  const v=f.bokuGrab;
+  if(!v || !v.alive){ f.bokuGrab=null; f.bokuGrabT=0; return; } // alvo sumiu
+  f.invuln=Math.max(f.invuln,2); f.vx=0; f.vy=0;
+  // mantém o inimigo preso na frente do Boku
+  const hold=f.r+v.r-4; v.x=f.x+Math.cos(f.ang)*hold; v.y=f.y+Math.sin(f.ang)*hold; v.vx=0; v.vy=0;
+  v.stun=Math.max(v.stun||0,3); // fica plantado enquanto é segurado
+  f.bokuGrabT--;
+  if(f.bokuGrabT<=0){
+    // SOCO MEGA FORTE: 100 de dano + arremesso; se bater na parede -> stun 3s + body crash
+    f.punchAnim=8; f.punchArm=(f.punchArm+1)%2;
+    const ang=f.ang, kick=32*(f.ssj?1.3:1)*(f.kaioken?1.5:1);
+    v.stun=0; v.accelBack=0; // libera pra voar
+    const push=f.r+v.r+8; v.x=f.x+Math.cos(ang)*push; v.y=f.y+Math.sin(ang)*push;
+    v.vx=Math.cos(ang)*kick; v.vy=Math.sin(ang)*kick;
+    v.knockback=Math.max(v.knockback||0,60); // voa livre (ignora colisão) até bater
+    v.bokuLaunched=60; v.bokuLauncher=f.slotIdx; v.preStunSpeed=3;
+    dealDamage(v, 100, false, true, f.slotIdx);
+    burst(v.x,v.y,'#ffd24a',18); setFlash(10,'255,200,90'); addShake(12);
+    playSfxFile('strongpunch',0.95);
+    f.bokuGrab=null; f.bokuGrabT=0;
+  }
+}
+// inimigo arremessado bateu na parede: stun de 3s + som + rachadura no chão
+function bokuWallCrash(o){
+  o.bokuLaunched=0; o.vx*=0.15; o.vy*=0.15;
+  o.stun=Math.max(o.stun||0,180); o.preStunSpeed=3; // 3 segundos preso
+  playSfxFile('bodycrash',0.9);
+  setFlash(12,'255,220,180'); addShake(22); slowMoT=Math.max(slowMoT,26);
+  burst(o.x,o.y,'#ffe0b0',24);
+  // rachadura no chão no ponto de impacto (linhas radiais irregulares, geradas uma vez)
+  const lines=[]; const N=6+Math.floor(Math.random()*4);
+  for(let i=0;i<N;i++){ const a=(i/N)*Math.PI*2 + (Math.random()-0.5)*0.5;
+    lines.push({ ang:a, len:26+Math.random()*40, kink:(Math.random()-0.5)*0.7, mid:0.5+Math.random()*0.2 }); }
+  floorCracks.push({ x:o.x, y:o.y, life:1, lines });
+}
 function doArcher(f){
   // passiva: ao chegar na metade da vida (uma vez), fica invisível/intangível por 5s
   if(!f.stealthUsed && f.hp>0 && f.hp<=f.maxhp*0.5){
@@ -6282,6 +6519,36 @@ let _arrowHitT=0;
 function arrowHitSfx(hard){
   const now=Date.now(); if(now-_arrowHitT<45)return; _arrowHitT=now;
   try{ if(G.settings.sfx){ const a=new Audio('assets/sfx/'+(hard?'arrowhard':'arrowflesh')+'.mp3'); a.volume=(G.settings.vol/100)*0.6; a.play().catch(()=>{}); } }catch(e){}
+}
+// toca um MP3 de efeito uma vez (Boku e afins)
+function playSfxFile(name, v){
+  try{ if(G.settings.sfx){ const a=new Audio('assets/sfx/'+name+'.mp3'); a.volume=(G.settings.vol/100)*(v==null?0.7:v); a.play().catch(()=>{}); } }catch(e){}
+}
+// ---- LOOP da "super aura" do Boku enquanto em Super Saiyajin (fade in/out) ----
+let bokuAuraAudio=null, bokuAuraRAF=0;
+function startBokuAura(){
+  if(bokuAuraAudio || !G.settings.sfx) return;
+  try{
+    const a=new Audio('assets/sfx/superaura.mp3'); a.loop=true; a.volume=0;
+    a.play().catch(()=>{}); bokuAuraAudio=a;
+    const target=(G.settings.vol/100)*0.55, t0=Date.now();
+    const fin=()=>{ if(!bokuAuraAudio)return; const p=Math.min(1,(Date.now()-t0)/300); bokuAuraAudio.volume=target*p; if(p<1)bokuAuraRAF=requestAnimationFrame(fin); };
+    bokuAuraRAF=requestAnimationFrame(fin);
+  }catch(e){}
+}
+function stopBokuAura(){
+  if(!bokuAuraAudio)return;
+  const a=bokuAuraAudio; bokuAuraAudio=null; if(bokuAuraRAF)cancelAnimationFrame(bokuAuraRAF);
+  try{ const v0=a.volume, t0=Date.now();
+    const out=()=>{ const p=Math.min(1,(Date.now()-t0)/250); a.volume=Math.max(0,v0*(1-p)); if(p<1)requestAnimationFrame(out); else { try{a.pause();}catch(e){} } };
+    requestAnimationFrame(out);
+  }catch(e){ try{a.pause();}catch(e2){} }
+}
+// mantém o loop da super aura ligado só enquanto houver um Boku vivo em SSJ
+function updateBokuAura(){
+  const on = G.settings.sfx && fighters.some(f=>f.alive && f.kind==='boku' && f.ssj);
+  if(on && !bokuAuraAudio) startBokuAura();
+  else if(!on && bokuAuraAudio) stopBokuAura();
 }
 /* ---------- ESQUELETO (inimigo-base): atira 1 flecha simples de longe ---------- */
 function doSkeleton(f){
@@ -7184,7 +7451,9 @@ function stepMove(f){
   const water = (f.inWater>0) ? 0.62 : 1;   // na água do rio fica mais lerdo
   if(f.inWater>0) f.inWater--;
   const tf=timeFactor(f)*iceFactor(f)*(f.slow>0?0.5:1)*water;
-  f.x+=f.vx*tf; f.y+=f.vy*tf; wallBounce(f);
+  f.x+=f.vx*tf; f.y+=f.vy*tf; const _wallHit=wallBounce(f);
+  // inimigo arremessado pelo soco do Boku: bateu na parede -> crash (stun 3s + rachadura)
+  if(f.bokuLaunched>0){ f.bokuLaunched--; if(_wallHit) bokuWallCrash(f); }
   if(f.reach)f.ang+=f.spin*tf;
   f.hitCd=Math.max(0,f.hitCd-1);
 }
@@ -7352,6 +7621,8 @@ function bStep(){
     if(f.kind==='soulstealer') doSoulStealer(f);
     // Hunter
     if(f.kind==='hunter') doHunter(f);
+    // Boku (Goku paródia)
+    if(f.kind==='boku') doBoku(f);
     // --- INIMIGOS-BASE (Adventure) ---
     // Zumbi: só dá dano de toque ao encostar no alvo
     if(f.kind==='zombie'){
@@ -7513,6 +7784,10 @@ function bStep(){
       // bala: some ao bater na parede (sem ricochete)
       if(arena.shape==='circle'){ if(Math.hypot(p.x-arena.cx,p.y-arena.cy)>arena.R-2)p.life=0; }
       else { if(p.x<arena.x||p.x>arena.x+arena.w||p.y<arena.y||p.y>arena.y+arena.h||projBoxHit(p))p.life=0; }
+    } else if(p.type==='kiball'){
+      // bola de energia do Boku: some ao bater na parede
+      if(arena.shape==='circle'){ if(Math.hypot(p.x-arena.cx,p.y-arena.cy)>arena.R-2)p.life=0; }
+      else { if(p.x<arena.x||p.x>arena.x+arena.w||p.y<arena.y||p.y>arena.y+arena.h||projBoxHit(p))p.life=0; }
     } else if(p.type==='grenade'){
       // granada: rola e explode quando o fusível acaba ou bate na parede
       p.vx*=0.97;p.vy*=0.97; if(p.fuse!=null)p.fuse--;
@@ -7668,6 +7943,13 @@ function bStep(){
   // raios do Mago: só efeito visual, dano já foi aplicado ao criar
   for(const b of bolts)b.life--;
   bolts=bolts.filter(b=>b.life>0);
+  // Kamehameha do Boku: só visual (dano aplicado ao disparar)
+  for(const kb of kameBeams)kb.life--;
+  kameBeams=kameBeams.filter(kb=>kb.life>0);
+  // rachaduras no chão: somem devagar (~2.5s)
+  for(const fc of floorCracks)fc.life-=0.0067;
+  floorCracks=floorCracks.filter(fc=>fc.life>0);
+  updateBokuAura(); // liga/desliga o loop da super aura conforme houver Boku em SSJ
   // bolhas de tempo do Chronos: encolhem e somem ao longo do tempo
   for(const b of timeBubbles){ b.maxLife--; b.life=Math.min(1,b.maxLife/60); }
   timeBubbles=timeBubbles.filter(b=>b.maxLife>0);
@@ -8296,6 +8578,32 @@ function drawFists(b){
   }
   bx.restore();
 }
+// cabelo espetado do Boku (estilo Goku): tufo de espinhos FIXO em cima da cabeça
+// (topo da tela, como o chapéu do arqueiro/mago), desenhado por cima de tudo.
+function drawBokuHair(b, radius){
+  const fill = b.ssj ? '#ffe23a' : (b.kaioken ? '#3a1a0a' : '#141414');
+  const tip  = b.ssj ? '#fff6b0' : (b.kaioken ? '#5a2a12' : '#2a2a2a');
+  const center = -Math.PI/2;              // sempre pra CIMA (na cabeça), independente da mira
+  const span = Math.PI * 1.15;            // leque cobrindo toda a parte de cima da bola
+  bx.save();
+  bx.strokeStyle='#000'; bx.lineWidth=2.2; bx.lineJoin='round';
+  const n=11;
+  for(let i=0;i<n;i++){
+    const frac=i/(n-1);
+    const a=center - span/2 + frac*span;            // varre o topo, de um lado ao outro
+    const mid=Math.sin(frac*Math.PI);               // 0 nas pontas, 1 no espinho central (mais alto)
+    const len=radius*(1.25+0.7*mid);                // espinhos bem salientes, o do meio é o maior
+    const wob=(i%2? -1:1)*0.10;                      // zigue-zague pra ficar bagunçado
+    const b0x=b.x+Math.cos(a-0.16)*radius*0.96, b0y=b.y+Math.sin(a-0.16)*radius*0.96;
+    const b1x=b.x+Math.cos(a+0.16)*radius*0.96, b1y=b.y+Math.sin(a+0.16)*radius*0.96;
+    const tx=b.x+Math.cos(a+wob)*len, ty=b.y+Math.sin(a+wob)*len - radius*0.12*mid; // puxa a ponta ainda mais pra cima
+    const gg=bx.createLinearGradient(b0x,b0y,tx,ty);
+    gg.addColorStop(0,fill); gg.addColorStop(1,tip);
+    bx.fillStyle=gg;
+    bx.beginPath(); bx.moveTo(b0x,b0y); bx.lineTo(tx,ty); bx.lineTo(b1x,b1y); bx.closePath(); bx.fill(); bx.stroke();
+  }
+  bx.restore();
+}
 function drawBow(b){
   const foe=nearestEnemy(b);if(!foe)return;
   const aim=Math.atan2(foe.y-b.y,foe.x-b.x);
@@ -8448,6 +8756,15 @@ function drawBall(b,radius,label,tint){
     bx.drawImage(spr, b.x - s/2 + fit.ox*radius, b.y - s/2 + fit.oy*radius, s, s);
     bx.restore();
     bx.strokeStyle='#000';bx.lineWidth=3;bx.beginPath();bx.arc(b.x,b.y,radius,0,7);bx.stroke(); // contorno preto (sem o tint colorido)
+  } else if(b.kind==='boku'){
+    // BOKU: corpo com o meio cor de pele e as laterais laranja (dourado no SSJ / vermelho no Kaioken)
+    const edge = b.ssj ? '#ffcf3a' : (b.kaioken ? '#ff3a2a' : '#ff8a1e');
+    const skin = b.ssj ? '#ffe9c6' : '#f6cfa2';
+    const g=bx.createRadialGradient(b.x,b.y,radius*0.12,b.x,b.y,radius);
+    g.addColorStop(0,skin); g.addColorStop(0.52,skin); g.addColorStop(1,edge);
+    bx.fillStyle=g; bx.strokeStyle='#000'; bx.lineWidth=3;
+    bx.beginPath();bx.arc(b.x,b.y,radius,0,7);bx.fill();bx.stroke();
+    // (o cabelo espetado é desenhado por cima, na passada de acessórios)
   } else {
     bx.fillStyle=b.color;bx.strokeStyle='#000';bx.lineWidth=3;
     bx.beginPath();bx.arc(b.x,b.y,radius,0,7);bx.fill();bx.stroke();
@@ -8590,6 +8907,14 @@ function drawBattle(){
     if(f.berserk&&f.fire.length&&G.settings.particles){bx.save();
       for(const fp of f.fire){bx.globalAlpha=fp.life;bx.fillStyle=fp.life>0.5?'#ffde6e':'#ff6400';
         bx.beginPath();bx.arc(fp.x,fp.y,fp.r,0,7);bx.fill();}bx.restore();}
+    // BOKU: aura (SSJ dourada / Kaioken vermelha) + anel de carga de ki
+    if(f.kind==='boku'){
+      if(f.ssj||f.kaioken){ const tt=Date.now()/110, col=f.kaioken?'255,70,55':'255,224,100'; bx.save();
+        for(let i=0;i<3;i++){ const rr=f.r+5+i*5+Math.sin(tt+i*0.8)*3; bx.globalAlpha=0.30-i*0.08; bx.fillStyle='rgba('+col+',1)';
+          bx.beginPath();bx.arc(f.x,f.y,rr,0,7);bx.fill(); } bx.restore(); }
+      else { const frac=Math.min(1,f.ki/1000); bx.save(); bx.strokeStyle='rgba(90,180,255,.85)'; bx.lineWidth=3; bx.lineCap='round';
+        bx.beginPath();bx.arc(f.x,f.y,f.r+6,-Math.PI/2,-Math.PI/2+frac*Math.PI*2);bx.stroke(); bx.restore(); }
+    }
   }
   // flash
   if(flash>0){bx.fillStyle='rgba('+flashColor+','+(flash/22)+')';
@@ -8640,6 +8965,24 @@ function drawBattle(){
     bx.font=(it.r*1.7)+'px system-ui';bx.textAlign='center';bx.textBaseline='middle';
     bx.fillText(it.icon, it.x, it.y - it.z);
     bx.restore(); }
+  // rachaduras no chão (impacto do soco do Boku na parede)
+  for(const fc of floorCracks){ const a=Math.min(1,fc.life);
+    bx.save(); bx.translate(fc.x,fc.y);
+    // mancha escura de impacto
+    const g=bx.createRadialGradient(0,0,2,0,0,34);
+    g.addColorStop(0,'rgba(20,15,10,'+(0.5*a)+')'); g.addColorStop(1,'rgba(20,15,10,0)');
+    bx.fillStyle=g; bx.beginPath(); bx.arc(0,0,34,0,7); bx.fill();
+    // linhas radiais irregulares (com um "kink" no meio)
+    bx.strokeStyle='rgba(15,10,8,'+(0.8*a)+')'; bx.lineCap='round';
+    for(const ln of fc.lines){
+      const mx=Math.cos(ln.ang)*ln.len*ln.mid, my=Math.sin(ln.ang)*ln.len*ln.mid;
+      const ex=Math.cos(ln.ang+ln.kink)*ln.len, ey=Math.sin(ln.ang+ln.kink)*ln.len;
+      bx.lineWidth=2.6*a; bx.beginPath(); bx.moveTo(0,0); bx.lineTo(mx,my); bx.lineTo(ex,ey); bx.stroke();
+      bx.lineWidth=1.1*a; bx.strokeStyle='rgba(120,110,100,'+(0.5*a)+')'; // realce claro na borda
+      bx.beginPath(); bx.moveTo(0,0); bx.lineTo(mx,my); bx.lineTo(ex,ey); bx.stroke();
+      bx.strokeStyle='rgba(15,10,8,'+(0.8*a)+')';
+    }
+    bx.restore(); }
   // rastros de fogo do Mago (no chão, atrás dos personagens)
   for(const ft of fireTrails){ bx.save();
     const a=Math.min(1,ft.life)*0.75, pulse=0.85+0.15*Math.sin(Date.now()/90+ft.x);
@@ -8649,6 +8992,43 @@ function drawBattle(){
     g.addColorStop(1,'rgba(180,30,0,0)');
     bx.fillStyle=g;bx.beginPath();bx.arc(ft.x,ft.y,ft.r*pulse,0,7);bx.fill();bx.restore(); }
   // projéteis
+  // esfera de energia crescendo na mão do Boku durante a carga do Kamehameha
+  for(const f of fighters){ if(!f.alive||f.kind!=='boku'||!(f.kameCharge>0))continue;
+    const g0=f.kameGlow||0, hx=f.x+Math.cos(f.kameAng)*(f.r+10), hy=f.y+Math.sin(f.kameAng)*(f.r+10);
+    const rr=8+g0*26+Math.sin(Date.now()/40)*2;
+    bx.save();
+    const gg=bx.createRadialGradient(hx,hy,1,hx,hy,rr*1.8);
+    gg.addColorStop(0,'#ffffff'); gg.addColorStop(0.35,'#bfeaff'); gg.addColorStop(0.7,'#4ab8ff'); gg.addColorStop(1,'rgba(58,160,255,0)');
+    bx.fillStyle=gg; bx.beginPath(); bx.arc(hx,hy,rr*1.8,0,7); bx.fill();
+    bx.fillStyle='#eaf6ff'; bx.beginPath(); bx.arc(hx,hy,rr*0.55,0,7); bx.fill();
+    bx.restore();
+  }
+  // Kamehameha do Boku: laser reto GIGANTE (3x mais grosso, várias camadas)
+  for(const kb of kameBeams){
+    const fade=Math.min(1, kb.life/34);
+    const pulse=0.9+Math.sin(Date.now()/45)*0.1;
+    bx.save(); bx.translate(kb.x,kb.y); bx.rotate(kb.ang);
+    const w=kb.w*(0.6+0.4*fade)*pulse;
+    // halo externo suave
+    let grad=bx.createLinearGradient(0,-w*1.5,0,w*1.5);
+    grad.addColorStop(0,'rgba(74,184,255,0)'); grad.addColorStop(0.5,'rgba(90,170,255,'+(0.35*fade).toFixed(2)+')'); grad.addColorStop(1,'rgba(74,184,255,0)');
+    bx.fillStyle=grad; bx.fillRect(-40,-w*1.5,kb.len,w*3);
+    // corpo do feixe
+    grad=bx.createLinearGradient(0,-w,0,w);
+    grad.addColorStop(0,'rgba(74,184,255,0)'); grad.addColorStop(0.5,'rgba(140,215,255,'+(0.9*fade).toFixed(2)+')'); grad.addColorStop(1,'rgba(74,184,255,0)');
+    bx.fillStyle=grad; bx.fillRect(-30,-w,kb.len,w*2);
+    // núcleo branco brilhante
+    bx.fillStyle='rgba(255,255,255,'+(0.95*fade).toFixed(2)+')'; bx.fillRect(-20,-w*0.34,kb.len,w*0.68);
+    bx.fillStyle='rgba(240,250,255,'+(0.9*fade).toFixed(2)+')'; bx.fillRect(-20,-w*0.14,kb.len,w*0.28);
+    // esfera de explosão na boca do laser
+    const og=bx.createRadialGradient(0,0,2,0,0,w*1.8);
+    og.addColorStop(0,'rgba(255,255,255,'+fade.toFixed(2)+')'); og.addColorStop(0.4,'rgba(150,215,255,'+(0.8*fade).toFixed(2)+')'); og.addColorStop(1,'rgba(74,184,255,0)');
+    bx.fillStyle=og; bx.beginPath(); bx.arc(0,0,w*1.8,0,7); bx.fill();
+    // anéis de choque saindo da origem
+    bx.strokeStyle='rgba(200,235,255,'+(0.5*fade).toFixed(2)+')'; bx.lineWidth=3;
+    const ring=(1-fade)*w*3; bx.beginPath(); bx.arc(0,0,ring+w*0.6,0,7); bx.stroke();
+    bx.restore();
+  }
   for(const p of projectiles){
     if(p.type==='arrow'){const ang=Math.atan2(p.vy,p.vx),L=30;
       bx.save();bx.translate(p.x,p.y);bx.rotate(ang);
@@ -8665,6 +9045,15 @@ function drawBattle(){
       bx.fillStyle='#ffdd55';bx.strokeStyle='#a87c1a';bx.lineWidth=1;
       bx.beginPath();bx.ellipse(0,0,3.5,2,0,0,7);bx.fill();bx.stroke();
       bx.restore();
+    } else if(p.type==='kiball'){
+      // bola de energia azul do Boku (com rastro e brilho)
+      const rr=p.r||7; bx.save();
+      bx.globalAlpha=0.45; bx.strokeStyle='rgba(120,200,255,0.6)'; bx.lineWidth=rr*1.1; bx.lineCap='round';
+      bx.beginPath(); bx.moveTo(p.x-p.vx*1.8,p.y-p.vy*1.8); bx.lineTo(p.x,p.y); bx.stroke(); bx.globalAlpha=1;
+      const g=bx.createRadialGradient(p.x,p.y,1,p.x,p.y,rr*1.9);
+      g.addColorStop(0,'#ffffff'); g.addColorStop(0.4,'#7ac8ff'); g.addColorStop(1,'rgba(58,160,255,0)');
+      bx.fillStyle=g; bx.beginPath(); bx.arc(p.x,p.y,rr*1.9,0,7); bx.fill();
+      bx.fillStyle='#e6f4ff'; bx.beginPath(); bx.arc(p.x,p.y,rr*0.6,0,7); bx.fill(); bx.restore();
     } else if(p.type==='grenade'){
       bx.save();
       bx.fillStyle='#3a4a2a';bx.strokeStyle='#000';bx.lineWidth=2;
@@ -8812,7 +9201,8 @@ function drawBattle(){
     if(f.introZ>0)continue; // acessórios aparecem quando a bola aterrissa
     const st = f.stealth>0;
     if(st){ bx.save(); bx.globalAlpha=0.12; }
-    if(f.kind==='brawler')drawFists(f);
+    if(f.kind==='brawler'||f.kind==='boku')drawFists(f);
+    if(f.kind==='boku')drawBokuHair(f, f.r); // cabelo por cima, no lado oposto aos punhos
     if(f.kind==='archer'){ drawBow(f); drawArcherHat(f); }
     if(f.kind==='mage'){ drawStaff(f); drawWizardHat(f); }
     if(f.kind==='soldier')drawGun(f);
@@ -8938,10 +9328,15 @@ function bLoop(now){
   // não simula enquanto escondido e zera o relógio pra não dar fast-forward ao voltar.
   if(document.hidden){ lastT=0; acc=0; if(!bOver)bRaf=requestAnimationFrame(bLoop); return; }
   if(!lastT)lastT=now;let dt=now-lastT;lastT=now;if(dt>100)dt=100;
+  // SLOW-MOTION (Kamehameha): desacelera a simulação sem parar o render
+  if(slowMoT>0){ slowMoT--; dt*=0.32; }
   if(bRunning){acc+=dt;let g=0;while(acc>=STEP&&g<5){
     if(hitStop>0){ hitStop--; acc-=STEP; g++; continue; } // hit-stop: pausa dramática no impacto
-    bStep();acc-=STEP;g++;}}
+    // rede de segurança: um erro no passo de simulação NUNCA pode congelar o jogo (mata o RAF)
+    try{ bStep(); }catch(err){ console.error('bStep erro:', err); }
+    acc-=STEP;g++;}}
   else if(victory && victory.phase!=='card'){ updateVictory(); }
+  if(!bRunning && bokuAuraAudio) stopBokuAura(); // a batalha parou (vitória): corta o loop da super aura
   drawBattle();
   if(!bOver)bRaf=requestAnimationFrame(bLoop);
 }
