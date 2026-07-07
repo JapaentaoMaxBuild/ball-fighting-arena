@@ -423,10 +423,11 @@ html,body{height:100%;overflow:hidden;background:var(--bg0);color:var(--ink);
 #scrSelect.arena-layout .arena-col{ display:flex; flex-direction:column; justify-content:center;
   gap:12px; pointer-events:auto; }
 /* a lista de personagens ocupa o miolo, entre as colunas, centralizada com folga em cima/baixo */
-#scrSelect.arena-layout .roster-grid{ position:absolute; top:0; bottom:64px; left:96px; right:96px;
+#scrSelect.arena-layout .roster-grid{ position:absolute; top:0; bottom:64px; left:50%; transform:translateX(-50%);
+  width:calc(100% - 192px); max-width:420px; /* no máx 5 cartões (76px) por fileira, e some em telas estreitas */
   display:flex; flex-wrap:wrap; align-content:center; justify-content:center; align-items:center;
   gap:8px; padding:20px 4px; overflow-y:auto; z-index:2; }
-#scrSelect.arena-layout .roster-grid .rchar{ width:62px; flex:0 0 auto; }
+#scrSelect.arena-layout .roster-grid .rchar{ width:76px; flex:0 0 auto; }
 .arena-slot{ width:80px; aspect-ratio:3/4; cursor:pointer; position:relative;
   transition:transform .15s; }
 .arena-slot.active{ transform:scale(1.06); z-index:4; }
@@ -451,6 +452,11 @@ html,body{height:100%;overflow:hidden;background:var(--bg0);color:var(--ink);
   text-shadow:0 2px 3px rgba(0,0,0,.95),0 0 5px rgba(0,0,0,.9); white-space:nowrap; pointer-events:none; }
 .arena-slot .cgear{ position:absolute; top:3px; right:4px; font-size:12px; opacity:.75; z-index:7;
   width:18px; height:18px; display:flex; align-items:center; justify-content:center; }
+/* bandeirinha de time (canto superior esquerdo do slot) */
+.arena-slot .cflag{ position:absolute; top:4px; left:4px; width:18px; height:13px; z-index:8; cursor:pointer;
+  border:1.5px solid rgba(0,0,0,.65); border-radius:2px; box-shadow:0 1px 3px rgba(0,0,0,.5);
+  transition:transform .1s; }
+.arena-slot .cflag:active{ transform:scale(.82); }
 .arena-slot .aslot-toggle{ position:absolute; bottom:-8px; left:50%; transform:translateX(-50%);
   width:24px; height:24px; border-radius:50%; border:2px solid var(--panel-b); background:var(--panel);
   color:var(--ink); font-size:12px; font-weight:900; cursor:pointer; z-index:8; display:flex;
@@ -494,7 +500,7 @@ html,body{height:100%;overflow:hidden;background:var(--bg0);color:var(--ink);
 .vs-card .cgear:active{ transform:scale(.85); }
 
 .roster-grid{flex:1;overflow-y:auto;display:grid;
-  grid-template-columns:repeat(auto-fill,minmax(66px,1fr));gap:7px;
+  grid-template-columns:repeat(5,1fr);gap:7px; /* no máx 5 por fileira: em telas largas os cartões não encolhem */
   padding:8px 12px 10px;align-content:start;
   scrollbar-width:none;-ms-overflow-style:none;}
 .roster-grid::-webkit-scrollbar{display:none;width:0;height:0;}
@@ -508,15 +514,15 @@ html,body{height:100%;overflow:hidden;background:var(--bg0);color:var(--ink);
 .themeBtn.playing{animation:themePulse .6s ease-in-out infinite;background:var(--gold)!important;color:#1a1420!important;}
 @keyframes themePulse{0%,100%{transform:scale(1);}50%{transform:scale(1.12);}}
 @keyframes pop{0%{transform:scale(.85)}60%{transform:scale(1.08)}100%{transform:scale(1)}}
-.rchar .rface{width:calc(38px*var(--s));height:calc(38px*var(--s));border-radius:50%;border:2px solid #000;
-  display:flex;align-items:center;justify-content:center;font-size:calc(20px*var(--s));}
-.rchar .rnm{font-size:calc(8px*var(--s));font-weight:800;text-transform:uppercase;letter-spacing:.02em;
+.rchar .rface{width:calc(50px*var(--s));height:calc(50px*var(--s));border-radius:50%;border:2px solid #000;
+  display:flex;align-items:center;justify-content:center;font-size:calc(26px*var(--s));}
+.rchar .rnm{font-size:calc(9.5px*var(--s));font-weight:800;text-transform:uppercase;letter-spacing:.02em;
   color:var(--dim);text-align:center;line-height:1;}
 /* card "?" de sorteio (parece um herói misterioso no fim da lista) */
 .rchar.rrandom{ border-color:var(--gold);
   background:linear-gradient(150deg,#3a2a10,#241a08); }
-.rchar.rrandom .rface-q{ width:calc(38px*var(--s));height:calc(38px*var(--s));border-radius:50%;border:2px solid #000;
-  display:flex;align-items:center;justify-content:center;font-size:calc(24px*var(--s));font-weight:900;color:#1a1206;
+.rchar.rrandom .rface-q{ width:calc(50px*var(--s));height:calc(50px*var(--s));border-radius:50%;border:2px solid #000;
+  display:flex;align-items:center;justify-content:center;font-size:calc(30px*var(--s));font-weight:900;color:#1a1206;
   background:conic-gradient(from 0deg,#f2c14e,#ff8a3d,#ff3d81,#7c5cff,#3dd6ff,#f2c14e);
   text-shadow:0 1px 2px rgba(255,255,255,.5); animation:qspin 6s linear infinite; }
 @keyframes qspin{ to{ filter:hue-rotate(360deg); } }
@@ -1137,6 +1143,9 @@ const I18N = {
     codeRedeem:'Resgatar', codeEnter:'Digite um código', codeAdmin:'🐰 ADMIN! Tudo desbloqueado', codeInvalid:'❌ Código inválido',
     dailyRewardPrefix:'🎁 Recompensa diária: +', storeFree:'✓ Livre', storeBuyPrefix:'Comprar ', storeUnlockedSuffix:' desbloqueado!',
     searchMap:'Buscar mapa...', mapAll:'Todos', mapNone:'Nenhum mapa nesse filtro.',
+    map_small:'Pequeno', map_medium:'Médio', map_large:'Grande', map_xl:'Gigante', map_circle:'Círculo',
+    map_boxbox:'Box in Box', map_plus:'Cruz', map_blackhole:'Buraco Negro', map_waterfalls:'Cachoeira',
+    clsBerserker:'Fúria Eterna', clsArqueiro:'Chuva de Flechas', clsMago:'Arquimago',
     quitBye:'Até a próxima!', quitClose:'Você pode fechar esta aba.', menuBtn:'Menu',
     fbMenu:'💬 Feedback', fbTitle:'💬 Feedback', fbSub:'Manda sua sugestão ou reporta um bug!',
     fbPlaceholder:'Escreve aqui...', fbContact:'Seu nome/contato (opcional)', fbSend:'Enviar',
@@ -1217,6 +1226,9 @@ const I18N = {
     codeRedeem:'Redeem', codeEnter:'Enter a code', codeAdmin:'🐰 ADMIN! All unlocked', codeInvalid:'❌ Invalid code',
     dailyRewardPrefix:'🎁 Daily reward: +', storeFree:'✓ Free', storeBuyPrefix:'Buy ', storeUnlockedSuffix:' unlocked!',
     searchMap:'Search map...', mapAll:'All', mapNone:'No maps in this filter.',
+    map_small:'Small', map_medium:'Medium', map_large:'Large', map_xl:'Giant', map_circle:'Circle',
+    map_boxbox:'Box in Box', map_plus:'Cross', map_blackhole:'Black Hole', map_waterfalls:'Waterfall',
+    clsBerserker:'Eternal Fury', clsArqueiro:'Arrow Rain', clsMago:'Archmage',
     quitBye:'See you next time!', quitClose:'You can close this tab.', menuBtn:'Menu',
     fbMenu:'💬 Feedback', fbTitle:'💬 Feedback', fbSub:'Send a suggestion or report a bug!',
     fbPlaceholder:'Write here...', fbContact:'Your name/contact (optional)', fbSend:'Send',
@@ -1296,6 +1308,9 @@ const I18N = {
     codeRedeem:'引き換え', codeEnter:'コードを入力', codeAdmin:'🐰 ADMIN！全解放', codeInvalid:'❌ 無効なコード',
     dailyRewardPrefix:'🎁 デイリー報酬：+', storeFree:'✓ 無料', storeBuyPrefix:'購入 ', storeUnlockedSuffix:' 解放！',
     searchMap:'マップを検索...', mapAll:'すべて', mapNone:'このフィルターにマップなし',
+    map_small:'小', map_medium:'中', map_large:'大', map_xl:'巨大', map_circle:'円形',
+    map_boxbox:'ボックス・イン・ボックス', map_plus:'十字', map_blackhole:'ブラックホール', map_waterfalls:'滝',
+    clsBerserker:'永遠の怒り', clsArqueiro:'矢の雨', clsMago:'大魔道士',
     quitBye:'またね！', quitClose:'このタブを閉じてOK。', menuBtn:'メニュー',
     fbMenu:'💬 フィードバック', fbTitle:'💬 フィードバック', fbSub:'提案やバグ報告を送ってね！',
     fbPlaceholder:'ここに書いてね...', fbContact:'名前/連絡先（任意）', fbSend:'送信',
@@ -1396,13 +1411,20 @@ const CHARS = {
     kind:'hunter', hp:250, dmg:30 },
   boku:{ name:'Boku', color:'#ff8a1e', dark:'#b85800', icon:'🥋',
     kind:'boku', hp:1000, dmg:15, punchDmg:12, fireCd:52, kiMax:1000 }, // Goku paródia
+  necro:{ name:'Necro', color:'#2a2438', dark:'#12101c', icon:'💀',
+    kind:'necro', hp:300, summonCd:60, maxZombies:16 }, // necromante invocador
+  // zumbi invocado pelo Necro (minion — NÃO entra no ORDER/gacha): agarra e morde
+  necrozombie:{ name:'Zumbi', color:'#4a7a35', dark:'#284818', icon:'🧟',
+    kind:'necrozombie', hp:25, biteDmg:10, grabCd:90 },
+  slime:{ name:'Slime', color:'#f2d21e', dark:'#b8960f', icon:'🟡',
+    kind:'slime', hp:200, touchDmg:25 }, // divide, cresce, revive, regenera e copia a skill que o matou (Hero Slime dourado)
   // --- INIMIGOS-BASE do Adventure Mode (bem mais fracos que os heróis) ---
   zombie:{ name:'Zumbi', color:'#5fa845', dark:'#35651f', icon:'🧟',
     kind:'zombie', hp:50, touchDmg:4 },              // verde, dá dano ao encostar
   skeleton:{ name:'Esqueleto', color:'#e8e8e0', dark:'#9a9a90', icon:'💀',
     kind:'skeleton', hp:45, dmg:5, fireCd:150 }       // branco, atira flechas
 };
-const ORDER=['berserker','samurai','arqueiro','mago','clonador','luciferus','pandora','soldier','pacman','heavyweight','chronos','vampire','soulstealer','hunter','boku'];
+const ORDER=['berserker','samurai','arqueiro','mago','clonador','luciferus','pandora','soldier','pacman','heavyweight','chronos','vampire','soulstealer','hunter','boku','necro','slime'];
 // personagens LIVRES por padrão; o resto trava e precisa comprar/gacha (Arena)
 const FREE_CHARS=['berserker','samurai','arqueiro','mago'];
 const LOCKABLE_CHARS=ORDER.filter(id=>!FREE_CHARS.includes(id));
@@ -1467,7 +1489,13 @@ const ALMANAC = {
     skill:'CACHORRO: corre até um inimigo aleatório, morde (5 de dano), deixa lento e MARCA o alvo; depois descansa um tempo. O inimigo marcado recebe o DOBRO de dano do rifle. Só existe 1 marcado por vez — nova mordida transfere a marca. RIFLE: tiro lento (a cada ~5s) e rápido, 30 de dano (60 no marcado). Sempre prioriza o inimigo marcado, mesmo longe, a não ser que haja parede no caminho. ARMADILHA: joga armadilhas no chão; inimigos que pisarem levam 10 de dano e ficam presos (stun) por alguns segundos. O próprio Hunter também pode pisar nas suas armadilhas — mas não leva dano, só fica lento por um tempo.' },
   boku:{ hp:1000, creator:'Renan',
     desc:'Guerreiro lendário inspirado no Goku. Atira bolas de energia azul semi-guiadas e soca de perto. Sua barra de KI enche sozinha (0→1000) e desbloqueia transformações.',
-    skill:'KI: enche sozinho até 1000. Ao encher, vira SUPER SAIYAJIN — dourado, 3x de vida/dano/velocidade, ataques e recargas 2x mais rápidos e KI máximo dobra pra 2000. KAMEHAMEHA (só em SSJ, com 1200 de ki): carrega uns segundos, TELETRANSPORTA pras costas do inimigo e dispara um laser reto gigante à queima-roupa — 500 de dano e joga o alvo bem longe. KAIOKEN (abaixo de 20% de vida): perde o Super Saiyajin, fica TODO VERMELHO e vai perdendo vida devagar, mas seu ataque fica 20x mais forte — um último recurso desesperado.' }
+    skill:'KI: enche sozinho até 1000. Ao encher, vira SUPER SAIYAJIN — dourado, 3x de vida/dano/velocidade, ataques e recargas 2x mais rápidos e KI máximo dobra pra 2000. KAMEHAMEHA (só em SSJ, com 1200 de ki): carrega uns segundos, TELETRANSPORTA pras costas do inimigo e dispara um laser reto gigante à queima-roupa — 500 de dano e joga o alvo bem longe. KAIOKEN (abaixo de 20% de vida): perde o Super Saiyajin, fica TODO VERMELHO e vai perdendo vida devagar, mas seu ataque fica 20x mais forte — um último recurso desesperado.' },
+  necro:{ hp:300, creator:'Renan',
+    desc:'Necromante encapuzado que comanda os mortos. Segura um cajado necrótico e deixa um rastro de sombras por onde passa.',
+    skill:'SKILL 1: invoca um zumbi por segundo (até 16 ao mesmo tempo). Cada zumbi tem 25 de vida e, ao encostar num inimigo, tem 25% de chance de agarrá-lo e dar uma mordida (10 de dano) — se falhar, não ataca naquele instante. SKILL 2: mãos necróticas giram ao seu redor formando um campo que deixa lento quem encostar (como a bolha de tempo). PASSIVA: quando um zumbi morre, sua alma volta pro Necro curando 25 de vida — e mais 10 de vida por cada mordida que aquele zumbi tinha dado.' },
+  slime:{ hp:200, creator:'Renan',
+    desc:'Criatura gelatinosa que se recusa a morrer. Dá dano ao encostar e regenera vida sem parar.',
+    skill:'DIVISÃO: ao morrer, o slime se parte em 2 menores. FASE A (200 vida, 25 de toque) → 2 FASE B (100 vida, 15) → 2 FASE C (50 vida, 10). Os menores CRESCEM de volta com o tempo — C vira B, B vira A — e ao chegar no tamanho A é como se nunca tivessem morrido. Só morrem de vez os C. CÓPIA DE SKILL: a skill/ataque que MATOU o slime é copiada pelos filhos (matou com soco → os filhos socam; matou à distância → os filhos atiram). Cada slime só carrega 1 skill roubada (a que matou o pai); ela se mantém ao crescer e só troca quando ele se divide de novo. PASSIVA: regeneração constante, tornando-os bem difíceis de matar.' }
 };
 
 // traduções do Grimório (descrição + habilidade) por idioma; PT vem do ALMANAC acima
@@ -1502,7 +1530,11 @@ const ALMANAC_I18N = {
     hunter:{ desc:'A hunter with a rifle and a loyal hound that never dies.',
       skill:'DOG: runs to a random enemy, bites (5 dmg), slows and MARKS them, then rests. The marked target takes DOUBLE rifle damage. Only 1 mark at a time — a new bite transfers it. RIFLE: slow (every ~5s) but fast shot, 30 dmg (60 on the marked). Always prioritizes the marked enemy, even far away, unless a wall blocks the line. TRAP: drops traps on the ground; enemies who step on one take 10 dmg and are stunned for a few seconds. The Hunter can step on his own traps too — but takes no damage, just gets slowed for a while.' },
     boku:{ desc:'A legendary warrior inspired by Goku. Fires semi-homing blue energy balls and punches up close. His KI bar fills on its own (0→1000) and unlocks transformations.',
-      skill:'KI: fills on its own up to 1000. When full, he turns SUPER SAIYAN — golden, with 3x HP/damage/speed, attacks and cooldowns 2x faster and max KI doubled to 2000. KAMEHAMEHA (SSJ only, needs 1200 ki): charges for a few seconds, TELEPORTS behind the enemy and fires a huge straight laser point-blank — 500 damage and flings the target far away. KAIOKEN (below 20% HP): loses Super Saiyan, turns ALL RED and slowly bleeds HP, but his attack becomes 20x stronger — a desperate last resort.' }
+      skill:'KI: fills on its own up to 1000. When full, he turns SUPER SAIYAN — golden, with 3x HP/damage/speed, attacks and cooldowns 2x faster and max KI doubled to 2000. KAMEHAMEHA (SSJ only, needs 1200 ki): charges for a few seconds, TELEPORTS behind the enemy and fires a huge straight laser point-blank — 500 damage and flings the target far away. KAIOKEN (below 20% HP): loses Super Saiyan, turns ALL RED and slowly bleeds HP, but his attack becomes 20x stronger — a desperate last resort.' },
+    necro:{ desc:'A hooded necromancer who commands the dead. Wields a necrotic staff and leaves a trail of shadows wherever he walks.',
+      skill:'SKILL 1: summons one zombie per second (up to 16 at once). Each zombie has 25 HP and, on touching an enemy, has a 25% chance to grab and bite it (10 damage) — if it fails, it does not attack that moment. SKILL 2: necrotic hands orbit around him forming a field that slows anyone who touches it (like the time bubble). PASSIVE: when a zombie dies, its soul returns to the Necro healing 25 HP — plus 10 HP for each bite that zombie had landed.' },
+    slime:{ desc:'A gelatinous creature that refuses to die. Deals touch damage and regenerates HP nonstop.',
+      skill:'SPLIT: on death it breaks into 2 smaller ones. STAGE A (200 HP, 25 touch) → 2 STAGE B (100 HP, 15) → 2 STAGE C (50 HP, 10). The smaller ones GROW back over time — C becomes B, B becomes A — and once at full A size it is as if they never died. Only the C ones die for good. SKILL COPY: the skill/attack that KILLED the slime is copied by its children (killed by a punch → children punch; killed at range → children shoot). Each slime carries only 1 stolen skill (the one that killed its parent); it persists through growth and only changes when it splits again. PASSIVE: constant regeneration, making them very hard to kill.' }
   },
   ja:{
     berserker:{ desc:'怒れる格闘家。敵に近づいて殴りかかる。',
@@ -1534,7 +1566,11 @@ const ALMANAC_I18N = {
     hunter:{ desc:'ライフルと、決して死なない忠実な猟犬を連れた狩人。',
       skill:'犬：ランダムな敵に走り噛みつき（5ダメージ）、鈍足にして「マーク」を付け、その後休む。マークされた敵はライフルのダメージが2倍。マークは同時に1体のみ——新たに噛むと移る。ライフル：低速（約5秒毎）だが速い弾、30ダメージ（マーク時60）。壁が無い限り、遠くてもマークした敵を優先。トラップ：地面に罠を設置；敵が踏むと10ダメージと数秒のスタン。狩人自身も自分の罠を踏むことがあるが、ダメージは無くしばらく鈍足になるだけ。' },
     boku:{ desc:'悟空にインスパイアされた伝説の戦士。半誘導の青いエネルギー弾を撃ち、近づけば殴る。KIゲージは自動でたまり（0→1000）、変身を解放する。',
-      skill:'KI：自動で1000までたまる。満タンでスーパーサイヤ人に変身——金色になり、HP・ダメージ・速度が3倍、攻撃と再チャージが2倍速く、KI最大値も2000に倍増。かめはめ波（SSJ限定・KI1200必要）：数秒チャージし、敵の背後にテレポートして至近距離で巨大な直線レーザーを放つ——500ダメージ＋敵を遠くへ吹き飛ばす。界王拳（HP20%以下）：スーパーサイヤ人を失い、全身が真っ赤になりHPが徐々に減るが、攻撃力が20倍になる——絶望的な最後の切り札。' }
+      skill:'KI：自動で1000までたまる。満タンでスーパーサイヤ人に変身——金色になり、HP・ダメージ・速度が3倍、攻撃と再チャージが2倍速く、KI最大値も2000に倍増。かめはめ波（SSJ限定・KI1200必要）：数秒チャージし、敵の背後にテレポートして至近距離で巨大な直線レーザーを放つ——500ダメージ＋敵を遠くへ吹き飛ばす。界王拳（HP20%以下）：スーパーサイヤ人を失い、全身が真っ赤になりHPが徐々に減るが、攻撃力が20倍になる——絶望的な最後の切り札。' },
+    necro:{ desc:'死者を操るフード姿のネクロマンサー。ネクロティックな杖を持ち、歩いた跡に影の軌跡を残す。',
+      skill:'スキル1：1秒ごとにゾンビを召喚（最大16体）。各ゾンビはHP25で、敵に触れると25%の確率でつかんで噛みつく（10ダメージ）——失敗するとその瞬間は攻撃しない。スキル2：ネクロティックな手が周囲を回り、触れた者を鈍足にするフィールドを作る（時間バブルのように）。パッシブ：ゾンビが死ぬと、その魂がネクロに戻りHP25回復——さらにそのゾンビが与えた噛みつき1回ごとにHP10回復。' },
+    slime:{ desc:'死を拒むゼリー状の生き物。触れるとダメージを与え、絶えずHPを回復する。',
+      skill:'分裂：死ぬと2体の小さいスライムに分かれる。段階A（HP200・接触25）→ 2体の段階B（HP100・15）→ 2体の段階C（HP50・10）。小さいものは時間とともに成長して戻る——CはBに、BはAに——完全なAサイズになれば、まるで死ななかったかのよう。完全に死ぬのはCだけ。スキルコピー：スライムを倒したスキル／攻撃を子が引き継ぐ（殴って倒す→子は殴る、遠距離で倒す→子は撃つ）。各スライムは盗んだスキルを1つだけ持ち（親を倒したもの）、成長しても保持され、再び分裂したときだけ変わる。パッシブ：絶え間ない再生で、非常に倒しにくい。' }
   }
 };
 // retorna {desc, skill} do personagem no idioma atual
@@ -1778,11 +1814,13 @@ const MAPS = {
   xl:{ name:'Gigante', icon:'🟪', shape:'square', size:1.0, ballFrac:0.0455, tier:'XL' },
   circle:{ name:'Círculo', icon:'⬤', shape:'circle', size:0.96, ballFrac:0.10, tier:'M' },
   boxbox:{ name:'Box in Box', icon:'⊡', shape:'boxbox', size:1.0, ballFrac:0.0625, tier:'L' },
-  plus:{ name:'Cruz', icon:'➕', shape:'plus', size:1.0, ballFrac:0.10, tier:'M' },
+  plus:{ name:'Cruz', icon:'➕', shape:'plus', size:1.0, ballFrac:0.0333, tier:'XXL' },
   blackhole:{ name:'Buraco Negro', icon:'🕳', shape:'blackhole', size:1.0, ballFrac:0.0455, tier:'XL' },
   waterfalls:{ name:'Cachoeira', icon:'🏞', shape:'waterfalls', size:1.0, ballFrac:0.0333, tier:'XXL' }
 };
 const MAP_ORDER=['small','medium','large','xl','circle','boxbox','plus','blackhole','waterfalls'];
+// nome do mapa traduzido (chave map_<id> no I18N; cai no name em pt se faltar)
+function mapName(id){ const m=MAPS[id]; if(!m) return id; const k='map_'+id, s=t(k); return s!==k?s:m.name; }
 
 /* ---------- ESTADO GLOBAL ---------- */
 const G = {
@@ -3652,7 +3690,7 @@ function buildMapPicker(box){
     MAP_ORDER.forEach(id=>{
       const m=MAPS[id];
       if(mapFilterTier!=='all' && m.tier!==mapFilterTier) return;
-      if(q && !m.name.toLowerCase().includes(q)) return;
+      if(q && !mapName(id).toLowerCase().includes(q)) return;
       const sel=G.map===id;
       const card=document.createElement('div');
       card.style.cssText='position:relative;border-radius:14px;overflow:hidden;cursor:pointer;transition:all .12s;'
@@ -3672,7 +3710,7 @@ function buildMapPicker(box){
       badge.style.cssText='position:absolute;top:6px;left:6px;min-width:22px;height:22px;padding:0 6px;border-radius:11px;'
         +'background:rgba(10,6,18,.82);border:1.5px solid var(--gold);color:var(--gold);font-size:11px;font-weight:900;display:flex;align-items:center;justify-content:center;';
       card.appendChild(badge);
-      const nm=document.createElement('div'); nm.textContent=m.name;
+      const nm=document.createElement('div'); nm.textContent=mapName(id);
       nm.style.cssText='padding:5px 6px 6px;text-align:center;font-size:12px;font-weight:800;color:'+(sel?'var(--gold)':'var(--ink)')+';';
       card.appendChild(nm);
       card.addEventListener('click',()=>{ audioInit();SFX.nav(); G.map=id; renderGrid(); });
@@ -3826,6 +3864,29 @@ function renderSlots(){
     box.appendChild(colL); box.appendChild(colR);
   }
 }
+// BANDEIRAS (times do Arena): branco = jogador solo; cores iguais = aliados.
+const FLAG_COLORS=[
+  {key:'white',  col:'#e6e6ee', name:'White'},
+  {key:'blue',   col:'#3b9ae0', name:'Blue'},
+  {key:'red',    col:'#e0402a', name:'Red'},
+  {key:'yellow', col:'#f2c14e', name:'Yellow'},
+  {key:'green',  col:'#3ad46a', name:'Green'},
+];
+function flagInfo(key){ return FLAG_COLORS.find(f=>f.key===(key||'white'))||FLAG_COLORS[0]; }
+function nextFlag(key){ const i=FLAG_COLORS.findIndex(f=>f.key===(key||'white')); return FLAG_COLORS[(i+1)%FLAG_COLORS.length].key; }
+// mapa time->cor da bandeira, preenchido ao montar a batalha (p/ mostrar "Red Team wins")
+let arenaTeamFlag={};
+// define os times do Arena a partir das bandeiras: mesma cor (não-branca) = mesmo time; branco = time próprio
+function assignArenaTeams(slots){
+  arenaTeamFlag={}; const colorTeam={}; let next=0;
+  slots.forEach(s=>{
+    const fl=s.flag||'white';
+    if(fl!=='white'){
+      if(colorTeam[fl]===undefined){ colorTeam[fl]=next++; arenaTeamFlag[colorTeam[fl]]=fl; }
+      s.team=colorTeam[fl];
+    } else { s.team=next++; } // bandeira branca = sozinho
+  });
+}
 // slot grande do Arena com botão de ativar/bloquear (cadeado)
 function mkArenaSlot(s,i){
   const el=document.createElement('div');
@@ -3837,7 +3898,12 @@ function mkArenaSlot(s,i){
     el.innerHTML=`<div class="aslot-inner locked"><div class="aslot-lock">🔒</div>`
       +`<button class="aslot-toggle" data-toggle="${i}" title="Ativar">＋</button></div>`;
   } else {
-    el.innerHTML=`<div class="aslot-inner">`
+    const fi=flagInfo(s.flag);
+    const isTeamFlag=(s.flag && s.flag!=='white');
+    // carta pega a cor da bandeira (borda + brilho) quando não é branca
+    const flagStyle=isTeamFlag?`border-color:${fi.col};box-shadow:0 0 14px ${fi.col}99;`:'';
+    el.innerHTML=`<div class="aslot-inner" style="${flagStyle}">`
+      +`<div class="cflag" data-flag="${i}" title="Bandeira (time)" style="background:${fi.col};"></div>`
       +`<div class="cportrait${dropCls}">${c?charDecor(s.charId):''}<div class="cface" style="${c?('background:'+c.color):''}">${c?c.icon:'?'}</div></div>`
       +`<div class="cnm">${c?c.name:'—'}</div>`
       +(c?`<div class="cgear" data-gear="${i}">⚙</div>`:'')
@@ -3851,6 +3917,8 @@ function mkArenaSlot(s,i){
   el.addEventListener('click',(e)=>{
     if(e.target.dataset.toggle!==undefined){ toggleArenaSlot(+e.target.dataset.toggle); return; }
     if(e.target.dataset.gear!==undefined){ openGear(+e.target.dataset.gear); return; }
+    if(e.target.dataset.flag!==undefined){ // cicla a cor da bandeira e recolore a carta
+      audioInit();SFX.nav(); s.flag=nextFlag(s.flag); renderSlots(); return; }
     if(s.locked) return; // slot bloqueado não seleciona
     audioInit();SFX.nav();G.activeSlot=i;renderSlots();
   });
@@ -4364,6 +4432,13 @@ function makeFighter(slot, idx){
     ki:0, kiMax:(c.kiMax||1000), ssj:false, kaioken:false, kaiokenUsed:false,
     kameCharge:0, kameCd:0, kameTarget:null, bokuBlink:0, kameAng:0,
     bokuBase:{ dmg:(c.dmg||0)*cfg.dmg, punchDmg:(c.punchDmg||0)*cfg.dmg, maxhp:baseHp, fireCd:(c.fireCd||40)/cfg.fireRate, speed:cfg.speed },
+    // --- Necro (invocador) + zumbi invocado ---
+    summonTimer:0, summonCd:(c.summonCd||60)/cfg.fireRate, maxZombies:(c.maxZombies||16),
+    handBubble:null, necroTrail:[], trailCd:0, grabAim:0,
+    necroOwner:-1, bites:0, didBite:false, biteDmg:(c.biteDmg||0)*cfg.dmg,
+    // --- Slime (divide/cresce/revive/regenera/copia skill) ---
+    slimeStage:'A', slimeSize:1, slimeBaseR:r, stolenSkill:null, stolenKind:null, stolenColor:null, slimeCd:0, slimePunch:0,
+    flag:(slot.flag||null), // bandeira de time do Arena
     alive:true
   };
   // --- Distance/Área: aplica reachBonus só em quem tem alcance nativo ---
@@ -4481,13 +4556,15 @@ function advCardValue(card, level){ return card.add + (level-1)*card.perLevel; }
 // nome traduzido da carta (mapeia id -> chave de tradução)
 function advCardName(card){
   const map={atk:'cardAtk',life:'cardLife',aspd:'cardAspd',speed:'cardSpeed',big:'cardBig',scd:'cardScd',sdmg:'cardSdmg',
-    bounce:'cardBounce',dist:'cardDist',shield:'cardShield',datk:'cardDatk',dskill:'cardDskill',blood:'cardBlood'};
+    bounce:'cardBounce',dist:'cardDist',shield:'cardShield',datk:'cardDatk',dskill:'cardDskill',blood:'cardBlood',
+    cls_berserker:'clsBerserker',cls_arqueiro:'clsArqueiro',cls_mago:'clsMago'};
   return map[card.id]?t(map[card.id]):card.name;
 }
 // unidade traduzida da carta (ex: "dano", "vida")
 function advCardUnit(card){
   const map={atk:'unitDmg',life:'unitHp',aspd:'unitAspd',speed:'unitSpeed',big:'unitSize',scd:'unitScd',sdmg:'unitSdmg',
-    bounce:'unitBounce',dist:'unitDist',shield:'unitShield',datk:'unitDatk',dskill:'unitDskill',blood:'unitBlood'};
+    bounce:'unitBounce',dist:'unitDist',shield:'unitShield',datk:'unitDatk',dskill:'unitDskill',blood:'unitBlood',
+    cls_berserker:'unitDmg',cls_arqueiro:'unitDskill',cls_mago:'unitDskill'};
   return map[card.id]?t(map[card.id]):card.unit;
 }
 function advCardDesc(card, level){
@@ -4907,12 +4984,84 @@ function buildAdvStore(){
 const ADV_MONSTERS=[
   {id:'zombie',   rarity:'basic'},
   {id:'skeleton', rarity:'raro'},
+  {id:'slime',    rarity:'lendario'}, // Hero Slime — no preview p/ ajustar o enquadramento do sprite
 ];
 // estado da UI do grimório (aba ativa, texto de busca, raridade filtrada)
 const advGrimState={ tab:'monsters', q:'', rarity:'all' };
 // rótulo traduzido de uma raridade
 function rarityLabel(r){
   return r==='raro'?t('rarRare'):r==='epico'?t('rarEpic'):r==='lendario'?t('rarLegend'):t('rarBasic');
+}
+// FERRAMENTA DE AJUSTE DE SPRITE: puxa uma imagem da pasta, mostra dentro do círculo
+// (com a MESMA matemática do jogo) e deixa ajustar zoom/ox/oy com sliders. Mostra os 3
+// valores prontos p/ colar no chat -> vão direto pro SPRITE_FIT.
+function openSpriteFitTool(){
+  const ov=document.createElement('div');
+  ov.style.cssText='position:fixed;inset:0;z-index:99995;display:flex;align-items:center;justify-content:center;background:rgba(0,0,0,.82);padding:16px;';
+  const box=document.createElement('div');
+  box.style.cssText='background:linear-gradient(160deg,var(--panel),#120a1e);border:1.5px solid var(--gold);border-radius:18px;padding:20px;width:min(94vw,360px);max-height:92vh;overflow-y:auto;text-align:center;box-shadow:0 16px 44px rgba(0,0,0,.6);';
+  const title=document.createElement('div'); title.textContent='🔧 Ajustar Sprite';
+  title.style.cssText='font-size:18px;font-weight:900;color:var(--gold);margin-bottom:12px;'; box.appendChild(title);
+
+  // preview circular (canvas) — replica o recorte do jogo
+  const D=200, cv=document.createElement('canvas'); cv.width=D; cv.height=D;
+  cv.style.cssText='width:200px;height:200px;border-radius:50%;background:#12121a;';
+  box.appendChild(cv); const cctx=cv.getContext('2d');
+
+  const file=document.createElement('input'); file.type='file'; file.accept='image/*';
+  file.style.cssText='display:block;margin:14px auto 4px;color:var(--ink);font-size:12px;width:100%;';
+  box.appendChild(file);
+  const fname=document.createElement('div'); fname.style.cssText='font-size:11px;color:var(--dim);margin-bottom:6px;';
+  fname.textContent='Escolha uma imagem da pasta…'; box.appendChild(fname);
+
+  let img=null;
+  const state={zoom:2.05, ox:0, oy:0};
+  function mkSlider(label,key,min,max){
+    const wrap=document.createElement('div'); wrap.style.cssText='display:flex;align-items:center;gap:8px;margin:8px 0;';
+    const lb=document.createElement('span'); lb.style.cssText='font-size:12px;font-weight:800;color:var(--dim);width:40px;text-align:left;'; lb.textContent=label;
+    const sl=document.createElement('input'); sl.type='range'; sl.min=min; sl.max=max; sl.step='0.01'; sl.value=state[key]; sl.style.cssText='flex:1;';
+    const vl=document.createElement('span'); vl.style.cssText='font-size:12px;font-weight:900;color:var(--ink);width:46px;text-align:right;'; vl.textContent=(+state[key]).toFixed(2);
+    sl.addEventListener('input',()=>{ state[key]=parseFloat(sl.value); vl.textContent=state[key].toFixed(2); draw(); });
+    wrap.appendChild(lb); wrap.appendChild(sl); wrap.appendChild(vl); box.appendChild(wrap);
+  }
+  mkSlider('zoom','zoom',0.5,5);
+  mkSlider('ox','ox',-1.5,1.5);
+  mkSlider('oy','oy',-1.5,1.5);
+
+  const hint=document.createElement('div'); hint.style.cssText='font-size:11px;color:var(--dim);margin-top:10px;';
+  hint.textContent='Manda estes valores no chat:'; box.appendChild(hint);
+  const out=document.createElement('div');
+  out.style.cssText='margin-top:4px;padding:10px;border-radius:10px;background:#0c0814;border:1px solid var(--panel-b);font-family:monospace;font-size:13px;color:var(--gold);word-break:break-all;user-select:all;cursor:copy;';
+  out.addEventListener('click',()=>{ try{navigator.clipboard&&navigator.clipboard.writeText(out.textContent);}catch(e){} });
+  box.appendChild(out);
+
+  function draw(){
+    const radius=D/2;
+    cctx.clearRect(0,0,D,D);
+    cctx.save();
+    cctx.beginPath(); cctx.arc(radius,radius,radius-2,0,7); cctx.clip();
+    if(img&&img.complete&&img.naturalWidth){ const s=radius*state.zoom;
+      cctx.drawImage(img, radius - s/2 + state.ox*radius, radius - s/2 + state.oy*radius, s, s); }
+    cctx.restore();
+    cctx.strokeStyle='#000'; cctx.lineWidth=3; cctx.beginPath(); cctx.arc(radius,radius,radius-2,0,7); cctx.stroke();
+    out.textContent='{ zoom:'+state.zoom.toFixed(2)+', ox:'+state.ox.toFixed(2)+', oy:'+state.oy.toFixed(2)+' }';
+  }
+  draw();
+
+  file.addEventListener('change',()=>{
+    const f=file.files&&file.files[0]; if(!f)return;
+    fname.textContent=f.name;
+    const rd=new FileReader();
+    rd.onload=()=>{ const im=new Image(); im.onload=()=>{ img=im; draw(); }; im.src=rd.result; };
+    rd.readAsDataURL(f);
+  });
+
+  const ok=document.createElement('button'); ok.textContent=t('uiClose');
+  ok.style.cssText='margin-top:16px;padding:10px 30px;border-radius:11px;border:none;background:var(--gold);color:#12121a;font-weight:900;font-size:14px;cursor:pointer;';
+  ok.addEventListener('click',()=>{ try{SFX.back&&SFX.back();}catch(e){} ov.remove(); });
+  box.appendChild(ok); ov.appendChild(box);
+  ov.addEventListener('click',e=>{ if(e.target===ov)ov.remove(); });
+  document.body.appendChild(ov);
 }
 function buildAdvGrimoire(){
   const box=document.getElementById('advGrimoireBody'); box.innerHTML='';
@@ -4934,6 +5083,16 @@ function buildAdvGrimoire(){
   tabs.appendChild(mkTab('monsters','👹 '+t('advMonsters')));
   tabs.appendChild(mkTab('cards','🃏 '+t('advCards')));
   box.appendChild(tabs);
+
+  // ===== BOTÃO: ferramenta de ajuste de sprite (só na aba Monstros) =====
+  if(advGrimState.tab==='monsters'){
+    const fitBtn=document.createElement('button');
+    fitBtn.textContent='🔧 Ajustar sprite (imagem da pasta)';
+    fitBtn.style.cssText='width:100%;margin-top:8px;padding:9px;border-radius:10px;border:1px dashed var(--gold);'
+      +'background:transparent;color:var(--gold);font-size:12px;font-weight:800;cursor:pointer;';
+    fitBtn.addEventListener('click',()=>{ audioInit&&audioInit(); SFX&&SFX.select&&SFX.select(); openSpriteFitTool(); });
+    box.appendChild(fitBtn);
+  }
 
   // ===== BARRA DE PESQUISA =====
   const search=document.createElement('input');
@@ -4987,7 +5146,7 @@ function buildAdvGrimoire(){
       +`padding:2px 7px;border-radius:8px;background:${R.frameDark};color:${R.gem};border:1px solid ${R.frame};white-space:nowrap;">`
       +`${rarityLabel(r)}</span>`;
   }
-  const monName=m=> m.id==='zombie'?t('enemyZombie'):t('enemySkeleton');
+  const monName=m=> m.id==='zombie'?t('enemyZombie'):(m.id==='skeleton'?t('enemySkeleton'):(CHARS[m.id]&&CHARS[m.id].name)||m.id);
   // skin real do monstro recortada num círculo, IGUAL ao jogo (valores do editor: SPRITE_FIT).
   // No jogo o zoom é sobre o RAIO (radius*zoom); em CSS o background-size é sobre o DIÂMETRO,
   // então usa metade (zoom*50%) pra bater exatamente com o enquadramento do jogo.
@@ -5009,8 +5168,9 @@ function buildAdvGrimoire(){
   function showMonsterDetail(m){
     const c=CHARS[m.id];
     const R=CARD_RARITY[m.rarity]||CARD_RARITY.basic;
-    const dmg = c.kind==='zombie' ? (c.touchDmg||4) : (c.dmg||5);
-    const atk = c.kind==='zombie' ? t('advTouchDmg') : t('advShootsArrows');
+    const isTouch = c.kind==='zombie' || c.kind==='slime';
+    const dmg = isTouch ? (c.touchDmg||4) : (c.dmg||5);
+    const atk = isTouch ? t('advTouchDmg') : t('advShootsArrows');
     const ov=document.createElement('div');
     ov.style.cssText='position:fixed;inset:0;z-index:99990;display:flex;align-items:center;justify-content:center;background:rgba(0,0,0,.75);padding:20px;';
     const box=document.createElement('div');
@@ -5038,7 +5198,7 @@ function buildAdvGrimoire(){
       // MONSTROS: grade de bolas (5 por fileira), clique abre a ficha
       list.style.cssText='display:grid;grid-template-columns:repeat(5,1fr);gap:14px 8px;justify-items:center;padding:8px 8px 12px;';
       items=ADV_MONSTERS.filter(m=>{
-        const name=(m.id==='zombie'?t('enemyZombie'):t('enemySkeleton')).toLowerCase();
+        const name=monName(m).toLowerCase();
         const okQ=!q||name.includes(q);
         const okR=rf==='all'||(m.rarity||'basic')===rf;
         return okQ&&okR;
@@ -5898,6 +6058,7 @@ function startBattle(){
   setTimeout(()=>{ if(G.screen==='scrBattle')bResize(); }, 220);
   // usa só os slots ativos (ignora os bloqueados no Arena) e reindexa
   const activeSlots=G.slots.filter(s=>!s.locked);
+  if(!isVS()) assignArenaTeams(activeSlots); // Arena: times vêm das bandeiras (cores iguais = aliados)
   fighters = activeSlots.map((s,i)=>makeFighter(s,i));
   buildHpBars();
   // bandejas de itens só aparecem no modo Versus
@@ -6759,6 +6920,173 @@ function iceFactor(f){
 }
 
 /* ---------- CHRONOS: bolhas de tempo lento + Time Stop (ultimate) ---------- */
+/* ---------- NECRO: invoca zumbis, campo de mãos lentas, alma dos zumbis ---------- */
+function doNecro(f){
+  // rastro sombrio: solta uma marca escura a cada poucos frames enquanto anda; some em ~1s
+  f.necroTrail=f.necroTrail||[];
+  f.trailCd=(f.trailCd||0)-1;
+  if(f.trailCd<=0 && (Math.abs(f.vx)+Math.abs(f.vy))>0.5){
+    f.trailCd=3; f.necroTrail.push({x:f.x,y:f.y,r:f.r,life:1});
+  }
+  for(const s of f.necroTrail)s.life-=0.02;   // ~50 frames (~0.8s) até sumir
+  f.necroTrail=f.necroTrail.filter(s=>s.life>0);
+
+  // SKILL 2: mãos necróticas ao redor = campo de lentidão (reusa o sistema das bolhas de tempo)
+  const hr=f.r*2.6;
+  if(!f.handBubble || timeBubbles.indexOf(f.handBubble)<0){
+    f.handBubble={x:f.x,y:f.y,r:hr,life:1,maxLife:8,owner:f.slotIdx,hidden:true};
+    timeBubbles.push(f.handBubble);
+  }
+  f.handBubble.x=f.x; f.handBubble.y=f.y; f.handBubble.r=hr; f.handBubble.maxLife=8;
+
+  // SKILL 1: invoca 1 zumbi por segundo (60 frames), respeitando o teto
+  f.summonTimer=(f.summonTimer||0)-1;
+  const myZombies=fighters.filter(o=>o.alive && o.kind==='necrozombie' && o.necroOwner===f.slotIdx).length;
+  if(f.summonTimer<=0 && myZombies < (f.maxZombies||16)){
+    f.summonTimer=f.summonCd;
+    spawnNecroZombie(f);
+  }
+}
+function spawnNecroZombie(f){
+  const slot={charId:'necrozombie', cfg:defaultCfg(), team:f.team};
+  const z=makeFighter(slot, fighters.length);
+  const a=Math.random()*7, d=f.r+z.r+6+Math.random()*22;
+  z.x=f.x+Math.cos(a)*d; z.y=f.y+Math.sin(a)*d;
+  z.vx=Math.cos(a)*1.5; z.vy=Math.sin(a)*1.5;
+  z.isSummon=true; z.summonedBy=f.slotIdx; z.necroOwner=f.slotIdx; z.bites=0;
+  fighters.push(z);
+  if(G.settings.particles)for(let k=0;k<12;k++){const ang=Math.random()*7,sp=1+Math.random()*3;
+    sparks.push({x:z.x,y:z.y,vx:Math.cos(ang)*sp,vy:Math.sin(ang)*sp,life:1,color:'#6ad04a'});}
+  setFlash(4,'80,180,60'); SFX.transform();
+}
+// zumbi invocado: persegue e tenta AGARRAR+MORDER (25% de chance de executar; senão não ataca)
+function doNecroZombie(f){
+  if(f.grabCd>0)f.grabCd--;
+  if(!f.grabbing && (f.knockback>0 || heldByOther(f))) return;
+  // === executando o agarrão: imobiliza o alvo e dá UMA mordida ===
+  if(f.grabbing){
+    const v=f.grabbing;
+    if(!v.alive){ f.grabbing=null; f.didBite=false; f.grabCd=f.grabCdMax; return; }
+    const hold=f.r+v.r-2, ang=Math.atan2(v.y-f.y,v.x-f.x); f.grabAim=ang;
+    v.x=f.x+Math.cos(ang)*hold; v.y=f.y+Math.sin(ang)*hold; v.vx=0; v.vy=0; // preso
+    f.grabTimer--;
+    if(f.grabTimer<=0 && !f.didBite){                 // a mordida
+      f.didBite=true; f.bites=(f.bites||0)+1;
+      dealDamage(v, f.biteDmg, false, true, f.slotIdx);
+      burst(v.x,v.y,'#c81e1e',9); setFlash(3,'200,40,40'); playSfxFile('zombiebite',0.8); // mordida (sangue + som)
+    }
+    if(f.grabTimer<=-14){ f.grabbing=null; f.didBite=false; f.grabCd=f.grabCdMax; } // solta
+    return;
+  }
+  // === procura inimigo e SEGUE ele (só o zumbi persegue; o resto do jogo anda reto + quica) ===
+  const foe=nearestEnemy(f); if(!foe)return;
+  const dx=foe.x-f.x, dy=foe.y-f.y, d=Math.hypot(dx,dy)||1;
+  f.grabAim=Math.atan2(dy,dx); // guarda a mira p/ desenhar as mãos
+  const spd=Math.min(4.5, Math.max(2.6, Math.hypot(f.vx,f.vy)||3)); // velocidade de marcha do zumbi
+  f.vx = f.vx*0.85 + (dx/d*spd)*0.15; // vira firme rumo ao alvo (segue, sem quicar longe dele)
+  f.vy = f.vy*0.85 + (dy/d*spd)*0.15;
+  const dist=d;
+  if(dist < f.r+foe.r+4 && f.grabCd<=0 && !foe.immortal && !isBusy(foe) && f.knockback<=0){
+    if(Math.random()<0.25){                            // 25% de chance de conseguir agarrar
+      f.grabbing=foe; f.grabTimer=14; f.didBite=false;
+      burst(f.x,f.y,'#6ad04a',6); SFX.touch();
+    } else {
+      f.grabCd=30;                                     // falhou: não ataca, tenta de novo em breve
+    }
+  }
+}
+/* ---------- SLIME: divide, cresce, revive, regenera e copia a skill que o matou ---------- */
+const SLIME_ST={ A:{hp:200,touch:25,sz:1.0}, B:{hp:100,touch:15,sz:0.66}, C:{hp:50,touch:10,sz:0.42} };
+const SLIME_CAP=10; // teto de slimes vivos por time (evita explosão infinita)
+// arquétipo da skill copiada a partir de quem matou (à distância = 'shoot', senão soco = 'punch')
+function slimeArchetype(kind){
+  return ['archer','skeleton','mage','soldier','hunter','chronos','boku'].includes(kind) ? 'shoot' : 'punch';
+}
+// dispara o projétil COPIADO, igual ao de quem matou o pai (flecha/bala/fogo/ki/pulso)
+function slimeShoot(f, foe){
+  const aim=Math.atan2(foe.y-f.y, foe.x-f.x);
+  const sx=f.x+Math.cos(aim)*(f.r+6), sy=f.y+Math.sin(aim)*(f.r+6);
+  const dmg=f.touchDmg, owner=f.slotIdx, col=f.stolenColor||f.color, k=f.stolenKind;
+  if(k==='archer'||k==='skeleton'){
+    projectiles.push({type:'arrow',x:sx,y:sy,vx:Math.cos(aim)*6.5,vy:Math.sin(aim)*6.5,life:200,dmg,owner,color:col,bounces:1});
+    try{SFX.arrow&&SFX.arrow();}catch(e){}
+  } else if(k==='soldier'||k==='hunter'){
+    projectiles.push({type:'bullet',x:sx,y:sy,vx:Math.cos(aim)*12,vy:Math.sin(aim)*12,life:120,dmg,owner,color:col});
+    try{SFX.rifle?SFX.rifle():(SFX.arrow&&SFX.arrow());}catch(e){}
+  } else if(k==='mago'||k==='mage'){
+    projectiles.push({type:'fireball',x:sx,y:sy,vx:Math.cos(aim)*4.5,vy:Math.sin(aim)*4.5,life:200,dmg,splash:18,owner,color:col});
+    try{SFX.fireball&&SFX.fireball();}catch(e){}
+  } else if(k==='boku'){
+    projectiles.push({type:'kiball',x:sx,y:sy,vx:Math.cos(aim)*7,vy:Math.sin(aim)*7,life:160,dmg,owner,color:'#3aa0ff',homing:1,turn:0.045,speed:7,r:6});
+    try{SFX.fire&&SFX.fire();}catch(e){}
+  } else { // chronos (ou fallback): pulso temporal
+    projectiles.push({type:'chronoball',x:sx,y:sy,vx:Math.cos(aim)*6,vy:Math.sin(aim)*6,life:120,dmg,owner,color:col});
+    try{SFX.arrow&&SFX.arrow();}catch(e){}
+  }
+}
+// aplica os atributos de uma fase (tamanho/vida/dano) a um slime
+function setSlimeStage(f, stage, fullHeal){
+  const S=SLIME_ST[stage], hpMul=f.cfg?f.cfg.hp:1, dmgMul=f.cfg?f.cfg.dmg:1;
+  f.slimeStage=stage; f.slimeSize=S.sz;
+  f.maxhp=S.hp*hpMul; if(fullHeal)f.hp=f.maxhp;
+  f.touchDmg=S.touch*dmgMul; f.r=f.slimeBaseR*S.sz;
+}
+// cresceu o suficiente pra subir de fase (C->B->A): sobe atributos e cura (A = revive completo)
+function upgradeSlime(f, stage){
+  const S=SLIME_ST[stage], oldMax=f.maxhp;
+  f.slimeStage=stage; f.maxhp=S.hp*(f.cfg?f.cfg.hp:1); f.touchDmg=S.touch*(f.cfg?f.cfg.dmg:1);
+  f.hp = (stage==='A') ? f.maxhp : Math.min(f.maxhp, f.hp + (f.maxhp-oldMax)); // A = volta à vida cheio
+  setFlash(6,'80,230,120');
+}
+// cria um slime filho da fase pedida, herdando a skill que matou o pai
+function spawnSlimeChild(parent, stage, arche, col, kkind, idx){
+  const slot={charId:'slime', cfg:parent.cfg||defaultCfg(), team:parent.team};
+  const c=makeFighter(slot, fighters.length);
+  c.slimeBaseR = BALL_R*(c.cfg?c.cfg.size:1);
+  setSlimeStage(c, stage, true);
+  c.stolenSkill=arche||null; c.stolenColor=col||null; c.stolenKind=kkind||null;
+  const a=(idx?1:-1)*0.7 + (Math.random()-0.5)*0.5, d=parent.r+c.r+2;
+  c.x=parent.x+Math.cos(a)*d; c.y=parent.y+Math.sin(a)*d;
+  c.vx=Math.cos(a)*3.2; c.vy=Math.sin(a)*3.2;
+  if(!posInArena(c.x,c.y,c.r)){ const p=clampInArena(c.x,c.y,c.r); c.x=p.x; c.y=p.y; }
+  return c;
+}
+function doSlime(f){
+  // PASSIVA: regeneração constante (leve — só o suficiente pra incomodar, não pra ser imortal)
+  if(f.hp<f.maxhp) f.hp=Math.min(f.maxhp, f.hp + f.maxhp*0.0003);
+  // CRESCIMENTO: aumenta de tamanho devagar e sobe de fase ao cruzar os limiares
+  if(f.slimeSize<1){
+    f.slimeSize=Math.min(1, f.slimeSize+0.0006);
+    f.r=f.slimeBaseR*f.slimeSize;
+    if(f.slimeStage==='C' && f.slimeSize>=SLIME_ST.B.sz) upgradeSlime(f,'B');
+    else if(f.slimeStage==='B' && f.slimeSize>=SLIME_ST.A.sz) upgradeSlime(f,'A');
+  }
+  if(f.slimePunch>0)f.slimePunch--;
+  const foe=nearestEnemy(f); if(!foe)return;
+  const dist=Math.hypot(foe.x-f.x,foe.y-f.y);
+  // DANO DE TOQUE (por fase)
+  if(f.hitCd<=0 && dist<f.r+foe.r){
+    dealDamage(foe,f.touchDmg); f.hitCd=20;
+    burst((f.x+foe.x)/2,(f.y+foe.y)/2,f.color,6); SFX.touch();
+  }
+  // SKILL ROUBADA: usa a skill que matou o pai
+  if(f.stolenSkill){
+    f.slimeCd=(f.slimeCd||0)-1;
+    if(f.slimeCd<=0){
+      if(f.stolenSkill==='shoot'){
+        slimeShoot(f, foe);   // dispara o projétil igual ao de quem matou (flecha/bala/fogo/ki/pulso)
+        f.slimeCd=100;
+      } else { // punch: soco forte de perto
+        if(dist<f.r+foe.r+f.r*0.5){
+          dealDamage(foe, f.touchDmg*1.6, false, true, f.slotIdx);
+          foe.vx+=Math.cos(Math.atan2(foe.y-f.y,foe.x-f.x))*2; foe.vy+=Math.sin(Math.atan2(foe.y-f.y,foe.x-f.x))*2;
+          burst(foe.x,foe.y,f.stolenColor||'#fff',8); setFlash(4,'255,220,120'); SFX.punchHit();
+          f.slimeCd=70; f.slimePunch=8; f.grabAim=Math.atan2(foe.y-f.y,foe.x-f.x);
+        } else { f.slimeCd=8; } // espera aproximar (bola quica até chegar perto)
+      }
+    }
+  }
+}
 function doChronos(f){
   const foe=nearestEnemy(f); if(!foe)return;
 
@@ -7109,17 +7437,17 @@ function doHunter(f){
   const foe=huntTarget(f);
   if(!foe) return;
   if(f.hunterCd<=0){
-    f.hunterCd=300; // ~5s entre tiros
+    f.hunterCd=180; // ~3s entre tiros (atira mais)
     const aim=Math.atan2(foe.y-f.y,foe.x-f.x);
     const sx=f.x+Math.cos(aim)*(f.r+12), sy=f.y+Math.sin(aim)*(f.r+12);
-    // tiro rápido (2-3x mais que a flecha): velocidade 15
+    // bala de sniper: bem rápida (velocidade 26)
     const shots=1+(f.extraAttack||0); // carta Ataque Duplo: +1 tiro por cópia
     for(let s=0;s<shots;s++){
       const a=aim+(s===0?0:(Math.random()-0.5)*0.12); // extras com leve variação
-      projectiles.push({type:'bullet',x:sx,y:sy,vx:Math.cos(a)*15,vy:Math.sin(a)*15,
+      projectiles.push({type:'bullet',x:sx,y:sy,vx:Math.cos(a)*26,vy:Math.sin(a)*26,
         life:120,dmg:30,owner:f.slotIdx,color:'#ffe08a'});
     }
-    setFlash(5,'255,224,138'); SFX.arrow(); addShake(3);
+    setFlash(5,'255,224,138'); playSfxFile('sniper',0.9); addShake(3); // som de sniper gravado
   }
 }
 // alvo do rifle: prioriza o marcado (mesmo longe), a não ser que tenha parede no caminho
@@ -7384,32 +7712,32 @@ function doPacman(f){
 }
 
 /* ---------- PANDORA ---------- */
+// vira COMPLETAMENTE o personagem 'tid': reconstrói via makeFighter (inicializa TODOS os campos
+// de skill do alvo) e preserva posição/movimento/vida(fração)/identidade-Pandora.
+function pandoraBecome(f, tid){
+  const slot={charId:tid, cfg:f.cfg, team:f.team};
+  const fresh=makeFighter(slot, f.slotIdx);
+  const hpFrac = (f.maxhp>0) ? f.hp/f.maxhp : 1;
+  const KEEP=['x','y','vx','vy','slotIdx','team','cfg','tint','isPandora','pandoraOrig',
+    'isSummon','summonedBy','necroOwner','introZ','introVz','introSettled','lastHitBy'];
+  const saved={}; for(const k of KEEP) saved[k]=f[k];
+  for(const k in fresh) f[k]=fresh[k];        // torna-se o novo personagem por completo
+  for(const k of KEEP) f[k]=saved[k];         // restaura posição/identidade/estado do Pandora
+  f.id=tid;
+  f.hp=Math.max(1, f.maxhp*hpFrac);           // mantém a fração de vida atual
+}
 function pandoraMorph(f){
-  const pool=ORDER.filter(id=>id!=='pandora');
+  const pool=ORDER.filter(id=>id!=='pandora' && id!=='slime'); // slime tem divisão própria -> fora
   const tid=pool[Math.floor(Math.random()*pool.length)];
-  const c=CHARS[tid], cfg=f.cfg;
-  f.id=tid;f.kind=c.kind;f.color=c.color;f.dark=c.dark;f.icon=c.icon;
-  f.baseColor=c.color;f.baseDark=c.dark;
-  f.spin=(c.spin||0)*cfg.fireRate;f.baseSpin=f.spin;
-  f.reach=(c.reach||0)*cfg.size;f.dmg=(c.dmg||0)*cfg.dmg;f.baseDmg=f.dmg;
-  f.splash=(c.splash||0)*cfg.size;f.fireCd=(c.fireCd||40)/cfg.fireRate;f.cd=0;
-  f.touchDmg=(c.touchDmg||0)*cfg.dmg;
-  f.auraR=(c.auraR||0);f.auraDmg=(c.auraDmg||0)*cfg.dmg;
-  f.demonHp=(c.demonHp||0)*cfg.hp;f.demonAuraR=(c.demonAuraR||0);f.demonDmg=(c.demonDmg||0)*cfg.dmg;
-  f.berserk=false;f.invuln=0;f.fire=[];f.demon=false;f.clonesMade=0;f.auraPhase=Math.random()*7;
-  f.pandoraMorphed=true;f.pandoraTimer=600;f.pandoraBlink=18;
-  setFlash(12,'220,180,255');SFX.transform();
+  pandoraBecome(f, tid);
+  f.pandoraMorphed=true; f.pandoraTimer=600; f.pandoraBlink=18;
+  setFlash(12,'220,180,255'); SFX.transform();
 }
 function pandoraRevert(f){
-  const c=CHARS['pandora'], cfg=f.cfg;
-  f.id='pandora';f.kind='pandora';f.color=c.color;f.dark=c.dark;f.icon=c.icon;
-  f.baseColor=c.color;f.baseDark=c.dark;
-  f.spin=0;f.baseSpin=0;f.reach=0;f.dmg=0;f.baseDmg=0;f.splash=0;f.fireCd=0;f.touchDmg=0;
-  f.auraR=0;f.auraDmg=0;f.demonHp=0;f.demonAuraR=0;f.demonDmg=0;
-  f.berserk=false;f.invuln=0;f.fire=[];f.demon=false;f.clonesMade=0;
-  f.pandoraMorphed=false;f.pandoraTimer=300;f.pandoraBlink=18;
+  pandoraBecome(f, 'pandora');
+  f.pandoraMorphed=false; f.pandoraTimer=300; f.pandoraBlink=18;
   clones=clones.filter(cl=>cl.owner!==f.slotIdx);
-  setFlash(10,'220,180,255');SFX.clone();
+  setFlash(10,'220,180,255'); SFX.clone();
 }
 function pandoraTick(f){
   if(f.pandoraBlink>0)f.pandoraBlink--;
@@ -7623,12 +7951,17 @@ function bStep(){
     if(f.kind==='hunter') doHunter(f);
     // Boku (Goku paródia)
     if(f.kind==='boku') doBoku(f);
+    // Necro (invocador) + seus zumbis
+    if(f.kind==='necro') doNecro(f);
+    if(f.kind==='necrozombie') doNecroZombie(f);
+    // Slime (divide/cresce/revive/regenera/copia skill)
+    if(f.kind==='slime') doSlime(f);
     // --- INIMIGOS-BASE (Adventure) ---
     // Zumbi: só dá dano de toque ao encostar no alvo
     if(f.kind==='zombie'){
       const foe=nearestEnemy(f);
       if(foe&&f.hitCd===0&&Math.hypot(foe.x-f.x,foe.y-f.y)<f.r+foe.r){
-        dealDamage(foe,f.touchDmg);f.hitCd=20;burst((f.x+foe.x)/2,(f.y+foe.y)/2,f.color,5);SFX.touch();
+        dealDamage(foe,f.touchDmg);f.hitCd=20;burst((f.x+foe.x)/2,(f.y+foe.y)/2,'#c81e1e',5);playSfxFile('zombiebite',0.65); // mordida do zumbi (Adventure)
       }
     }
     // Esqueleto: atira flechas simples (1 flecha por vez, sem passiva de stealth)
@@ -7676,6 +8009,9 @@ function bStep(){
     if(alive[i].spinning||alive[j].spinning)continue;
     // Samurai atravessa inimigos durante a Corrida Cortante (não bate, passa por cima)
     if((alive[i].kind==='katana'&&alive[i].jumping)||(alive[j].kind==='katana'&&alive[j].jumping))continue;
+    // zumbi do Necro atravessa o próprio Necro (senão o enxame empurra ele atrás do inimigo)
+    if((alive[i].kind==='necrozombie'&&alive[i].necroOwner===alive[j].slotIdx)||
+       (alive[j].kind==='necrozombie'&&alive[j].necroOwner===alive[i].slotIdx))continue;
     collide(alive[i],alive[j]);
   }
 
@@ -7965,6 +8301,7 @@ function bStep(){
   if(flash>0)flash--;
 
   // mortes
+  const slimeSpawns=[]; // filhos de slimes que morreram (empurrados depois do loop)
   for(const f of fighters){ if(f.alive&&isDeadF(f)){
     // último suspiro do Soldier: se morre sem ter jogado a granada, joga agora
     if(f.kind==='soldier' && !f.grenadeThrown){
@@ -7976,6 +8313,31 @@ function bStep(){
       f.grenadeThrown=true; SFX.fireball();
     }
     f.alive=false;
+    // PASSIVA do Necro: a alma do zumbi morto volta pro dono, curando 25 + 10 por mordida dada
+    if(f.kind==='necrozombie' && f.necroOwner>=0){
+      const nec=fighters[f.necroOwner];
+      if(nec && nec.alive){
+        const heal=25 + 10*(f.bites||0);
+        nec.hp=Math.min(nec.maxhp, nec.hp+heal);
+        burst(nec.x,nec.y,'#6ad04a',12); setFlash(4,'80,180,60'); SFX.touch();
+        if(G.settings.particles)for(let k=0;k<10;k++){const a=Math.random()*7,sp=1+Math.random()*2.5;
+          sparks.push({x:f.x,y:f.y,vx:Math.cos(a)*sp,vy:Math.sin(a)*sp,life:1,color:'#8af060'});}
+      }
+    }
+    // SLIME: ao morrer, divide em 2 filhos menores que herdam a skill que o matou (A->2B->2C; C morre de vez)
+    if(f.kind==='slime'){
+      const childStage = f.slimeStage==='A' ? 'B' : (f.slimeStage==='B' ? 'C' : null);
+      const teamSlimes = fighters.filter(o=>o.alive && o.kind==='slime' && o.team===f.team).length;
+      if(childStage && teamSlimes < SLIME_CAP){
+        const killer=(f.lastHitBy>=0)?fighters[f.lastHitBy]:null;
+        const isEnemy=killer && killer.team!==f.team;
+        const stole=isEnemy ? slimeArchetype(killer.kind) : null; // só copia skill de inimigo
+        const kkind=isEnemy ? killer.kind : null;                 // kind exato -> projétil combina
+        const col=isEnemy ? killer.color : null;
+        for(let s=0;s<2;s++) slimeSpawns.push(spawnSlimeChild(f, childStage, stole, col, kkind, s));
+        burst(f.x,f.y,'#3ad46a',18); setFlash(6,'80,220,110'); SFX.clone();
+      }
+    }
     // conquistas: conta abate; suicídio = último dano veio de si mesmo OU de um aliado (fogo amigo)
     SAVE.kills++;
     if(f.lastHitBy>=0){
@@ -7999,6 +8361,9 @@ function bStep(){
     }
     addShake(10); hitStop=Math.max(hitStop,4); // impacto dramático na morte
     } }
+  // adiciona os filhos de slimes DEPOIS do loop (não mexe no array durante a iteração)
+  // reatribui o slotIdx no push p/ bater com o índice real (2 filhos nascem no mesmo frame)
+  for(const c of slimeSpawns){ c.slotIdx=fighters.length; c.tint=PLAYER_TINT[c.slotIdx%6]; fighters.push(c); }
 
   updateHpBars();
   const rem=fighters.filter(f=>f.alive);
@@ -8008,7 +8373,14 @@ function bStep(){
     const teamsAlive=[...new Set(remReal.map(f=>f.team))];
     if(teamsAlive.length<=1) bFinishTeam(teamsAlive[0], remReal);
   } else {
-    if(remReal.length<=1) bFinish(remReal[0]);
+    // Arena: acaba quando só resta UM time vivo (não a contagem de lutadores) — assim
+    // slimes/clones que se dividem em aliados do mesmo time não travam a partida.
+    const teamsAlive=[...new Set(remReal.map(f=>f.team))];
+    if(teamsAlive.length<=1){
+      const survivors=remReal.filter(f=>f.team===teamsAlive[0]);
+      const champ=survivors.reduce((a,b)=>(!a||b.hp>a.hp)?b:a, null); // representante do time (mais vida)
+      bFinish(champ);
+    }
   }
 }
 // vitória de um time inteiro
@@ -8125,6 +8497,12 @@ function showVictoryCard(){
       // "Liderado por" em texto claro + nome do líder destacado na cor dele
       sub.innerHTML=t('ledBy')+' <span style="color:'+W.color+';font-weight:900;text-shadow:0 0 16px '+W.color+'">'+W.name+'</span>';
       nm.style.color=teamColor;
+    } else if(W.flag && W.flag!=='white'){
+      // Arena com bandeira: vitória de time colorido -> "Red Team" etc.
+      const fi=flagInfo(W.flag);
+      nm.textContent=fi.name+' Team';
+      nm.style.color=fi.col; face.style.background=fi.col;
+      sub.innerHTML=t('ledBy')+' <span style="color:'+W.color+';font-weight:900;text-shadow:0 0 16px '+W.color+'">'+W.name+'</span>';
     } else {
       sub.textContent=t('player')+' '+(W.slotIdx+1)+' · '+t('winner');
       nm.style.color=W.color;
@@ -8578,13 +8956,13 @@ function drawFists(b){
   }
   bx.restore();
 }
-// cabelo espetado do Boku (estilo Goku): tufo de espinhos FIXO em cima da cabeça
-// (topo da tela, como o chapéu do arqueiro/mago), desenhado por cima de tudo.
+// cabelo espetado do Boku (estilo Goku): tufo de espinhos no lado OPOSTO às mãos.
+// as mãos socam na direção b.ang; o cabelo fica atrás (b.ang + PI) — mão à direita, cabelo à esquerda.
 function drawBokuHair(b, radius){
   const fill = b.ssj ? '#ffe23a' : (b.kaioken ? '#3a1a0a' : '#141414');
   const tip  = b.ssj ? '#fff6b0' : (b.kaioken ? '#5a2a12' : '#2a2a2a');
-  const center = -Math.PI/2;              // sempre pra CIMA (na cabeça), independente da mira
-  const span = Math.PI * 1.15;            // leque cobrindo toda a parte de cima da bola
+  const center = b.ang + Math.PI;         // sempre no lado CONTRÁRIO às mãos (atrás da mira)
+  const span = Math.PI * 1.15;            // leque cobrindo todo aquele lado da bola
   bx.save();
   bx.strokeStyle='#000'; bx.lineWidth=2.2; bx.lineJoin='round';
   const n=11;
@@ -8655,6 +9033,102 @@ function drawStaff(b){
   bx.fillStyle=g;bx.beginPath();bx.arc(tip,0,gr+4,0,7);bx.fill();
   bx.restore();
 }
+// mãos do zumbi do Necro (estilo Berserk): 2 braços que se esticam pra AGARRAR o inimigo.
+// cor VERDE com degradê pra VERMELHO (sangue), mais vermelho quanto mais estendida a mão.
+function drawNecroZombieHands(b){
+  const aim = b.grabbing ? b.grabAim : (b.grabAim||0);
+  const ext = b.grabbing ? 1 : 0.15;               // esticadas quando segura o inimigo
+  bx.save(); bx.translate(b.x,b.y); bx.rotate(aim);
+  const reach = b.r + 4 + ext*(b.r+8);
+  const fistR = b.r*0.42;
+  for(const side of [-1,1]){
+    const offA = side*0.5*(1-ext*0.5);             // abrem quando avançam pra segurar
+    const fx=Math.cos(offA)*reach, fy=Math.sin(offA)*reach;
+    // braço (verde escuro)
+    bx.strokeStyle='#2f5a20'; bx.lineWidth=b.r*0.32; bx.lineCap='round';
+    bx.beginPath(); bx.moveTo(Math.cos(side*0.8)*b.r*0.5, Math.sin(side*0.8)*b.r*0.5); bx.lineTo(fx,fy); bx.stroke();
+    // mão: degradê verde -> vermelho (sangue), mais sangrenta quando estende pra morder
+    const g=bx.createRadialGradient(fx,fy,fistR*0.2, fx,fy,fistR);
+    g.addColorStop(0, '#7ad04a');                  // centro verde
+    g.addColorStop(1, ext>0.5?'#b81616':'#8a1f1f'); // borda vermelha (sangue)
+    bx.fillStyle=g; bx.strokeStyle='#111'; bx.lineWidth=2;
+    bx.beginPath(); bx.arc(fx,fy,fistR,0,7); bx.fill(); bx.stroke();
+    // dedos/garras
+    bx.strokeStyle='#4a0d0d'; bx.lineWidth=1.6; bx.lineCap='round';
+    for(let k=-1;k<=1;k++){ const a=Math.atan2(fy,fx)+k*0.45;
+      bx.beginPath(); bx.moveTo(fx,fy); bx.lineTo(fx+Math.cos(a)*fistR*0.9, fy+Math.sin(a)*fistR*0.9); bx.stroke(); }
+  }
+  bx.restore();
+}
+// NECRO: rastro sombrio + campo de mãos lentas (desenhado ATRÁS da bola)
+function drawNecroBack(b){
+  // rastro de sombras que some devagar
+  for(const s of (b.necroTrail||[])){
+    bx.save(); bx.globalAlpha=s.life*0.4;
+    const g=bx.createRadialGradient(s.x,s.y,0,s.x,s.y,s.r*1.15);
+    g.addColorStop(0,'rgba(45,25,70,0.85)'); g.addColorStop(1,'rgba(20,10,32,0)');
+    bx.fillStyle=g; bx.beginPath(); bx.arc(s.x,s.y,s.r*1.15*(0.55+0.45*s.life),0,7); bx.fill();
+    bx.restore();
+  }
+  // campo de lentidão: domo roxo translúcido + mãos fantasma orbitando
+  const hr=b.r*2.6, t=Date.now()/1000;
+  bx.save();
+  const g=bx.createRadialGradient(b.x,b.y,b.r,b.x,b.y,hr);
+  g.addColorStop(0,'rgba(120,60,160,0.16)'); g.addColorStop(0.7,'rgba(90,40,130,0.10)'); g.addColorStop(1,'rgba(60,20,90,0)');
+  bx.fillStyle=g; bx.beginPath(); bx.arc(b.x,b.y,hr,0,7); bx.fill();
+  // anel girando (marca a borda do campo)
+  bx.globalAlpha=0.25; bx.strokeStyle='#b183e0'; bx.lineWidth=2; bx.setLineDash([5,9]);
+  bx.lineDashOffset=-t*30; bx.beginPath(); bx.arc(b.x,b.y,hr-4,0,7); bx.stroke(); bx.setLineDash([]);
+  // mãos necróticas girando ao redor
+  bx.globalAlpha=0.55; bx.font=(b.r*0.72)+'px Arial'; bx.textAlign='center'; bx.textBaseline='middle';
+  const n=5, rr=hr*0.72;
+  for(let i=0;i<n;i++){ const a=t*0.8 + i*(Math.PI*2/n);
+    bx.save(); bx.translate(b.x+Math.cos(a)*rr, b.y+Math.sin(a)*rr); bx.rotate(a+Math.PI/2);
+    bx.fillText('🖐', 0, 0); bx.restore(); }
+  bx.restore();
+}
+// NECRO: cajado necrótico com orbe verde brilhante, apontado ao inimigo
+function drawNecroStaff(b){
+  const foe=nearestEnemy(b);
+  const aim=foe?Math.atan2(foe.y-b.y,foe.x-b.x):-0.6;
+  bx.save(); bx.translate(b.x,b.y); bx.rotate(aim);
+  const base=b.r-4, tip=b.r+22;
+  bx.strokeStyle='#241a12'; bx.lineWidth=4; bx.lineCap='round';
+  bx.beginPath(); bx.moveTo(base,0); bx.lineTo(tip-4,0); bx.stroke();
+  bx.strokeStyle='#43301f'; bx.lineWidth=2; bx.beginPath(); bx.moveTo(base,0); bx.lineTo(tip-4,0); bx.stroke();
+  // garras segurando o orbe
+  bx.strokeStyle='#150f0a'; bx.lineWidth=2.2; bx.beginPath(); bx.arc(tip-3,0,6,-2.3,2.3); bx.stroke();
+  const pulse=0.6+0.4*Math.sin(Date.now()/220), gr=6+pulse*2;
+  const g=bx.createRadialGradient(tip,0,0,tip,0,gr+5);
+  g.addColorStop(0,'#eaffe4'); g.addColorStop(0.4,'#57e04a'); g.addColorStop(1,'rgba(20,60,10,0)');
+  bx.fillStyle=g; bx.beginPath(); bx.arc(tip,0,gr+5,0,7); bx.fill();
+  bx.restore();
+}
+// NECRO: capuz escuro cobrindo o topo, rosto na sombra com dois olhos brilhando
+function drawNecroHood(b){
+  bx.save(); bx.translate(b.x,b.y);
+  const r=b.r;
+  bx.fillStyle='#1a1526'; bx.strokeStyle='#000'; bx.lineWidth=2.5;
+  bx.beginPath();
+  bx.moveTo(-r*1.02, r*0.15);
+  bx.quadraticCurveTo(-r*1.16,-r*1.05, 0,-r*1.28);      // sobe pela esquerda até a ponta
+  bx.quadraticCurveTo(r*1.16,-r*1.05, r*1.02, r*0.15);   // desce pela direita
+  bx.quadraticCurveTo(r*0.6,-r*0.4, 0,-r*0.34);          // borda interna do capuz
+  bx.quadraticCurveTo(-r*0.6,-r*0.4, -r*1.02, r*0.15);
+  bx.closePath(); bx.fill(); bx.stroke();
+  // ponta do capuz tombando pra frente
+  bx.fillStyle='#12101c';
+  bx.beginPath(); bx.moveTo(0,-r*1.28);
+  bx.quadraticCurveTo(r*0.42,-r*1.32, r*0.5,-r*1.58);
+  bx.quadraticCurveTo(r*0.12,-r*1.3, 0,-r*1.28); bx.closePath(); bx.fill();
+  // sombra do rosto (buraco escuro) com 2 olhos verdes pulsando
+  bx.fillStyle='#000'; bx.beginPath(); bx.ellipse(0,-r*0.02,r*0.5,r*0.58,0,0,7); bx.fill();
+  const gl=0.55+0.45*Math.sin(Date.now()/300);
+  bx.fillStyle='rgba(110,220,80,'+gl+')';
+  bx.beginPath(); bx.arc(-r*0.19,-r*0.05,r*0.1,0,7); bx.fill();
+  bx.beginPath(); bx.arc(r*0.19,-r*0.05,r*0.1,0,7); bx.fill();
+  bx.restore();
+}
 // chapéu de mago (cone com aba e estrela), fixo em cima da bola
 function drawWizardHat(b){
   bx.save(); bx.translate(b.x, b.y);
@@ -8687,10 +9161,12 @@ function drawWizardHat(b){
 }
 // sprites de inimigos (desenhados recortados dentro da bola)
 const spriteImg={};
-['zombie','skeleton'].forEach(k=>{ const im=new Image(); im.src='assets/'+k+'.png'; spriteImg[k]=im; });
+['zombie','skeleton','slime'].forEach(k=>{ const im=new Image(); im.src='assets/'+k+'.png'; spriteImg[k]=im; });
 // enquadramento do sprite dentro da bola (ajustado no editor de monstros):
 // zoom = quantas vezes o diâmetro; ox/oy = deslocamento em fração do raio (+x direita, +y baixo)
-const SPRITE_FIT={ zombie:{zoom:2.36,ox:0,oy:0.02}, skeleton:{zoom:3.28,ox:0.01,oy:0.05} };
+const SPRITE_FIT={ zombie:{zoom:2.36,ox:0,oy:0.02}, skeleton:{zoom:3.28,ox:0.01,oy:0.05}, slime:{zoom:2.05,ox:0,oy:0} };
+// os zumbis invocados pelo Necro reaproveitam a arte do zumbi do Adventure
+spriteImg['necrozombie']=spriteImg['zombie']; SPRITE_FIT['necrozombie']=SPRITE_FIT['zombie'];
 function drawBall(b,radius,label,tint){
   bx.save();
   // ENTRADA: bola caindo do alto — sombra no chão cresce conforme se aproxima
@@ -8765,6 +9241,25 @@ function drawBall(b,radius,label,tint){
     bx.fillStyle=g; bx.strokeStyle='#000'; bx.lineWidth=3;
     bx.beginPath();bx.arc(b.x,b.y,radius,0,7);bx.fill();bx.stroke();
     // (o cabelo espetado é desenhado por cima, na passada de acessórios)
+  } else if(b.kind==='slime'){
+    // corpo gelatinoso: bolha verde com leve "wobble", brilho de gel, olhinhos e a letra da fase
+    const wob=Math.sin(Date.now()/220 + b.slotIdx)*0.06;
+    const rw=radius*(1+wob), rh=radius*(1-wob);
+    bx.fillStyle=b.color; bx.strokeStyle=b.dark; bx.lineWidth=3;
+    bx.beginPath(); bx.ellipse(b.x,b.y+radius*0.06,rw,rh,0,0,7); bx.fill(); bx.stroke();
+    const g=bx.createRadialGradient(b.x-radius*0.3,b.y-radius*0.4,radius*0.08,b.x,b.y,radius);
+    g.addColorStop(0,'rgba(230,255,230,0.75)'); g.addColorStop(0.4,'rgba(140,240,160,0.22)'); g.addColorStop(1,'rgba(0,0,0,0)');
+    bx.fillStyle=g; bx.beginPath(); bx.ellipse(b.x,b.y+radius*0.06,rw,rh,0,0,7); bx.fill();
+    // olhinhos
+    bx.fillStyle='#0f3a1e';
+    bx.beginPath(); bx.arc(b.x-radius*0.26,b.y-radius*0.04,radius*0.13,0,7); bx.fill();
+    bx.beginPath(); bx.arc(b.x+radius*0.26,b.y-radius*0.04,radius*0.13,0,7); bx.fill();
+    bx.fillStyle='#eafff0';
+    bx.beginPath(); bx.arc(b.x-radius*0.29,b.y-radius*0.09,radius*0.05,0,7); bx.fill();
+    bx.beginPath(); bx.arc(b.x+radius*0.23,b.y-radius*0.09,radius*0.05,0,7); bx.fill();
+    // letra da fase (A/B/C)
+    if(b.slimeStage){ bx.fillStyle='rgba(10,50,25,0.6)'; bx.font='900 '+(radius*0.5)+'px Arial';
+      bx.textAlign='center'; bx.textBaseline='middle'; bx.fillText(b.slimeStage, b.x, b.y+radius*0.36); }
   } else {
     bx.fillStyle=b.color;bx.strokeStyle='#000';bx.lineWidth=3;
     bx.beginPath();bx.arc(b.x,b.y,radius,0,7);bx.fill();bx.stroke();
@@ -8901,6 +9396,7 @@ function drawBattle(){
   }
   // aura pandora
   for(const f of fighters){ if(!f.alive)continue;
+    if(f.kind==='necro')drawNecroBack(f); // rastro sombrio + campo de mãos lentas (atrás da bola)
     if(f.kind==='pandora'){ const t=Date.now()/400;bx.save();
       for(let i=0;i<3;i++){const hue=(t*40+i*120)%360;bx.globalAlpha=0.25;bx.strokeStyle='hsl('+hue+',70%,65%)';
         bx.lineWidth=2.5;const rr=f.r+6+i*4+Math.sin(t+i)*2;bx.beginPath();bx.arc(f.x,f.y,rr,0,7);bx.stroke();}bx.restore(); }
@@ -8930,7 +9426,8 @@ function drawBattle(){
     g.addColorStop(0,'rgba(255,240,120,'+b.life+')');g.addColorStop(0.5,'rgba(255,110,0,'+(b.life*0.7)+')');g.addColorStop(1,'rgba(200,0,0,0)');
     bx.fillStyle=g;bx.beginPath();bx.arc(b.x,b.y,b.r,0,7);bx.fill();bx.restore();}
   // bolhas de tempo do Chronos (no chão, câmera lenta)
-  for(const b of timeBubbles){ bx.save();
+  for(const b of timeBubbles){ if(b.hidden)continue; // campo do Necro tem visual próprio
+    bx.save();
     const a=b.life*0.5, t=Date.now()/1000;
     // domo azulado translúcido
     const g=bx.createRadialGradient(b.x,b.y,b.r*0.2,b.x,b.y,b.r);
@@ -9201,10 +9698,12 @@ function drawBattle(){
     if(f.introZ>0)continue; // acessórios aparecem quando a bola aterrissa
     const st = f.stealth>0;
     if(st){ bx.save(); bx.globalAlpha=0.12; }
+    if(f.kind==='boku')drawBokuHair(f, f.r); // cabelo ATRÁS das mãos (no lado oposto aos punhos)
     if(f.kind==='brawler'||f.kind==='boku')drawFists(f);
-    if(f.kind==='boku')drawBokuHair(f, f.r); // cabelo por cima, no lado oposto aos punhos
     if(f.kind==='archer'){ drawBow(f); drawArcherHat(f); }
     if(f.kind==='mage'){ drawStaff(f); drawWizardHat(f); }
+    if(f.kind==='necro'){ drawNecroStaff(f); drawNecroHood(f); }
+    if(f.kind==='necrozombie')drawNecroZombieHands(f);
     if(f.kind==='soldier')drawGun(f);
     if(st){ bx.restore(); }
   }
