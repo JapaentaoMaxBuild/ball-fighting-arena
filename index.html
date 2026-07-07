@@ -1572,6 +1572,8 @@ const SAVE_KEY='bfa_save_v1';
 let SAVE = { coins:0, games:0, kills:0, suicides:0, flawless:0, unlocked:{}, chars:{}, codes:{}, lastDaily:0, dailyDay:0 };
 function loadSave(){
   try{ const raw=localStorage.getItem(SAVE_KEY); if(raw){ SAVE=Object.assign(SAVE, JSON.parse(raw)); if(!SAVE.unlocked)SAVE.unlocked={}; if(!SAVE.chars)SAVE.chars={}; if(!SAVE.codes)SAVE.codes={}; } }catch(e){}
+  // migração p/ o sistema de diária NOVO (streak 7 dias): libera o 1º resgate p/ quem já tinha save
+  if(!SAVE.dailyV2){ SAVE.lastDaily=0; SAVE.dailyDay=0; SAVE.dailyV2=true; try{persistSave();}catch(e){} }
   // carrega as configurações salvas (idioma, volume, toggles)
   try{ const s=localStorage.getItem('bfa_settings_v1'); if(s){ Object.assign(G.settings, JSON.parse(s)); } }catch(e){}
 }
@@ -4127,10 +4129,12 @@ window.addEventListener('resize', uiScale);
 window.addEventListener('orientationchange', uiScale);
 uiScale();
 
-// ===== TRAVA DE SCROLL (teclado do celular) =====
-// Quando o teclado sobe pra escrever, o navegador tenta ROLAR a página pra mostrar o campo,
-// e ao fechar ela "volta" (puxão pra cima/baixo). Com o layout fixo isso bagunça tudo.
-// Aqui forçamos a página a ficar SEMPRE no topo (o scroll interno de listas não é afetado).
+// ===== TECLADO DO CELULAR: solução oficial (VirtualKeyboard API) =====
+// overlaysContent=true faz o teclado SOBREPOR o conteúdo em vez de redimensionar/rolar a
+// tela — mata o "sobe e desce". Suportado no Chrome do Android (o do tablet/APK).
+try{ if('virtualKeyboard' in navigator){ navigator.virtualKeyboard.overlaysContent = true; } }catch(e){}
+// ===== TRAVA DE SCROLL (reforço p/ navegadores sem VirtualKeyboard API, ex: iOS) =====
+// Se ainda assim algo rolar a página, forçamos ela a ficar no topo (scroll interno de listas não é afetado).
 (function(){
   function lockTop(){ if(window.pageYOffset||window.pageXOffset){ window.scrollTo(0,0); }
     if(document.scrollingElement){ document.scrollingElement.scrollTop=0; document.scrollingElement.scrollLeft=0; } }
