@@ -35,7 +35,7 @@
 ::-webkit-scrollbar-thumb:hover{background:linear-gradient(180deg,#9a6de0,#5a3d8a);}
 html,body{height:100%;overflow:hidden;background:var(--bg0);color:var(--ink);
   font-family:'Segoe UI',system-ui,-apple-system,sans-serif;}
-#app{position:relative;height:100dvh;max-width:560px;margin:0 auto;overflow:hidden;
+#app{position:relative;height:100dvh;max-width:700px;margin:0 auto;overflow:hidden;
   /* --s = escala da UI (1 na largura de referência 420px). O JS ajusta conforme o
      tamanho real do app, então tudo que usa calc(N*var(--s)) fica proporcional em
      qualquer tela: celular, tablet ou TV. Elementos grandes (VS, cards, vitória,
@@ -157,7 +157,11 @@ html,body{height:100%;overflow:hidden;background:var(--bg0);color:var(--ink);
 @keyframes embers2{0%{transform:translateY(0);opacity:.7}90%{opacity:.7}100%{transform:translateY(-95px);opacity:0}}
 /* carta LENDÁRIA: brilho dourado pulsante + faixa de shimmer que atravessa (holográfico) */
 @keyframes legendGlow{0%,100%{box-shadow:0 8px 22px rgba(0,0,0,.5),0 0 0 1px #8a6510,inset 0 1px 0 rgba(255,255,255,.4),0 0 18px rgba(255,200,60,.7)}50%{box-shadow:0 8px 26px rgba(0,0,0,.5),0 0 0 1px #8a6510,inset 0 1px 0 rgba(255,255,255,.55),0 0 34px rgba(255,215,90,1)}}
-@keyframes legendShine{0%{transform:translateX(-140%) skewX(-18deg)}100%{transform:translateX(240%) skewX(-18deg)}}
+@keyframes classGlow{0%,100%{box-shadow:0 8px 22px rgba(0,0,0,.5),0 0 18px rgba(230,70,55,.7)}50%{box-shadow:0 8px 26px rgba(0,0,0,.5),0 0 36px rgba(255,90,70,1)}}
+/* explosão de fogos (hanabi) na revelação de lendária/classe */
+@keyframes fwburst{0%{transform:translate(0,0) scale(1);opacity:1}70%{opacity:1}100%{transform:translate(var(--fdx),var(--fdy)) scale(.2);opacity:0}}
+@keyframes fwflash{0%{transform:scale(.2);opacity:.95}100%{transform:scale(2.6);opacity:0}}
+@keyframes legendShine{0%{transform:translateX(-150%) skewX(-18deg)}60%,100%{transform:translateX(330%) skewX(-18deg)}}
 .legend-shine{position:absolute;inset:0;border-radius:13px;overflow:hidden;pointer-events:none;z-index:4;}
 .legend-shine::before{content:'';position:absolute;top:0;bottom:0;left:0;width:38%;
   background:linear-gradient(105deg,transparent,rgba(255,248,210,.75),rgba(255,255,255,.55),transparent);
@@ -230,7 +234,7 @@ html,body{height:100%;overflow:hidden;background:var(--bg0);color:var(--ink);
 
 /* ====== barra superior comum ====== */
 .topbar{display:flex;align-items:center;gap:12px;padding:8px 18px 0;z-index:2;}
-.backbtn{position:fixed;left:calc(16px + env(safe-area-inset-left));
+.backbtn{position:absolute;left:calc(16px + env(safe-area-inset-left));
   bottom:calc(20px + env(safe-area-inset-bottom));z-index:50;
   height:40px;flex:none;border-radius:10px;border:1px solid var(--panel-b);
   background:var(--panel);color:var(--ink);font-size:14px;font-weight:800;cursor:pointer;
@@ -258,7 +262,7 @@ html,body{height:100%;overflow:hidden;background:var(--bg0);color:var(--ink);
 /* VS: o texto está no CENTRO da imagem, então foca no meio horizontal */
 .mode-card.mode-vs-art{background-position:center 45% !important;}
 /* Adventure: foco próprio (texto na esquerda) */
-.mode-card.mode-adv-art{background-position:left 100% !important;}
+.mode-card.mode-adv-art{background-position:left 55% !important;}
 .mode-card.mode-arena-art.open{border-color:var(--gold);
   box-shadow:0 4px 18px rgba(0,0,0,.5),0 0 20px rgba(242,193,78,.15);}
 .mode-card .mtitle{font-size:22px;font-weight:900;letter-spacing:.02em;text-transform:uppercase;}
@@ -347,7 +351,7 @@ html,body{height:100%;overflow:hidden;background:var(--bg0);color:var(--ink);
 .map-opt{min-width:88px;flex:0 0 auto;}
 
 /* botão "Next": canto inferior direito, espelhando o Back (esquerdo). Compacto, dourado. */
-.go-btn{ position:fixed; right:calc(16px + env(safe-area-inset-right));
+.go-btn{ position:absolute; right:calc(16px + env(safe-area-inset-right));
   bottom:calc(20px + env(safe-area-inset-bottom)); z-index:50;
   height:calc(40px*var(--s)); flex:none; border-radius:calc(10px*var(--s)); border:none; cursor:pointer;
   font-size:calc(15px*var(--s)); font-weight:900; letter-spacing:.08em; text-transform:uppercase; color:#1a0f00;
@@ -635,6 +639,44 @@ input[type=range]::-webkit-slider-thumb{appearance:none;width:20px;height:20px;b
 .b-hp .bf{position:absolute;inset:0;z-index:0;transition:width .12s;}
 .b-hp .bl{position:relative;z-index:1;padding:5px 8px;font-size:10px;font-weight:900;
   color:#fff;text-shadow:0 0 3px #000;letter-spacing:.04em;white-space:nowrap;}
+/* HUD do Adventure: inimigos em lista no topo, herói GRANDE embaixo */
+#bHpBars.adv-enemies{flex-direction:column;flex-wrap:nowrap;gap:6px;padding:8px 12px 4px;}
+#bHpBars.adv-enemies .b-hp{flex:none;width:100%;min-width:0;height:28px;border-radius:9px;
+  transition:opacity .3s,transform .3s;}
+#bHpBars.adv-enemies .b-hp .bl{font-size:13px;padding:6px 11px;}
+#bHpBarsBottom.adv-hero{padding:0;}
+#bHpBarsBottom.adv-hero .b-hp{flex:none;width:100%;min-width:0;height:54px;border-radius:12px;border-width:3px;}
+#bHpBarsBottom.adv-hero .b-hp .bl{font-size:15px;font-weight:900;padding:8px 12px;letter-spacing:.02em;}
+.b-hp.dead-gone{opacity:0;transform:scale(.6);height:0!important;padding:0;margin:0;border-width:0;pointer-events:none;}
+/* no Adventure as barras ficam SOBREPOSTAS nas faixas de pedra (topo=inimigos, base=herói),
+   deixando o canvas ocupar a tela toda */
+/* inimigos: lista sobre a faixa de pedra do topo. Herói: barra menor no rodapé,
+   AO LADO do botão de explosão (shake), que fica no canto inferior direito. */
+#bHpBars.adv-enemies{position:absolute;top:2.5%;left:8px;right:8px;z-index:6;pointer-events:none;}
+#bHpBarsBottom.adv-hero{position:absolute;bottom:12px;left:16px;right:96px;z-index:6;pointer-events:none;}
+#scrBattle.adv-battle #bShake{bottom:12px;}   /* shake no canto, ao lado do HP do herói */
+/* botão de SHAKE (habilidade a cada 10s) */
+.shake-btn{position:absolute;right:12px;bottom:12px;z-index:9;width:58px;height:58px;border-radius:50%;
+  border:2px solid var(--gold);background:rgba(20,12,30,.8);color:#fff;font-size:25px;font-weight:900;
+  display:flex;align-items:center;justify-content:center;cursor:pointer;backdrop-filter:blur(4px);
+  box-shadow:0 4px 14px rgba(0,0,0,.5);touch-action:manipulation;user-select:none;}
+.shake-btn.ready{box-shadow:0 0 16px rgba(242,193,78,.7);}
+.shake-btn.armed{background:var(--gold);color:#1a0f00;animation:shakePulse .6s ease-in-out infinite;}
+.shake-btn.cooling{opacity:.45;border-color:var(--panel-b);font-size:21px;cursor:default;}
+@keyframes shakePulse{0%,100%{transform:scale(1);}50%{transform:scale(1.13);}}
+/* no Adventure a barra de controles (Menu/Som) da batalha some */
+#scrBattle.adv-battle .b-ctrl{display:none;}
+/* menu do mapa do Adventure */
+.mapmenu-overlay{position:fixed;inset:0;z-index:99992;display:none;align-items:center;justify-content:center;
+  background:rgba(0,0,0,.74);backdrop-filter:blur(2px);}
+.mapmenu-overlay.show{display:flex;}
+.mapmenu-card{background:linear-gradient(160deg,var(--panel),#120a1e);border:1.5px solid var(--gold);
+  border-radius:18px;padding:22px 20px;width:min(88vw,340px);text-align:center;box-shadow:0 16px 44px rgba(0,0,0,.6);}
+.mapmenu-card h3{margin:0 0 16px;color:var(--gold);font-size:19px;font-weight:900;}
+.mapmenu-card button{width:100%;margin:8px 0;padding:14px;border-radius:12px;font-size:15px;font-weight:800;
+  cursor:pointer;border:1.5px solid var(--panel-b);background:var(--panel-b);color:var(--ink);}
+.mapmenu-card button.mm-resume{border-color:var(--gold);background:linear-gradient(180deg,var(--gold),var(--gold-d));color:#1a0f00;}
+.mapmenu-card button.mm-abandon{border-color:rgba(255,85,102,.5);color:#ff8a8a;background:transparent;}
 #bstage{flex:1;position:relative;margin:0 10px;overflow:hidden;min-height:0;}
 #bstage canvas{display:block;width:100%;height:100%;}
 #victoryCard{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;
@@ -763,6 +805,7 @@ input[type=range]::-webkit-slider-thumb{appearance:none;width:20px;height:20px;b
       <div class="menu-item" data-act="almanac" data-i18n="almanac">Grimório</div>
       <div class="menu-item" data-act="achievements" data-i18n="achievements">Conquistas</div>
       <div class="menu-item" data-act="shop" data-i18n="shop">Loja</div>
+      <div class="menu-item" data-act="code">🎟️ Code</div>
       <div class="menu-item" data-act="settings" data-i18n="settings">Configurações</div>
       <div class="menu-item" data-act="quit" data-i18n="quit">Sair</div>
     </div>
@@ -908,7 +951,7 @@ input[type=range]::-webkit-slider-thumb{appearance:none;width:20px;height:20px;b
     <div class="topbar" style="position:relative;z-index:3;justify-content:center;">
       <h2 data-i18n="advChooseHero">Escolher Herói</h2>
     </div>
-    <div class="setup-body" id="advHeroBody" style="gap:14px;position:relative;z-index:3;"></div>
+    <div class="setup-body" id="advHeroBody" style="gap:14px;position:relative;z-index:3;padding:14px 16px 24px;overflow-y:auto;"></div>
     <button class="adv-back" data-back="scrAdvMenu" data-i18n="back">‹ Voltar</button>
   </div>
 
@@ -917,7 +960,7 @@ input[type=range]::-webkit-slider-thumb{appearance:none;width:20px;height:20px;b
     <div class="topbar" style="position:relative;z-index:3;justify-content:center;">
       <h2 data-i18n="advConfigHero">Configurar Herói</h2>
     </div>
-    <div class="setup-body" id="advConfigBody" style="gap:14px;position:relative;z-index:3;padding-bottom:90px;"></div>
+    <div class="setup-body" id="advConfigBody" style="gap:14px;position:relative;z-index:3;padding:14px 16px 90px;overflow-y:auto;"></div>
     <button class="adv-back" data-back="scrAdvHero" data-i18n="back">‹ Voltar</button>
   </div>
 
@@ -935,23 +978,39 @@ input[type=range]::-webkit-slider-thumb{appearance:none;width:20px;height:20px;b
     <div class="topbar" style="position:relative;z-index:3;justify-content:center;">
       <h2 data-i18n="advGrimoire">Grimório Adventure</h2>
     </div>
-    <div class="setup-body" id="advGrimoireBody" style="gap:14px;position:relative;z-index:3;padding-bottom:70px;flex:1;display:flex;flex-direction:column;overflow-y:auto;-webkit-overflow-scrolling:touch;"></div>
+    <div class="setup-body" id="advGrimoireBody" style="gap:14px;position:relative;z-index:3;padding-bottom:70px;flex:1;display:flex;flex-direction:column;overflow-y:auto;overflow-x:hidden;-webkit-overflow-scrolling:touch;"></div>
     <button class="adv-back" data-back="scrAdvMenu" data-i18n="back">‹ Voltar</button>
   </div>
 
   <!-- ============ ADVENTURE: mapa da torre ============ -->
   <div class="screen" id="scrAdvMap">
     <div class="topbar">
-      <button class="backbtn" data-back="scrAdvMenu" data-i18n="back">Voltar</button>
+      <button class="backbtn" id="advMapMenuBtn" data-i18n="mapMenu">☰ Menu</button>
       <h2 data-i18n="advFloor">Andar</h2>
     </div>
     <div class="setup-body" id="advMapBody" style="gap:0;padding:0;flex:1;display:flex;flex-direction:column;overflow:hidden;"></div>
   </div>
 
+  <!-- menu de pausa do mapa (Adventure) -->
+  <div class="mapmenu-overlay" id="mapMenuOverlay">
+    <div class="mapmenu-card" id="mapMenuMain">
+      <h3 data-i18n="mmPause">⏸️ Pausa</h3>
+      <button class="mm-audio" id="mmAudio">🔊 Áudio: ligado</button>
+      <button class="mm-resume" id="mmResume" data-i18n="mmResume">▶️ Retomar</button>
+      <button class="mm-abandon" id="mmAbandon" data-i18n="mmAbandon">🚪 Abandonar run</button>
+    </div>
+    <div class="mapmenu-card" id="mapMenuConfirm" style="display:none;">
+      <h3 data-i18n="mmSure">⚠️ Certeza?</h3>
+      <div style="color:var(--dim);font-size:13px;margin-bottom:16px;line-height:1.4;" data-i18n="mmLoseProgress">Você vai perder o progresso desta run.</div>
+      <button class="mm-abandon" id="mmConfirmYes" data-i18n="mmYesAbandon">Sim, abandonar</button>
+      <button class="mm-resume" id="mmConfirmNo" data-i18n="uiCancel">Cancelar</button>
+    </div>
+  </div>
+
   <!-- ============ ADVENTURE: recompensa (escolher carta) ============ -->
   <div class="screen" id="scrAdvReward">
     <div class="topbar">
-      <h2>Escolha uma Carta</h2>
+      <h2 data-i18n="advChooseCard">Escolha uma Carta</h2>
     </div>
     <div class="setup-body" id="advRewardBody" style="flex:1;display:flex;flex-direction:column;justify-content:center;gap:12px;padding:6px 18px 20px;overflow-y:auto;-webkit-overflow-scrolling:touch;"></div>
   </div>
@@ -959,7 +1018,7 @@ input[type=range]::-webkit-slider-thumb{appearance:none;width:20px;height:20px;b
   <!-- ============ ADVENTURE: fogueira (3 opções) ============ -->
   <div class="screen" id="scrAdvCampfire">
     <div class="topbar">
-      <h2>🔥 Fogueira</h2>
+      <h2 data-i18n="advCampfire">🔥 Fogueira</h2>
     </div>
     <div class="setup-body" id="advCampfireBody" style="gap:12px;justify-content:center;"></div>
   </div>
@@ -968,7 +1027,7 @@ input[type=range]::-webkit-slider-thumb{appearance:none;width:20px;height:20px;b
   <div class="screen" id="scrAdvStatus">
     <div class="topbar">
       <button class="backbtn" data-back="scrAdvMap" data-i18n="back">Voltar</button>
-      <h2>Status</h2>
+      <h2 data-i18n="advStatus">Status</h2>
     </div>
     <div class="setup-body" id="advStatusBody" style="gap:14px;"></div>
   </div>
@@ -977,7 +1036,7 @@ input[type=range]::-webkit-slider-thumb{appearance:none;width:20px;height:20px;b
   <div class="screen" id="scrAdvBag">
     <div class="topbar">
       <button class="backbtn" data-back="scrAdvMap" data-i18n="back">Voltar</button>
-      <h2>Mochila</h2>
+      <h2 data-i18n="advBag">Mochila</h2>
     </div>
     <div class="setup-body" id="advBagBody" style="gap:12px;"></div>
   </div>
@@ -991,6 +1050,8 @@ input[type=range]::-webkit-slider-thumb{appearance:none;width:20px;height:20px;b
   <div class="screen" id="scrBattle">
     <div class="b-top" id="bHpBars"></div>
     <div id="bstage"><canvas id="bcv"></canvas>
+      <!-- botão de SHAKE: quando pronto, arma e toca a arena pra empurrar tudo pra longe -->
+      <button id="bShake" class="shake-btn ready">💥</button>
       <!-- bandejas de itens (só no modo Versus) -->
       <div class="item-tray teamB-tray" id="trayB">
         <div class="item-btn" data-item="mine">💥</div>
@@ -1019,7 +1080,7 @@ input[type=range]::-webkit-slider-thumb{appearance:none;width:20px;height:20px;b
     </div>
     <div class="b-top" id="bHpBarsBottom"></div>
     <div class="b-ctrl">
-      <button id="bMenu">Menu</button>
+      <button id="bMenu" data-i18n="menuBtn">Menu</button>
       <button class="sndbtn" id="bSound">🔊</button>
     </div>
   </div>
@@ -1029,16 +1090,16 @@ input[type=range]::-webkit-slider-thumb{appearance:none;width:20px;height:20px;b
 
   <div class="modal" id="gearModal">
     <div class="modal-card">
-      <h3><span id="gearFace">⚙</span> <span id="gearName">Lutador</span></h3>
-      <div class="msub">Ajuste os atributos deste lutador</div>
+      <h3><span id="gearFace">⚙</span> <span id="gearName" data-i18n="gearFighter">Lutador</span></h3>
+      <div class="msub" data-i18n="gearAdjust">Ajuste os atributos deste lutador</div>
       <div id="gearSliders"></div>
       <div class="cheat-row">
-        <div><div class="crname">Imortal</div><div class="crdesc">Não recebe dano</div></div>
+        <div><div class="crname" data-i18n="gearImmortal">Imortal</div><div class="crdesc" data-i18n="gearNoDmg">Não recebe dano</div></div>
         <div class="toggle" id="cheatImmortal"></div>
       </div>
       <div class="modal-actions">
-        <button class="btn-reset" id="gearReset">Resetar padrão</button>
-        <button class="btn-done" id="gearDone">Concluir</button>
+        <button class="btn-reset" id="gearReset" data-i18n="gearReset">Resetar padrão</button>
+        <button class="btn-done" id="gearDone" data-i18n="gearDone">Concluir</button>
       </div>
     </div>
   </div>
@@ -1056,6 +1117,21 @@ const ADV_BTN_DATA='assets/adv_btn.jpg';
 const I18N = {
   pt:{
     _name:'Português',
+    mmPause:'⏸️ Pausa', mmAudioOn:'🔊 Áudio: ligado', mmAudioOff:'🔇 Áudio: desligado',
+    mmResume:'▶️ Retomar', mmAbandon:'🚪 Abandonar run', mmSure:'⚠️ Certeza?',
+    mmLoseProgress:'Você vai perder o progresso desta run.', mmYesAbandon:'Sim, abandonar',
+    uiCancel:'Cancelar', uiClose:'Fechar', mapMenu:'☰ Menu', advCampfire:'🔥 Fogueira',
+    gearFighter:'Lutador', gearAdjust:'Ajuste os atributos deste lutador', gearImmortal:'Imortal',
+    gearNoDmg:'Não recebe dano', gearReset:'Resetar padrão', gearDone:'Concluir',
+    statDmg:'Dano', statHp:'Vida', statSize:'Tamanho', statSpeed:'Velocidade', statFireRate:'Vel. de disparo',
+    gachaTitle:'🎰 Gacha de Personagens', gachaLockedSuffix:'personagem(ns) ainda travado(s)',
+    gachaAllUnlocked:'🎉 Tudo desbloqueado — repetidos viram 50 🪙', gachaRoll1:'Rodar 1x', gachaRoll11:'Rodar 11x',
+    coinsInsufficient:'🪙 Moedas insuficientes', gachaResult:'🎉 Resultado', gachaNew:'NOVO!', gachaSpin:'GIRAR', gachaContinue:'Continuar',
+    codeTitle:'🎟️ Resgatar Código', codeSub:'Digite um código promocional.', codePlaceholder:'Código...',
+    codeRedeem:'Resgatar', codeEnter:'Digite um código', codeAdmin:'🐰 ADMIN! Tudo desbloqueado', codeInvalid:'❌ Código inválido',
+    dailyRewardPrefix:'🎁 Recompensa diária: +', storeFree:'✓ Livre', storeBuyPrefix:'Comprar ', storeUnlockedSuffix:' desbloqueado!',
+    searchMap:'Buscar mapa...', mapAll:'Todos', mapNone:'Nenhum mapa nesse filtro.',
+    quitBye:'Até a próxima!', quitClose:'Você pode fechar esta aba.', menuBtn:'Menu',
     start:'Iniciar', almanac:'Grimório', achievements:'Conquistas', shop:'Loja',
     settings:'Configurações', quit:'Sair',
     gameModes:'Modos de Jogo', arenaConfig:'Arena Mode · Configurar',
@@ -1116,6 +1192,21 @@ const I18N = {
   },
   en:{
     _name:'English',
+    mmPause:'⏸️ Paused', mmAudioOn:'🔊 Audio: on', mmAudioOff:'🔇 Audio: off',
+    mmResume:'▶️ Resume', mmAbandon:'🚪 Abandon run', mmSure:'⚠️ Are you sure?',
+    mmLoseProgress:"You'll lose this run's progress.", mmYesAbandon:'Yes, abandon',
+    uiCancel:'Cancel', uiClose:'Close', mapMenu:'☰ Menu', advCampfire:'🔥 Campfire',
+    gearFighter:'Fighter', gearAdjust:"Adjust this fighter's stats", gearImmortal:'Immortal',
+    gearNoDmg:'Takes no damage', gearReset:'Reset default', gearDone:'Done',
+    statDmg:'Damage', statHp:'Health', statSize:'Size', statSpeed:'Speed', statFireRate:'Fire rate',
+    gachaTitle:'🎰 Character Gacha', gachaLockedSuffix:'character(s) still locked',
+    gachaAllUnlocked:'🎉 All unlocked — duplicates give 50 🪙', gachaRoll1:'Roll 1x', gachaRoll11:'Roll 11x',
+    coinsInsufficient:'🪙 Not enough coins', gachaResult:'🎉 Result', gachaNew:'NEW!', gachaSpin:'SPIN', gachaContinue:'Continue',
+    codeTitle:'🎟️ Redeem Code', codeSub:'Enter a promo code.', codePlaceholder:'Code...',
+    codeRedeem:'Redeem', codeEnter:'Enter a code', codeAdmin:'🐰 ADMIN! All unlocked', codeInvalid:'❌ Invalid code',
+    dailyRewardPrefix:'🎁 Daily reward: +', storeFree:'✓ Free', storeBuyPrefix:'Buy ', storeUnlockedSuffix:' unlocked!',
+    searchMap:'Search map...', mapAll:'All', mapNone:'No maps in this filter.',
+    quitBye:'See you next time!', quitClose:'You can close this tab.', menuBtn:'Menu',
     start:'Start', almanac:'Grimoire', achievements:'Achievements', shop:'Shop',
     settings:'Settings', quit:'Quit',
     gameModes:'Game Modes', arenaConfig:'Arena Mode · Setup',
@@ -1175,6 +1266,21 @@ const I18N = {
   },
   ja:{
     _name:'日本語',
+    mmPause:'⏸️ ポーズ', mmAudioOn:'🔊 音声：オン', mmAudioOff:'🔇 音声：オフ',
+    mmResume:'▶️ 再開', mmAbandon:'🚪 ランを放棄', mmSure:'⚠️ よろしいですか？',
+    mmLoseProgress:'このランの進行状況を失います。', mmYesAbandon:'はい、放棄する',
+    uiCancel:'キャンセル', uiClose:'閉じる', mapMenu:'☰ メニュー', advCampfire:'🔥 焚き火',
+    gearFighter:'ファイター', gearAdjust:'このファイターのステータスを調整', gearImmortal:'不死身',
+    gearNoDmg:'ダメージを受けない', gearReset:'デフォルトに戻す', gearDone:'完了',
+    statDmg:'ダメージ', statHp:'HP', statSize:'サイズ', statSpeed:'スピード', statFireRate:'発射速度',
+    gachaTitle:'🎰 キャラガチャ', gachaLockedSuffix:'体がまだロック中',
+    gachaAllUnlocked:'🎉 全解放 — 重複は50🪙に', gachaRoll1:'1回引く', gachaRoll11:'11回引く',
+    coinsInsufficient:'🪙 コインが足りません', gachaResult:'🎉 結果', gachaNew:'新規！', gachaSpin:'回す', gachaContinue:'続ける',
+    codeTitle:'🎟️ コード引き換え', codeSub:'プロモコードを入力。', codePlaceholder:'コード...',
+    codeRedeem:'引き換え', codeEnter:'コードを入力', codeAdmin:'🐰 ADMIN！全解放', codeInvalid:'❌ 無効なコード',
+    dailyRewardPrefix:'🎁 デイリー報酬：+', storeFree:'✓ 無料', storeBuyPrefix:'購入 ', storeUnlockedSuffix:' 解放！',
+    searchMap:'マップを検索...', mapAll:'すべて', mapNone:'このフィルターにマップなし',
+    quitBye:'またね！', quitClose:'このタブを閉じてOK。', menuBtn:'メニュー',
     start:'スタート', almanac:'図鑑', achievements:'実績', shop:'ショップ',
     settings:'設定', quit:'終了',
     gameModes:'ゲームモード', arenaConfig:'アリーナモード · 設定',
@@ -1241,7 +1347,7 @@ const CHARS = {
     kind:'brawler', punchDmg:5, punchReach:14, grabDmg:8, grabCd:120 },
   samurai:{ name:'Samurai', color:'#a3d21e', dark:'#5f7d0f', icon:'🗡',
     kind:'katana', dmg:12, slashCd:90, ultCd:600 },
-  arqueiro:{ name:'Range', color:'#3b9ae0', dark:'#1f5f96', icon:'🏹',
+  arqueiro:{ name:'Ranger', color:'#3b9ae0', dark:'#1f5f96', icon:'🏹',
     kind:'archer', dmg:10, fireCd:120 },
   mago:{ name:'Mage', color:'#c05ae0', dark:'#7a2f96', icon:'🔮',
     kind:'mage', dmg:10, splash:24, fireCd:70 },
@@ -1274,6 +1380,10 @@ const CHARS = {
     kind:'skeleton', hp:45, dmg:5, fireCd:150 }       // branco, atira flechas
 };
 const ORDER=['berserker','samurai','arqueiro','mago','clonador','luciferus','pandora','soldier','pacman','heavyweight','chronos','vampire','soulstealer','hunter'];
+// personagens LIVRES por padrão; o resto trava e precisa comprar/gacha (Arena)
+const FREE_CHARS=['berserker','samurai','arqueiro','mago'];
+const LOCKABLE_CHARS=ORDER.filter(id=>!FREE_CHARS.includes(id));
+function isCharUnlocked(id){ return FREE_CHARS.includes(id) || !!(typeof SAVE!=='undefined'&&SAVE.chars&&SAVE.chars[id]); }
 
 /* ---------- ALMANAC: descrições dos personagens ---------- */
 const ALMANAC = {
@@ -1439,16 +1549,75 @@ function achievementText(a){
 
 /* ---------- PROGRESSO (salvo no aparelho) ---------- */
 const SAVE_KEY='bfa_save_v1';
-let SAVE = { coins:0, games:0, kills:0, suicides:0, flawless:0, unlocked:{} };
+let SAVE = { coins:0, games:0, kills:0, suicides:0, flawless:0, unlocked:{}, chars:{}, codes:{}, lastDaily:0 };
 function loadSave(){
-  try{ const raw=localStorage.getItem(SAVE_KEY); if(raw){ SAVE=Object.assign(SAVE, JSON.parse(raw)); if(!SAVE.unlocked)SAVE.unlocked={}; } }catch(e){}
+  try{ const raw=localStorage.getItem(SAVE_KEY); if(raw){ SAVE=Object.assign(SAVE, JSON.parse(raw)); if(!SAVE.unlocked)SAVE.unlocked={}; if(!SAVE.chars)SAVE.chars={}; if(!SAVE.codes)SAVE.codes={}; } }catch(e){}
   // carrega as configurações salvas (idioma, volume, toggles)
   try{ const s=localStorage.getItem('bfa_settings_v1'); if(s){ Object.assign(G.settings, JSON.parse(s)); } }catch(e){}
 }
 function persistSave(){ try{ localStorage.setItem(SAVE_KEY, JSON.stringify(SAVE)); }catch(e){} }
 function persistSettings(){ try{ localStorage.setItem('bfa_settings_v1', JSON.stringify(G.settings)); }catch(e){} }
+// toast simples (mensagem flutuante no topo) — usado por recompensas/códigos
+function coinToast(msg){
+  const el=document.createElement('div'); el.textContent=msg;
+  el.style.cssText='position:fixed;top:60px;left:50%;transform:translateX(-50%) translateY(-8px);z-index:99999;'
+    +'background:rgba(20,10,30,.94);border:1.5px solid var(--gold);color:var(--gold);font-weight:900;font-size:14px;'
+    +'padding:10px 18px;border-radius:14px;box-shadow:0 6px 22px rgba(0,0,0,.55);opacity:0;transition:opacity .3s ease,transform .3s ease;pointer-events:none;';
+  document.body.appendChild(el);
+  requestAnimationFrame(()=>{ el.style.opacity='1'; el.style.transform='translateX(-50%) translateY(0)'; });
+  setTimeout(()=>{ el.style.opacity='0'; el.style.transform='translateX(-50%) translateY(-14px)'; setTimeout(()=>el.remove(),420); }, 2800);
+}
+// recompensa diária de login: +100 moedas a cada 24h
+const DAILY_COINS=100, DAY_MS=24*3600*1000;
+function checkDailyReward(){
+  const now=Date.now();
+  if(!SAVE.lastDaily || (now - SAVE.lastDaily) >= DAY_MS){
+    SAVE.lastDaily=now; SAVE.coins+=DAILY_COINS; persistSave(); updateCoinDisplay();
+    setTimeout(()=>coinToast(t('dailyRewardPrefix')+DAILY_COINS+' 🪙'), 700);
+  }
+}
+// ===== CÓDIGOS PROMOCIONAIS =====
+function redeemCode(raw){
+  const code=(raw||'').trim().toLowerCase();
+  if(!code) return {ok:false,msg:t('codeEnter')};
+  if(code==='admincoelhudo'){
+    LOCKABLE_CHARS.forEach(id=>{ SAVE.chars[id]=true; }); // desbloqueia TODOS os personagens
+    let bonus=0;
+    if(!SAVE.codes[code]){ SAVE.codes[code]=true; bonus=5000; SAVE.coins+=bonus; }
+    SAVE.admin=true; persistSave(); updateCoinDisplay();
+    return {ok:true,msg:t('codeAdmin')+(bonus?' +'+bonus+'🪙':'')};
+  }
+  if(code==='coelhudo10k'){ // REPETÍVEL: +10000 moedas cada vez que resgatar
+    SAVE.coins+=10000; persistSave(); updateCoinDisplay();
+    return {ok:true,msg:'💰 +10000 🪙'};
+  }
+  return {ok:false,msg:t('codeInvalid')};
+}
+function showCodeModal(){
+  const ov=document.createElement('div');
+  ov.style.cssText='position:fixed;inset:0;z-index:99990;display:flex;align-items:center;justify-content:center;background:rgba(0,0,0,.6);';
+  const box=document.createElement('div');
+  box.style.cssText='background:linear-gradient(160deg,var(--panel),#120a1e);border:1.5px solid var(--panel-b);border-radius:18px;padding:22px;width:min(88vw,360px);box-shadow:0 16px 44px rgba(0,0,0,.6);';
+  box.innerHTML='<div style="font-size:16px;font-weight:900;color:var(--gold);margin-bottom:4px;">'+t('codeTitle')+'</div>'
+    +'<div style="font-size:12px;color:var(--dim);margin-bottom:14px;">'+t('codeSub')+'</div>';
+  const inp=document.createElement('input'); inp.type='text'; inp.placeholder=t('codePlaceholder'); inp.autocapitalize='none'; inp.autocomplete='off';
+  inp.style.cssText='width:100%;box-sizing:border-box;padding:11px 12px;border-radius:11px;border:1.5px solid var(--panel-b);background:#0e0818;color:var(--ink);font-size:15px;outline:none;margin-bottom:14px;';
+  box.appendChild(inp);
+  const row=document.createElement('div'); row.style.cssText='display:flex;gap:8px;';
+  const close=()=>ov.remove();
+  const redeem=document.createElement('button'); redeem.textContent=t('codeRedeem');
+  redeem.style.cssText='flex:1;padding:11px;border-radius:11px;border:none;background:var(--gold);color:#12121a;font-weight:900;font-size:14px;cursor:pointer;';
+  const cancel=document.createElement('button'); cancel.textContent=t('uiClose');
+  cancel.style.cssText='padding:11px 16px;border-radius:11px;border:1.5px solid var(--panel-b);background:transparent;color:var(--dim);font-weight:800;font-size:14px;cursor:pointer;';
+  redeem.addEventListener('click',()=>{ const r=redeemCode(inp.value); audioInit(); try{ if(r.ok){SFX.confirm&&SFX.confirm();} else {SFX.lock&&SFX.lock();} }catch(e){} coinToast(r.msg); if(r.ok){ if(G.screen==='scrSelect')buildSelect(); close(); } });
+  inp.addEventListener('keydown',e=>{ if(e.key==='Enter')redeem.click(); });
+  cancel.addEventListener('click',()=>{ try{SFX.back&&SFX.back();}catch(e){} close(); });
+  ov.addEventListener('click',e=>{ if(e.target===ov)close(); });
+  row.appendChild(redeem); row.appendChild(cancel); box.appendChild(row); ov.appendChild(box);
+  document.body.appendChild(ov); setTimeout(()=>inp.focus(),50);
+}
 function updateCoinDisplay(){
-  ['coinCount','achCoins','shopCoins'].forEach(id=>{ const el=document.getElementById(id); if(el)el.textContent=SAVE.coins; });
+  ['coinCount','achCoins','shopCoins','advStoreCoins'].forEach(id=>{ const el=document.getElementById(id); if(el)el.textContent=SAVE.coins; });
 }
 // checa conquistas recém-completadas e premia moedas
 function checkAchievements(){
@@ -1464,16 +1633,18 @@ function checkAchievements(){
 
 
 /* ---------- MAPAS ---------- */
+// tier = tamanho (S/M/L/XL/XXL). Escala: S=3, M=5, L=8, XL=11, XXL=15 bolas de largura.
+// ballFrac = 1/(2*bolas) — recalculado pra bater com o tier.
 const MAPS = {
-  small:{ name:'Pequeno', icon:'▪', shape:'square', size:1.0, ballFrac:0.185 },
-  medium:{ name:'Médio', icon:'◼', shape:'square', size:1.0, ballFrac:0.115 },
-  large:{ name:'Grande', icon:'⬛', shape:'square', size:1.0, ballFrac:0.072 },
-  xl:{ name:'Gigante', icon:'🟪', shape:'square', size:1.0, ballFrac:0.045 },
-  circle:{ name:'Círculo', icon:'⬤', shape:'circle', size:0.96, ballFrac:0.09 },
-  boxbox:{ name:'Box in Box', icon:'⊡', shape:'boxbox', size:1.0, ballFrac:0.10 },
-  plus:{ name:'Cruz', icon:'➕', shape:'plus', size:1.0, ballFrac:0.10 },
-  blackhole:{ name:'Buraco Negro', icon:'🕳', shape:'blackhole', size:1.0, ballFrac:0.045 },
-  waterfalls:{ name:'Cachoeira', icon:'🏞', shape:'waterfalls', size:1.0, ballFrac:0.045 }
+  small:{ name:'Pequeno', icon:'▪', shape:'square', size:1.0, ballFrac:0.167, tier:'S' },
+  medium:{ name:'Médio', icon:'◼', shape:'square', size:1.0, ballFrac:0.10, tier:'M' },
+  large:{ name:'Grande', icon:'⬛', shape:'square', size:1.0, ballFrac:0.0625, tier:'L' },
+  xl:{ name:'Gigante', icon:'🟪', shape:'square', size:1.0, ballFrac:0.0455, tier:'XL' },
+  circle:{ name:'Círculo', icon:'⬤', shape:'circle', size:0.96, ballFrac:0.10, tier:'M' },
+  boxbox:{ name:'Box in Box', icon:'⊡', shape:'boxbox', size:1.0, ballFrac:0.0625, tier:'L' },
+  plus:{ name:'Cruz', icon:'➕', shape:'plus', size:1.0, ballFrac:0.10, tier:'M' },
+  blackhole:{ name:'Buraco Negro', icon:'🕳', shape:'blackhole', size:1.0, ballFrac:0.0455, tier:'XL' },
+  waterfalls:{ name:'Cachoeira', icon:'🏞', shape:'waterfalls', size:1.0, ballFrac:0.0333, tier:'XXL' }
 };
 const MAP_ORDER=['small','medium','large','xl','circle','boxbox','plus','blackhole','waterfalls'];
 
@@ -1515,7 +1686,8 @@ let katanaCutBuffer=null; // som de corte da katana (gravado, embutido em base64
 function audioInit(){ if(!AC){ try{ AC=new (window.AudioContext||window.webkitAudioContext)(); }catch(e){} }
   if(AC&&AC.state==='suspended')AC.resume();
   if(AC&&!sfxBus)buildSfxBus();
-  if(AC)decodeLoadedSfx(); }
+  if(AC)decodeLoadedSfx();
+  if(typeof updateMusicForScreen==='function')updateMusicForScreen(); } // libera a trilha no 1º gesto
 // SFX gravados: agora sao ARQUIVOS em assets/sfx/ (fora do codigo).
 // Baixa o arraybuffer no boot; decodifica quando o AudioContext existir.
 // Roda via http:// (main.py serve por localhost). Em file:// o fetch falha
@@ -1701,8 +1873,8 @@ const SFX={
     synth({freq:2600,dur:0.16,wave:'sawtooth',gain:0.14,glide:-1400,filter:{type:'highpass',freq:1600}});
     synth({freq:1400,dur:0.09,wave:'square',gain:0.06,glide:-600,filter:{type:'bandpass',freq:3000,q:3}}); } },
   touch(){ if(canPlay('touch',65))synth({freq:200,dur:0.10,wave:'sine',gain:0.14,glide:110,sub:0.4,filter:{type:'lowpass',freq:900}}); },
-  arrow(){ if(canPlay('arrow',70)){ synth({freq:900,dur:0.12,wave:'sawtooth',gain:0.09,glide:280,filter:{type:'bandpass',freq:2000,q:2}});
-    hit({dur:0.06,gain:0.05,freq:5000,filterType:'highpass'}); } },
+  arrow(){ if(canPlay('arrow',70)){
+    try{ if(G.settings.sfx){ const a=new Audio('assets/sfx/arrow.mp3'); a.volume=vol()*0.6; a.play().catch(()=>{}); } }catch(e){} } },
   // tiro de rifle: usa o MP3 gravado se já carregou; senão, o estampido sintetizado.
   // Corta o som logo após o "crack" inicial pra caber na rajada rápida (pá-pá-pá sem embolar).
   gunshot(){ if(canPlay('gunshot',45)){
@@ -2332,6 +2504,65 @@ function scheduleMetal(stepDur){
 }
 function stopBattleMusic(){ if(battleMusicTimer){clearInterval(battleMusicTimer);battleMusicTimer=null;} }
 
+// ================== MÚSICA MP3 (menu + fase) — crossfade + loop ==================
+// Substitui a trilha sintetizada por 2 arquivos (menu.mp3 e phase.mp3). Loop contínuo,
+// e quando a OUTRA faixa começa, a atual faz fade-out enquanto a nova faz fade-in
+// (crossfade) — nada de terminar abruptamente. As funções abaixo SOBRESCREVEM as de cima.
+const MUSIC_SRC = { main:'assets/music/main.mp3', menu:'assets/music/menu.mp3', phase:'assets/music/phase.mp3', rush:'assets/music/rush.mp3' };
+const musicEls = {};
+let musicWant = null;                 // faixa desejada da tela atual ('menu'|'phase'|null)
+let musicFadeRAF = 0, musicFadeLast = 0;
+const MUSIC_FADE_MS = 1400;           // duração do fade in/out
+function musicVolTarget(){ return (G.settings.vol/100) * 0.6; }
+function ensureMusicEl(track){
+  let a = musicEls[track];
+  if(!a){ a = new Audio(MUSIC_SRC[track]); a.loop = true; a.preload = 'auto'; a.volume = 0; musicEls[track] = a; }
+  return a;
+}
+function musicApply(){
+  const target = G.settings.music ? musicWant : null;
+  if(target){ const a = ensureMusicEl(target); if(a.paused){ a.play().catch(()=>{}); } }
+  if(!musicFadeRAF){ musicFadeLast = 0; musicFadeRAF = requestAnimationFrame(musicFadeStep); }
+}
+function musicFadeStep(ts){
+  if(!musicFadeLast) musicFadeLast = ts;
+  const dt = ts - musicFadeLast; musicFadeLast = ts;
+  const target = G.settings.music ? musicWant : null;
+  const full = musicVolTarget();
+  const rate = Math.max(0.003, full * dt / MUSIC_FADE_MS);
+  let busy = false;
+  for(const k of ['main','menu','phase','rush']){
+    const a = musicEls[k]; if(!a) continue;
+    const want = (k===target) ? full : 0;
+    if(a.volume < want - 0.002){ a.volume = Math.min(want, a.volume + rate); busy = true; if(a.paused) a.play().catch(()=>{}); }
+    else if(a.volume > want + 0.002){ a.volume = Math.max(0, a.volume - rate); busy = true; if(want===0 && a.volume<=0.004 && !a.paused) a.pause(); }
+    else { if(a.volume!==want) a.volume = want; if(want===0 && !a.paused) a.pause(); }
+  }
+  musicFadeRAF = busy ? requestAnimationFrame(musicFadeStep) : 0;
+}
+function musicRequest(track){ musicWant = track; musicApply(); } // fade loop lê musicWant ao vivo
+// As faixas MP3 são SÓ do Adventure: menu.mp3 no HUB do Adventure, phase.mp3 na masmorra/batalha.
+// O MENU INICIAL do jogo continua com a trilha sintetizada original (não sobrescrevo startMusic/stopMusic).
+function startMusic(){ musicRequest('main'); }            // menu INICIAL do jogo = Menu.mp3
+function startAdventureMusic(){ musicRequest('menu'); }   // hub do Adventure = Dungeon Adventure menu
+function startDungeonMusic(){ musicRequest('phase'); }    // masmorra = Dungeon Fase
+function startBattleMusic(){ musicRequest(advBattleActive?'phase':'rush'); } // Adventure=Fase, Arena/VS=Battle Rush
+function stopMusic(){ musicRequest(null); }
+function stopAdventureMusic(){ musicRequest(null); }
+function stopDungeonMusic(){ musicRequest(null); }
+function stopBattleMusic(){ musicRequest(null); }
+// roteia a música conforme a tela atual (chamado pelo show(), toggles e no 1º gesto)
+function updateMusicForScreen(){
+  if(!G.settings.music){ musicRequest(null); return; }
+  const id=G.screen;
+  const dun=['scrAdvMap','scrAdvReward','scrAdvCampfire','scrAdvBag','scrAdvStatus'].includes(id);
+  const adv=['scrAdvMenu','scrAdvHero','scrAdvConfig','scrAdvStore','scrAdvGrimoire'].includes(id);
+  if(id==='scrBattle') musicRequest(advBattleActive?'phase':'rush'); // Adventure=Fase, Arena/VS=Battle Rush
+  else if(dun) musicRequest('phase');                  // masmorra (só Adventure)
+  else if(adv) musicRequest('menu');                   // hub do Adventure
+  else musicRequest('main');                           // menu inicial do jogo
+}
+
 // ---------- FAIXA 2: BATALHA DE MASMORRA (sombria, pesada) ----------
 // riff grave menor (Dm natural), palm-mute lento — clima de combate em calabouço
 const DG_RIFF=[
@@ -2614,7 +2845,7 @@ function show(id, zoom){
   const advScreens=['scrAdvMenu','scrAdvHero','scrAdvConfig','scrAdvStore','scrAdvGrimoire'];
   // telas que ficam DENTRO da masmorra (mapa da torre + baú/recompensa + fogueira):
   // mantêm o fundo de pedra e a trilha de dungeon, sem trocar pra música do menu
-  const dungeonScreens=['scrAdvMap','scrAdvReward','scrAdvCampfire'];
+  const dungeonScreens=['scrAdvMap','scrAdvReward','scrAdvCampfire','scrAdvBag','scrAdvStatus'];
   const isDungeon = dungeonScreens.includes(id);
   // fundo de fogo no #app enquanto no Adventure: cobre a transição (sem piscar preto nem bolinhas)
   const app=document.getElementById('app');
@@ -2622,22 +2853,8 @@ function show(id, zoom){
     app.classList.toggle('adv-active', advScreens.includes(id) || isDungeon);
     app.classList.toggle('dungeon-active', isDungeon);   // troca o fogo pela masmorra
   }
-  if(id==='scrBattle'){ stopMusic(); stopAdventureMusic(); stopDungeonMusic(); }
-  else if(isDungeon){
-    // masmorra (mapa/baú/fogueira): fundo e música de masmorra
-    stopMusic(); stopAdventureMusic();
-    if(!dungeonTimer) startDungeonMusic();
-  }
-  else if(advScreens.includes(id)){
-    // está no Adventure: garante que a música do menu principal não toque por cima
-    stopMusic(); stopDungeonMusic();
-    if(!advMusicTimer) startAdventureMusic();
-  } else {
-    // telas normais do jogo: para a do Adventure/masmorra (se estava tocando) e volta a do menu
-    if(advMusicTimer) stopAdventureMusic();
-    if(dungeonTimer) stopDungeonMusic();
-    startMusic();
-  }
+  // MÚSICA por tela: menu inicial = synth original; Adventure = menu.mp3; masmorra/batalha = phase.mp3
+  updateMusicForScreen();
 }
 
 // mostra uma tela com efeito de "virada de página" (nova entra deslizando da direita)
@@ -2687,6 +2904,7 @@ document.querySelectorAll('#titleMenu .menu-item').forEach(it=>{
     else if(act==='almanac'){ SFX.select(); buildAlmanac(); showSlide('scrAlmanac'); }
     else if(act==='achievements'){ SFX.select(); buildAchievements(); showSlide('scrAchievements'); }
     else if(act==='shop'){ SFX.select(); buildShop(); showSlide('scrShop'); }
+    else if(act==='code'){ SFX.select(); showCodeModal(); }
     else if(act==='changelog'){ SFX.select(); buildChangelog(); showSlide('scrChangelog'); }
     else if(act==='settings'){ SFX.select();
       // sincroniza os controles com os valores salvos
@@ -2708,9 +2926,9 @@ function tryQuit(){
   stopMusic();
   document.getElementById('app').innerHTML=
     '<div style="height:100dvh;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:14px;text-align:center;padding:30px;">'
-    +'<div style="font-size:22px;font-weight:900;color:var(--gold);letter-spacing:.1em;text-transform:uppercase;">Até a próxima!</div>'
-    +'<div style="font-size:13px;color:var(--dim);">Você pode fechar esta aba.</div>'
-    +'<button onclick="location.reload()" style="margin-top:10px;padding:12px 26px;border:none;border-radius:9px;background:var(--panel);color:var(--ink);font-weight:800;letter-spacing:.08em;text-transform:uppercase;cursor:pointer;">Voltar</button></div>';
+    +'<div style="font-size:22px;font-weight:900;color:var(--gold);letter-spacing:.1em;text-transform:uppercase;">'+t('quitBye')+'</div>'
+    +'<div style="font-size:13px;color:var(--dim);">'+t('quitClose')+'</div>'
+    +'<button onclick="location.reload()" style="margin-top:10px;padding:12px 26px;border:none;border-radius:9px;background:var(--panel);color:var(--ink);font-weight:800;letter-spacing:.08em;text-transform:uppercase;cursor:pointer;">'+t('back')+'</button></div>';
 }
 
 /* ---------- ALMANAC (pokédex) ---------- */
@@ -2841,13 +3059,138 @@ function buildShop(){
     grid.appendChild(card);
   });
   box.appendChild(grid);
-  // seção "em breve"
-  const soon=document.createElement('div');
-  soon.style.cssText='margin-top:8px;border:1px dashed var(--panel-b);border-radius:12px;padding:26px 16px;text-align:center;';
-  soon.innerHTML=`<div style="font-size:30px;margin-bottom:8px;">🛍️</div>`
-    +`<div style="font-size:15px;font-weight:900;color:var(--ink);margin-bottom:4px;">${t('itemsSoon')}</div>`
-    +`<div style="font-size:12px;color:var(--dim);line-height:1.5;">${t('itemsSoonDesc')}</div>`;
-  box.appendChild(soon);
+  // ===== GACHA DE PERSONAGENS =====
+  const gTitle=document.createElement('div');
+  gTitle.style.cssText='font-size:12px;font-weight:800;letter-spacing:.16em;text-transform:uppercase;color:var(--gold);margin:16px 0 8px;';
+  gTitle.textContent=t('gachaTitle');
+  box.appendChild(gTitle);
+  const lockedCount=LOCKABLE_CHARS.filter(id=>!SAVE.chars[id]).length;
+  const gInfo=document.createElement('div');
+  gInfo.style.cssText='font-size:12px;color:var(--dim);margin-bottom:10px;';
+  gInfo.textContent=lockedCount? (lockedCount+' '+t('gachaLockedSuffix')) : t('gachaAllUnlocked');
+  box.appendChild(gInfo);
+  const gGrid=document.createElement('div'); gGrid.style.cssText='display:flex;gap:10px;';
+  [[1,100,t('gachaRoll1')],[11,1000,t('gachaRoll11')]].forEach(([n,cost,label])=>{
+    const canAfford=SAVE.coins>=cost;
+    const b=document.createElement('div');
+    b.style.cssText='flex:1;border:1.5px solid '+(canAfford?'var(--gold)':'var(--panel-b)')+';border-radius:13px;padding:16px 8px;text-align:center;background:linear-gradient(150deg,#2a1d3e,var(--panel));cursor:pointer;'+(canAfford?'':'opacity:.55;');
+    b.innerHTML='<div style="font-size:26px;">🎁</div><div style="font-size:15px;font-weight:900;color:var(--ink);margin:4px 0;">'+label+'</div>'
+      +'<div style="font-size:13px;font-weight:900;color:var(--gold);">'+cost+' 🪙</div>';
+    b.addEventListener('click',()=>{ audioInit(); gachaRoll(n); });
+    gGrid.appendChild(b);
+  });
+  box.appendChild(gGrid);
+}
+// ===== GACHA =====
+function gachaRoll(n){
+  const rolls=(n===11)?11:1, cost=(n===11)?1000:100;
+  if(SAVE.coins<cost){ try{SFX.lock&&SFX.lock();}catch(e){} coinToast(t('coinsInsufficient')); return; }
+  SAVE.coins-=cost;
+  const results=[];
+  for(let i=0;i<rolls;i++){
+    // sorteia entre TODOS os personagens do gacha (chance igual); repetido (já tem) vira 50 moedas
+    const id=LOCKABLE_CHARS[Math.floor(Math.random()*LOCKABLE_CHARS.length)];
+    if(SAVE.chars[id]){ SAVE.coins+=50; results.push({id,dup:true}); }
+    else { SAVE.chars[id]=true; results.push({id,dup:false}); }
+  }
+  persistSave(); updateCoinDisplay();
+  try{ SFX.confirm&&SFX.confirm(); }catch(e){}
+  showGachaResult(results);
+}
+// SLOT MACHINE em TELA CHEIA: você aperta GIRAR e cada retângulo deitado gira na horizontal
+// e para no personagem ganho. No 11x são 11 empilhados (centralizados), parando de cima p/
+// baixo, com o último em suspense (mais lento).
+function showGachaResult(results){
+  const many=results.length>1;
+  const vw=window.innerWidth||360, vh=window.innerHeight||640;
+  const ov=document.createElement('div');
+  ov.style.cssText='position:fixed;inset:0;z-index:99995;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;padding:16px;box-sizing:border-box;background:radial-gradient(ellipse at 50% 28%,#241238,#120a1e 72%);';
+  const title=document.createElement('div');
+  title.style.cssText='font-size:22px;font-weight:900;color:var(--gold);letter-spacing:.06em;flex:none;';
+  title.textContent='🎰 '+(many?'11x':'1x');
+  ov.appendChild(title);
+  const stage=document.createElement('div');
+  stage.style.cssText='display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;flex:1;width:100%;overflow:hidden;';
+  ov.appendChild(stage);
+  const reelW=Math.min(560, Math.round(vw*0.9)), gap=6;
+  const reelH=many?Math.max(30,Math.min(70,Math.floor((vh*0.62)/results.length)-gap)):Math.min(130,Math.round(vh*0.30));
+  const cellW=reelH;
+  const reels=[];
+  results.forEach((r,i)=>{
+    const won=CHARS[r.id];
+    const reel=document.createElement('div');
+    reel.style.cssText='position:relative;width:'+reelW+'px;height:'+reelH+'px;overflow:hidden;border-radius:10px;border:2px solid var(--panel-b);background:#0e0818;transition:border-color .2s,box-shadow .2s;';
+    const strip=document.createElement('div');
+    strip.style.cssText='position:absolute;top:0;left:0;height:100%;display:flex;will-change:transform;';
+    const numCells=28+i*2, landIdx=numCells-4;
+    for(let c=0;c<numCells;c++){
+      const ch=(c===landIdx)?won:CHARS[ORDER[Math.floor(Math.random()*ORDER.length)]];
+      const cell=document.createElement('div');
+      cell.style.cssText='width:'+cellW+'px;height:100%;flex:0 0 auto;display:flex;align-items:center;justify-content:center;';
+      cell.innerHTML='<div style="width:'+(reelH-14)+'px;height:'+(reelH-14)+'px;border-radius:50%;background:'+ch.color+';display:flex;align-items:center;justify-content:center;font-size:'+Math.round(reelH*0.5)+'px;">'+ch.icon+'</div>';
+      strip.appendChild(cell);
+    }
+    strip.style.transform='translateX(0px)';
+    reel.appendChild(strip);
+    const mark=document.createElement('div');
+    mark.style.cssText='position:absolute;top:0;bottom:0;left:50%;width:'+cellW+'px;transform:translateX(-50%);border-left:2px solid rgba(242,193,78,.55);border-right:2px solid rgba(242,193,78,.55);pointer-events:none;';
+    reel.appendChild(mark);
+    const tag=document.createElement('div');
+    tag.style.cssText='position:absolute;right:10px;top:50%;transform:translateY(-50%);font-size:'+Math.max(11,Math.round(reelH*0.26))+'px;font-weight:900;opacity:0;transition:opacity .3s;'+(r.dup?'color:var(--dim);':'color:var(--gold);text-shadow:0 0 8px rgba(242,193,78,.8);');
+    tag.textContent=r.dup?'+50🪙':t('gachaNew');
+    reel.appendChild(tag);
+    stage.appendChild(reel);
+    reels.push({strip,reel,tag,landIdx,r});
+  });
+  const btn=document.createElement('button');
+  btn.style.cssText='flex:none;padding:15px 46px;border-radius:14px;border:none;background:linear-gradient(180deg,var(--gold),var(--gold-d));color:#12121a;font-weight:900;font-size:18px;cursor:pointer;box-shadow:0 6px 18px rgba(0,0,0,.5);';
+  btn.textContent='🎰 '+t('gachaSpin');
+  ov.appendChild(btn);
+  document.body.appendChild(ov);
+  let spun=false;
+  const finalX=(o)=> -(o.landIdx*cellW) + (reelW/2 - cellW/2);
+  let slotAudio=null;
+  function stopSlot(){ if(slotAudio){ try{ slotAudio.pause(); }catch(e){} slotAudio=null; } }
+  btn.addEventListener('click',()=>{
+    if(!spun){
+      spun=true; audioInit(); try{SFX.select&&SFX.select();}catch(e){}
+      btn.disabled=true; btn.style.opacity='.45'; btn.textContent='🎰 ...';
+      const svol=(G.settings.vol/100)*0.5;
+      // SOM DO GIRO (loop) com fade-in rápido
+      try{ if(G.settings.sfx){ slotAudio=new Audio('assets/sfx/slot.mp3'); slotAudio.loop=true; slotAudio.volume=0; slotAudio.play().catch(()=>{});
+        let t0=null; const fin=(ts)=>{ if(!slotAudio)return; if(!t0)t0=ts; const p=Math.min(1,(ts-t0)/140); slotAudio.volume=svol*p; if(p<1)requestAnimationFrame(fin); }; requestAnimationFrame(fin);
+      } }catch(e){}
+      const N=reels.length;
+      const lastStart=200+(N-1)*230;
+      const lastDur=((many?(1.6+(N-1)*0.22):2.4)+1.1)*1000;
+      // DESACELERA o áudio (playbackRate) + fade-out no fim, acompanhando a roda parando
+      setTimeout(()=>{ if(!slotAudio)return; const v0=slotAudio.volume; let t0=null;
+        const slow=(ts)=>{ if(!slotAudio)return; if(!t0)t0=ts; const p=Math.min(1,(ts-t0)/lastDur);
+          slotAudio.volume=v0*(1-p*0.9); try{ slotAudio.playbackRate=Math.max(0.4, 1-0.6*p); }catch(e){}
+          if(p<1)requestAnimationFrame(slow); else stopSlot(); };
+        requestAnimationFrame(slow);
+      }, lastStart);
+      let landed=0;
+      reels.forEach((o,i)=>{
+        const last=(i===reels.length-1);
+        const dur=(many?(1.6+i*0.22):2.4)+(last?1.1:0);
+        setTimeout(()=>{
+          o.strip.style.transition='transform '+dur.toFixed(2)+'s cubic-bezier(.12,.72,.16,1)';
+          o.strip.style.transform='translateX('+finalX(o)+'px)';
+          setTimeout(()=>{
+            o.reel.style.borderColor=o.r.dup?'var(--panel-b)':'var(--gold)';
+            o.reel.style.boxShadow=o.r.dup?'none':'0 0 16px rgba(242,193,78,.75)';
+            o.tag.style.opacity='1';
+            // herói NOVO toca o som de "new hero"; repetido só um clique seco
+            if(o.r.dup){ try{ (SFX.lock||function(){})(); }catch(e){} }
+            else { try{ if(G.settings.sfx){ const a=new Audio('assets/sfx/newhero.mp3'); a.volume=(G.settings.vol/100)*0.75; a.play().catch(()=>{}); } }catch(e){} }
+            if(++landed>=reels.length){ stopSlot(); btn.disabled=false; btn.style.opacity='1'; btn.textContent='✓ '+t('gachaContinue'); }
+          }, dur*1000);
+        }, 200+i*230);
+      });
+      setTimeout(()=>{ stopSlot(); btn.disabled=false; btn.style.opacity='1'; btn.textContent='✓ '+t('gachaContinue'); }, 200+reels.length*230+6000);
+    } else { try{SFX.confirm&&SFX.confirm();}catch(e){} stopSlot(); ov.remove(); buildShop(); }
+  });
 }
 let shopToastTimer=null, shopToastHide=null;
 function shopToast(msg){
@@ -3079,20 +3422,106 @@ function buildModes(){
 }
 
 /* ---------- SETUP (mapa + players) ---------- */
+// ===== SELEÇÃO DE MAPA: grade de cards com preview da arena + tamanho + filtro + busca =====
+let mapFilterTier='all', mapSearchQ='';
+// desenha um mini-preview da arena de cada mapa num canvas
+function drawMapPreview(ctx,w,h,m){
+  ctx.clearRect(0,0,w,h);
+  ctx.fillStyle='#140a22'; ctx.fillRect(0,0,w,h);
+  const pad=14, s=Math.min(w,h)-pad*2, cx=w/2, cy=h/2, x=cx-s/2, y=cy-s/2;
+  const floor='#31234a', wall='#6a49a8';
+  ctx.lineJoin='round';
+  if(m.shape==='circle'){
+    ctx.fillStyle=floor; ctx.beginPath(); ctx.arc(cx,cy,s/2,0,7); ctx.fill();
+    ctx.strokeStyle=wall; ctx.lineWidth=3; ctx.stroke();
+  } else if(m.shape==='plus'){
+    const c=s*0.30;
+    ctx.fillStyle=floor; ctx.beginPath();
+    ctx.moveTo(x+c,y); ctx.lineTo(x+s-c,y); ctx.lineTo(x+s-c,y+c); ctx.lineTo(x+s,y+c);
+    ctx.lineTo(x+s,y+s-c); ctx.lineTo(x+s-c,y+s-c); ctx.lineTo(x+s-c,y+s); ctx.lineTo(x+c,y+s);
+    ctx.lineTo(x+c,y+s-c); ctx.lineTo(x,y+s-c); ctx.lineTo(x,y+c); ctx.lineTo(x+c,y+c); ctx.closePath();
+    ctx.fill(); ctx.strokeStyle=wall; ctx.lineWidth=3; ctx.stroke();
+  } else {
+    ctx.fillStyle=floor; ctx.fillRect(x,y,s,s);
+    ctx.strokeStyle=wall; ctx.lineWidth=3; ctx.strokeRect(x,y,s,s);
+    ctx.strokeStyle='rgba(255,255,255,.07)'; ctx.lineWidth=1;
+    for(let i=1;i<4;i++){ ctx.beginPath(); ctx.moveTo(x+s*i/4,y); ctx.lineTo(x+s*i/4,y+s); ctx.stroke();
+      ctx.beginPath(); ctx.moveTo(x,y+s*i/4); ctx.lineTo(x+s,y+s*i/4); ctx.stroke(); }
+    if(m.shape==='boxbox'){ const b=s*0.28; ctx.fillStyle=wall; ctx.fillRect(cx-b/2,cy-b/2,b,b); }
+    else if(m.shape==='blackhole'){ ctx.fillStyle='#05030a'; ctx.beginPath(); ctx.arc(cx,cy,s*0.15,0,7); ctx.fill();
+      ctx.strokeStyle='#8a5cff'; ctx.lineWidth=2; ctx.stroke(); }
+    else if(m.shape==='waterfalls'){ ctx.strokeStyle='rgba(90,170,235,.55)'; ctx.lineWidth=2;
+      for(let r=1;r<4;r++){ ctx.beginPath(); for(let xx=0;xx<=s;xx+=5){ const yy=y+s*r/4+Math.sin(xx*0.28)*2.5; if(xx===0)ctx.moveTo(x+xx,yy); else ctx.lineTo(x+xx,yy);} ctx.stroke(); } }
+  }
+}
+function buildMapPicker(box){
+  box.innerHTML=''; box.style.cssText='display:flex;flex-direction:column;gap:10px;';
+  // barra de busca (útil pra quando tiver mais mapas)
+  const search=document.createElement('input');
+  search.type='text'; search.placeholder=t('searchMap'); search.value=mapSearchQ;
+  search.style.cssText='width:100%;box-sizing:border-box;padding:9px 12px;border-radius:11px;border:1.5px solid var(--panel-b);background:var(--panel);color:var(--ink);font-size:13px;outline:none;';
+  search.addEventListener('input',()=>{ mapSearchQ=search.value; renderGrid(); });
+  box.appendChild(search);
+  // chips de tamanho
+  const chipBar=document.createElement('div'); chipBar.style.cssText='display:flex;gap:6px;flex-wrap:wrap;';
+  const tiers=[['all',t('mapAll')],['S','S'],['M','M'],['L','L'],['XL','XL'],['XXL','XXL']];
+  function renderChips(){
+    chipBar.innerHTML='';
+    tiers.forEach(([val,lbl])=>{
+      const active=mapFilterTier===val;
+      const c=document.createElement('button');
+      c.style.cssText='padding:6px 13px;border-radius:20px;font-size:12px;font-weight:800;cursor:pointer;transition:all .15s;'
+        +'border:1.5px solid '+(active?'var(--gold)':'var(--panel-b)')+';background:'+(active?'var(--gold)':'transparent')+';color:'+(active?'#12121a':'var(--dim)')+';';
+      c.textContent=lbl;
+      c.addEventListener('click',()=>{ audioInit();SFX.nav(); mapFilterTier=val; renderChips(); renderGrid(); });
+      chipBar.appendChild(c);
+    });
+  }
+  renderChips(); box.appendChild(chipBar);
+  // grade de cards
+  const grid=document.createElement('div'); grid.style.cssText='display:grid;grid-template-columns:repeat(2,1fr);gap:10px;';
+  box.appendChild(grid);
+  function renderGrid(){
+    grid.innerHTML='';
+    const q=mapSearchQ.trim().toLowerCase();
+    MAP_ORDER.forEach(id=>{
+      const m=MAPS[id];
+      if(mapFilterTier!=='all' && m.tier!==mapFilterTier) return;
+      if(q && !m.name.toLowerCase().includes(q)) return;
+      const sel=G.map===id;
+      const card=document.createElement('div');
+      card.style.cssText='position:relative;border-radius:14px;overflow:hidden;cursor:pointer;transition:all .12s;'
+        +'border:2px solid '+(sel?'var(--gold)':'var(--panel-b)')+';background:var(--panel);'+(sel?'box-shadow:0 0 14px rgba(242,193,78,.45);transform:translateY(-1px);':'');
+      const cv=document.createElement('canvas');
+      cv.style.cssText='width:100%;aspect-ratio:20/13;display:block;';
+      card.appendChild(cv);
+      // desenha no TAMANHO REAL exibido (mede depois do layout) — evita o corte/distorção do WebView
+      requestAnimationFrame(()=>{
+        const cw=cv.clientWidth||200, ch=cv.clientHeight||Math.round(cw*0.65);
+        const dpr=Math.min(window.devicePixelRatio||1,2);
+        cv.width=Math.round(cw*dpr); cv.height=Math.round(ch*dpr);
+        const cx=cv.getContext('2d'); cx.setTransform(dpr,0,0,dpr,0,0);
+        drawMapPreview(cx, cw, ch, m);
+      });
+      const badge=document.createElement('div'); badge.textContent=m.tier||'?';
+      badge.style.cssText='position:absolute;top:6px;left:6px;min-width:22px;height:22px;padding:0 6px;border-radius:11px;'
+        +'background:rgba(10,6,18,.82);border:1.5px solid var(--gold);color:var(--gold);font-size:11px;font-weight:900;display:flex;align-items:center;justify-content:center;';
+      card.appendChild(badge);
+      const nm=document.createElement('div'); nm.textContent=m.name;
+      nm.style.cssText='padding:5px 6px 6px;text-align:center;font-size:12px;font-weight:800;color:'+(sel?'var(--gold)':'var(--ink)')+';';
+      card.appendChild(nm);
+      card.addEventListener('click',()=>{ audioInit();SFX.nav(); G.map=id; renderGrid(); });
+      grid.appendChild(card);
+    });
+    if(!grid.children.length){ const e=document.createElement('div'); e.style.cssText='grid-column:1/-1;text-align:center;color:var(--dim);font-size:13px;padding:12px;'; e.textContent=t('mapNone'); grid.appendChild(e); }
+  }
+  renderGrid();
+}
 function buildSetup(){
   // título da tela conforme o modo
   document.querySelector('#scrSetup .topbar h2').textContent =
     isVS()?t('vsConfig'):t('arenaConfig');
-  const mapBox=document.getElementById('mapOpts');mapBox.innerHTML='';
-  MAP_ORDER.forEach(id=>{
-    const m=MAPS[id];
-    const o=document.createElement('div');
-    o.className='opt map-opt'+(G.map===id?' sel':'');
-    o.innerHTML=`<span class="oicon">${m.icon}</span>${m.name}`;
-    o.addEventListener('click',()=>{ audioInit();SFX.nav();G.map=id;
-      mapBox.querySelectorAll('.opt').forEach(x=>x.classList.remove('sel'));o.classList.add('sel'); });
-    mapBox.appendChild(o);
-  });
+  buildMapPicker(document.getElementById('mapOpts'));
   const pBox=document.getElementById('playerOpts');pBox.innerHTML='';
   const playerSection=document.querySelector('#scrSetup .setup-section:nth-child(2)');
   const slabel=document.querySelector('#scrSetup .setup-section:nth-child(2) .slabel');
@@ -3167,9 +3596,19 @@ function buildSelect(){
     const el=document.createElement('div');
     el.className='rchar';
     el.dataset.id=id;
+    const locked=(G.mode==='arena') && !isCharUnlocked(id); // trava só na Arena
     el.innerHTML=`<div class="rface" style="background:${c.color}">${c.icon}</div>`
       +`<div class="rnm">${c.name}</div>`;
-    el.addEventListener('click',()=>pickChar(id,el));
+    if(locked){
+      el.style.opacity='0.5'; el.style.filter='grayscale(.7)'; el.style.position='relative';
+      const lk=document.createElement('div'); lk.textContent='🔒';
+      lk.style.cssText='position:absolute;top:3px;right:4px;font-size:15px;filter:drop-shadow(0 1px 2px #000);pointer-events:none;';
+      el.appendChild(lk);
+      el.addEventListener('click',()=>{ audioInit(); try{SFX.lock&&SFX.lock();}catch(e){}
+        el.animate([{transform:'translateX(-3px)'},{transform:'translateX(3px)'},{transform:'translateX(0)'}],{duration:150}); });
+    } else {
+      el.addEventListener('click',()=>pickChar(id,el));
+    }
     grid.appendChild(el);
   });
   // card "?" no fim: sorteia TODOS os personagens de uma vez
@@ -3372,6 +3811,7 @@ function mkCard(s,i){
   return el;
 }
 function pickChar(id, el){
+  if(G.mode==='arena' && !isCharUnlocked(id)) return; // defesa: nunca escolhe personagem travado na Arena
   audioInit();SFX.select();
   el.classList.remove('pop');void el.offsetWidth;el.classList.add('pop');
   // zoom transition estilo smash
@@ -3415,23 +3855,24 @@ function updateStartBtn(){
 }
 function randomizeAll(){
   audioInit();SFX.select();
-  // sorteia todos os slots ATIVOS (ignora bloqueados)
-  G.slots.forEach(s=>{ if(!s.locked){ s.charId=ORDER[Math.floor(Math.random()*ORDER.length)]; s.cfg=defaultCfg(); } });
+  // sorteia todos os slots ATIVOS (ignora bloqueados); na Arena só entre os desbloqueados
+  const pool=(G.mode==='arena')?ORDER.filter(isCharUnlocked):ORDER;
+  G.slots.forEach(s=>{ if(!s.locked){ s.charId=pool[Math.floor(Math.random()*pool.length)]; s.cfg=defaultCfg(); } });
   renderSlots();updateRosterSel();updateStartBtn();
 }
 document.getElementById('fightBtn').addEventListener('click',()=>{
   const active=G.slots.filter(s=>!s.locked);
   if(active.length<2 || active.some(s=>!s.charId))return;
-  audioInit();SFX.confirm();startBattle();
+  audioInit();SFX.confirm();advBattleActive=false;startBattle(); // luta normal (Arena/VS) não é aventura
 });
 
 /* ---------- ENGRENAGEM (config por lutador) ---------- */
 const SLIDER_DEFS=[
-  {key:'dmg', name:'Dano', min:0.25, max:3, step:0.25},
-  {key:'hp', name:'Vida', min:0.25, max:3, step:0.25},
-  {key:'size', name:'Tamanho', min:0.5, max:2, step:0.1},
-  {key:'speed', name:'Velocidade', min:0.25, max:2.5, step:0.25},
-  {key:'fireRate', name:'Vel. de disparo', min:0.25, max:3, step:0.25}
+  {key:'dmg', name:'Dano', i18n:'statDmg', min:0.25, max:3, step:0.25},
+  {key:'hp', name:'Vida', i18n:'statHp', min:0.25, max:3, step:0.25},
+  {key:'size', name:'Tamanho', i18n:'statSize', min:0.5, max:2, step:0.1},
+  {key:'speed', name:'Velocidade', i18n:'statSpeed', min:0.25, max:2.5, step:0.25},
+  {key:'fireRate', name:'Vel. de disparo', i18n:'statFireRate', min:0.25, max:3, step:0.25}
 ];
 function openGear(i){
   audioInit();SFX.select();
@@ -3442,7 +3883,7 @@ function openGear(i){
   const box=document.getElementById('gearSliders');box.innerHTML='';
   SLIDER_DEFS.forEach(def=>{
     const row=document.createElement('div');row.className='slider-row';
-    row.innerHTML=`<div class="srtop"><span class="srname">${def.name}</span>`
+    row.innerHTML=`<div class="srtop"><span class="srname">${t(def.i18n)}</span>`
       +`<span class="srval" id="srv_${def.key}">${fmtMul(s.cfg[def.key])}</span></div>`
       +`<input type="range" min="${def.min}" max="${def.max}" step="${def.step}" value="${s.cfg[def.key]}" data-key="${def.key}">`;
     const inp=row.querySelector('input');
@@ -3482,11 +3923,7 @@ function bindToggle(id,key,after){
 }
 bindToggle('tglParticles','particles');
 bindToggle('tglFlash','flash');
-bindToggle('tglMusic','music',()=>{
-  if(!G.settings.music){ stopMusic(); stopBattleMusic(); }
-  else if(G.screen==='scrBattle'){ if(bRunning&&!bOver)startBattleMusic(battleTrack); }
-  else startMusic();
-});
+bindToggle('tglMusic','music',()=>{ if(typeof updateMusicForScreen==='function')updateMusicForScreen(); });
 bindToggle('tglSfx','sfx');
 // seletor de idioma
 function updateLangSel(){
@@ -3512,6 +3949,7 @@ document.getElementById('vfxRange').addEventListener('input',function(){
 document.getElementById('volRange').addEventListener('input',function(){
   G.settings.vol=+this.value;document.getElementById('volVal').textContent=this.value+'%';
   persistSettings&&persistSettings();
+  if(typeof musicApply==='function')musicApply(); // atualiza o volume da trilha
 });
 
 /* ==================================================================
@@ -3524,8 +3962,31 @@ function bResize(){
   DPR=Math.min(window.devicePixelRatio||1,2);
   BW=r.width;BH=r.height;bcv.width=BW*DPR;bcv.height=BH*DPR;bx.setTransform(DPR,0,0,DPR,0,0);
   computeArena();
+  positionAdvHud();
 }
 window.addEventListener('resize',()=>{ if(G.screen==='scrBattle'){bResize();} });
+// no Adventure, ancora o HUD nas FAIXAS DE PEDRA: inimigos logo ACIMA da arena,
+// HP do herói + botão de explosão logo ABAIXO da arena (não no fundo da tela).
+function positionAdvHud(){
+  const enemies=document.getElementById('bHpBars');
+  const hero=document.getElementById('bHpBarsBottom');
+  const shake=document.getElementById('bShake');
+  if(!advBattleActive || !arena){ // Arena/VS: limpa o posicionamento inline
+    [enemies,hero,shake].forEach(el=>{ if(el){ el.style.top=''; el.style.bottom=''; } });
+    return;
+  }
+  const aTop=(arena.shape==='circle')?(arena.cy-arena.R):arena.y;
+  const aBot=(arena.shape==='circle')?(arena.cy+arena.R):(arena.y+arena.h);
+  // inimigos: ancorados pelo TOPO (top fixo) pra a lista ENCOLHER PRA CIMA quando um morre
+  // (não descer pra dentro da arena). O topo é calculado pra a lista cheia terminar acima da arena.
+  const enemyCount=(typeof fighters!=='undefined'?fighters.filter(f=>f.team===1).length:0)||1;
+  const listH=enemyCount*34; // ~28px de barra + 6 de gap
+  if(enemies){ enemies.style.bottom='auto'; enemies.style.top=Math.round(Math.max(6, aTop-listH-16))+'px'; }
+  // herói + shake: dentro da faixa de pedra de baixo (afastados da borda da arena, ~35% p/ baixo)
+  const belowY=Math.round(Math.min(aBot + Math.max(28,(BH-aBot)*0.35), BH-58));
+  if(hero){ hero.style.bottom='auto'; hero.style.top=belowY+'px'; }
+  if(shake){ shake.style.bottom='auto'; shake.style.top=belowY+'px'; }
+}
 
 // ===== ESCALA GLOBAL DA UI =====
 // Calcula --s (escala) conforme o tamanho real do #app, pra tudo ficar proporcional
@@ -3782,6 +4243,12 @@ const ADV_CARDS=[
   {id:'datk',  name:'Ataque Duplo', icon:'⚔️', type:'special', special:'extraAttack', add:1, perLevel:1, maxLevel:3, unit:'ataque extra', flat:true, rarity:'epico'},
   {id:'dskill',name:'Skill Dupla',  icon:'✨', type:'special', special:'extraSkill', add:1, perLevel:1, maxLevel:3, unit:'skill extra', flat:true, rarity:'lendario'},
   {id:'blood', name:'Sanguinário',  icon:'🩸', type:'special', special:'lifesteal', add:0.01, perLevel:0.01, maxLevel:5, unit:'roubo de vida', rarity:'epico'},
+  // === CARTAS DE CLASSE (rarity:'classe') — só caem de SUPER BOSS e só do herói dono (heroId).
+  //     Os efeitos abaixo são EXEMPLOS que reusam bônus existentes (já dá pra testar o sistema).
+  //     Troque o efeito de cada uma pelo transformador real depois (aí talvez precise de código novo). ===
+  {id:'cls_berserker', name:'Fúria Eterna',     icon:'🔥', type:'stat',    stat:'dmg',           add:1.0, perLevel:0, maxLevel:1, unit:'dano',        rarity:'classe', heroId:'berserker'},
+  {id:'cls_arqueiro',  name:'Chuva de Flechas', icon:'🏹', type:'special', special:'extraSkill', add:2,   perLevel:0, maxLevel:1, unit:'skill extra', flat:true, rarity:'classe', heroId:'arqueiro'},
+  {id:'cls_mago',      name:'Arquimago',        icon:'✨', type:'special', special:'extraSkill', add:2,   perLevel:0, maxLevel:1, unit:'skill extra', flat:true, rarity:'classe', heroId:'mago'},
 ];
 // tema visual por raridade da carta (moldura estilo Slay the Spire)
 const CARD_RARITY={
@@ -3789,6 +4256,7 @@ const CARD_RARITY={
   raro:     {frame:'#4aa3e6', frameDark:'#1c5a8a', banner:'#2d7fbf', gem:'#5bb8ff', glow:'rgba(74,163,230,.55)'},
   epico:    {frame:'#a865e0', frameDark:'#5a2a8a', banner:'#8a3fc0', gem:'#c77dff', glow:'rgba(168,101,224,.6)'},
   lendario: {frame:'#e0b33f', frameDark:'#8a6510', banner:'#c09022', gem:'#ffd23f', glow:'rgba(255,200,60,.85)'},
+  classe:   {frame:'#e5484d', frameDark:'#7a1418', banner:'#c0392b', gem:'#ff6a6f', glow:'rgba(230,60,50,.9)'}, // raridade CLASSE (carmesim, só de super boss)
 };
 function advCardRarity(card){ return CARD_RARITY[card.rarity||'basic']||CARD_RARITY.basic; }
 // a moldura/cor da carta reflete sua raridade:
@@ -4000,11 +4468,22 @@ let advCardUid=0;
 function advAddCard(cardId){
   ADV.cards.push({ id:cardId, level:1, uid:++advCardUid });
 }
-// sorteia 4 cartas pra oferecer como recompensa
-function advRewardChoices(){
-  const pool=[...ADV_CARDS];
+// chance da carta de CLASSE aparecer ao vencer um SUPER BOSS (andar 10).
+const CLASS_CARD_CHANCE = 1.0; // super boss SEMPRE dropa a class card (por enquanto). Baixar depois pra "baixíssima".
+// sorteia 4 cartas pra oferecer como recompensa.
+// superBoss=true libera (com chance CLASS_CARD_CHANCE) a carta de CLASSE do herói atual.
+function advRewardChoices(superBoss){
   const out=[];
-  while(out.length<4 && pool.length){
+  // SUPER BOSS: pode ofertar a carta de CLASSE do SEU herói (se ainda não tiver)
+  if(superBoss && ADV){
+    const cc=ADV_CARDS.find(c=>c.rarity==='classe' && c.heroId===ADV.hero);
+    if(cc && !ADV.cards.some(o=>o.id===cc.id) && Math.random()<CLASS_CARD_CHANCE){
+      out.push(cc);
+    }
+  }
+  // cartas de CLASSE NUNCA entram no sorteio normal (só pelo gate acima)
+  const pool=ADV_CARDS.filter(c=>c.rarity!=='classe');
+  while(out.length<5 && pool.length){
     const i=Math.floor(Math.random()*pool.length);
     out.push(pool.splice(i,1)[0]);
   }
@@ -4038,7 +4517,7 @@ function buildAdvMenu(){
     box.appendChild(c);
   });
 }
-// escolha de herói (Berserk / Range / Mage)
+// escolha de herói (Berserk / Ranger / Mage)
 // SELEÇÃO DE HERÓI: grid com heróis desbloqueados + slots bloqueados (cadeado)
 let advSelectedHero=null;
 function buildAdvHero(){
@@ -4183,13 +4662,40 @@ function buildAdvConfig(){
 }
 // loja do Adventure (placeholder por enquanto)
 function buildAdvStore(){
-  const box=document.getElementById('advStoreBody'); box.innerHTML='';
-  const soon=document.createElement('div');
-  soon.style.cssText='margin:auto;border:1px dashed var(--panel-b);border-radius:14px;padding:32px 20px;text-align:center;';
-  soon.innerHTML=`<div style="font-size:36px;margin-bottom:10px;">🛒</div>`
-    +`<div style="font-size:16px;font-weight:900;color:var(--ink);margin-bottom:6px;">${t('advSoon')}</div>`
-    +`<div style="font-size:12px;color:var(--dim);line-height:1.5;">${t('advStoreSoon')}</div>`;
-  box.appendChild(soon);
+  const box=document.getElementById('advStoreBody'); box.innerHTML=''; updateCoinDisplay();
+  const head=document.createElement('div');
+  head.style.cssText='display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;';
+  head.innerHTML='<div style="font-size:13px;font-weight:900;letter-spacing:.1em;text-transform:uppercase;color:#f4e2d0;">🛒 Personagens</div>'
+    +'<div style="font-weight:900;color:var(--gold);">🪙 <span id="advStoreCoins">'+SAVE.coins+'</span></div>';
+  box.appendChild(head);
+  const PRICE=500;
+  const grid=document.createElement('div'); grid.style.cssText='display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:10px;';
+  function render(){
+    grid.innerHTML='';
+    ORDER.forEach(id=>{
+      const c=CHARS[id]; const owned=isCharUnlocked(id);
+      const card=document.createElement('div');
+      card.style.cssText='border:1.5px solid '+(owned?'rgba(232,134,58,.5)':'var(--panel-b)')+';border-radius:13px;padding:10px;text-align:center;background:rgba(20,10,18,.5);';
+      card.innerHTML='<div style="width:48px;height:48px;margin:0 auto;border-radius:50%;background:'+c.color+';display:flex;align-items:center;justify-content:center;font-size:24px;'+(owned?'':'filter:grayscale(.6);opacity:.7;')+'">'+c.icon+'</div>'
+        +'<div style="font-size:13px;font-weight:800;color:#f4e2d0;margin:6px 0;">'+c.name+'</div>';
+      const btn=document.createElement('button');
+      if(owned){ btn.textContent=t('storeFree'); btn.disabled=true;
+        btn.style.cssText='width:100%;padding:8px;border-radius:9px;border:none;background:rgba(232,134,58,.22);color:#e8a05a;font-weight:800;font-size:12px;'; }
+      else {
+        const can=SAVE.coins>=PRICE;
+        btn.textContent=t('storeBuyPrefix')+PRICE+'🪙';
+        btn.style.cssText='width:100%;padding:8px;border-radius:9px;border:none;font-weight:900;font-size:12px;cursor:pointer;background:'+(can?'var(--gold)':'var(--panel-b)')+';color:'+(can?'#12121a':'var(--dim)')+';'+(can?'':'opacity:.6;');
+        btn.addEventListener('click',()=>{ audioInit();
+          if(SAVE.coins<PRICE){ try{SFX.lock&&SFX.lock();}catch(e){} coinToast(t('coinsInsufficient')); return; }
+          SAVE.coins-=PRICE; SAVE.chars[id]=true; persistSave(); updateCoinDisplay();
+          try{SFX.confirm&&SFX.confirm();}catch(e){} coinToast('✅ '+c.name+t('storeUnlockedSuffix'));
+          const sc=document.getElementById('advStoreCoins'); if(sc)sc.textContent=SAVE.coins; render();
+        });
+      }
+      card.appendChild(btn); grid.appendChild(card);
+    });
+  }
+  render(); box.appendChild(grid);
 }
 // grimório do Adventure (mostra os monstros e cartas já existentes)
 // monstros do grimório, com raridade (usada no filtro)
@@ -4276,17 +4782,47 @@ function buildAdvGrimoire(){
       +`padding:2px 7px;border-radius:8px;background:${R.frameDark};color:${R.gem};border:1px solid ${R.frame};white-space:nowrap;">`
       +`${rarityLabel(r)}</span>`;
   }
-  function monsterRow(m){
-    const c=CHARS[m.id];
-    const ename=m.id==='zombie'?t('enemyZombie'):t('enemySkeleton');
+  const monName=m=> m.id==='zombie'?t('enemyZombie'):t('enemySkeleton');
+  // skin real do monstro recortada num círculo, IGUAL ao jogo (valores do editor: SPRITE_FIT).
+  // No jogo o zoom é sobre o RAIO (radius*zoom); em CSS o background-size é sobre o DIÂMETRO,
+  // então usa metade (zoom*50%) pra bater exatamente com o enquadramento do jogo.
+  function monSkinCss(kind){
+    const c=CHARS[kind]; const fit=(typeof SPRITE_FIT!=='undefined'&&SPRITE_FIT[kind])||{zoom:2.34};
+    return 'background:'+c.color+' url(assets/'+kind+'.png) center/'+Math.round(fit.zoom*50)+'% no-repeat;';
+  }
+  // bola do monstro (grade). Ao clicar, abre a ficha (HP, ataque, raridade)
+  function monsterBall(m){
     const R=CARD_RARITY[m.rarity]||CARD_RARITY.basic;
-    const row=document.createElement('div');
-    row.style.cssText=`border:1px solid ${R.frame};border-radius:12px;padding:12px;display:flex;align-items:center;gap:12px;background:var(--panel);`
-      +(m.rarity!=='basic'?`box-shadow:0 0 10px ${R.glow};`:'');
-    row.innerHTML=`<div style="width:40px;height:40px;border-radius:50%;background:${c.color};display:flex;align-items:center;justify-content:center;font-size:20px;flex:none;">${c.icon}</div>`
-      +`<div style="flex:1;min-width:0;"><div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;"><span style="font-size:15px;font-weight:800;color:var(--ink);">${ename}</span>${rarPill(m.rarity)}</div>`
-      +`<div style="font-size:11px;color:var(--dim);">${c.hp} ${t('advHP')} · ${c.kind==='zombie'?t('advTouchDmg'):t('advShootsArrows')}</div></div>`;
-    return row;
+    const cell=document.createElement('div');
+    cell.style.cssText='display:flex;flex-direction:column;align-items:center;gap:6px;cursor:pointer;width:100%;';
+    cell.innerHTML='<div style="width:100%;max-width:104px;aspect-ratio:1;border-radius:50%;overflow:hidden;'+monSkinCss(m.id)
+      +'border:2px solid '+R.frame+';box-shadow:0 3px 12px rgba(0,0,0,.45)'+(m.rarity!=='basic'?',0 0 12px '+R.glow:'')+';transition:transform .1s;"></div>'
+      +'<div style="font-size:12px;font-weight:800;color:var(--ink);text-align:center;">'+monName(m)+'</div>';
+    cell.addEventListener('click',()=>{ audioInit&&audioInit(); SFX&&SFX.select&&SFX.select(); showMonsterDetail(m); });
+    return cell;
+  }
+  function showMonsterDetail(m){
+    const c=CHARS[m.id];
+    const R=CARD_RARITY[m.rarity]||CARD_RARITY.basic;
+    const dmg = c.kind==='zombie' ? (c.touchDmg||4) : (c.dmg||5);
+    const atk = c.kind==='zombie' ? t('advTouchDmg') : t('advShootsArrows');
+    const ov=document.createElement('div');
+    ov.style.cssText='position:fixed;inset:0;z-index:99990;display:flex;align-items:center;justify-content:center;background:rgba(0,0,0,.75);padding:20px;';
+    const box=document.createElement('div');
+    box.style.cssText='background:linear-gradient(160deg,var(--panel),#120a1e);border:1.5px solid '+R.frame+';border-radius:18px;padding:24px;width:min(90vw,340px);text-align:center;box-shadow:0 16px 44px rgba(0,0,0,.6);';
+    box.innerHTML='<div style="width:118px;height:118px;margin:0 auto 12px;border-radius:50%;overflow:hidden;'+monSkinCss(m.id)+'border:3px solid '+R.frame+';box-shadow:0 0 16px '+R.glow+';"></div>'
+      +'<div style="font-size:21px;font-weight:900;color:var(--ink);">'+monName(m)+'</div>'
+      +'<div style="margin:6px 0 16px;">'+rarPill(m.rarity)+'</div>'
+      +'<div style="display:flex;flex-direction:column;gap:9px;text-align:left;font-size:14px;">'
+      +'<div style="display:flex;justify-content:space-between;border-bottom:1px solid var(--panel-b);padding-bottom:7px;"><span style="color:var(--dim);">❤️ '+t('advHP')+'</span><b style="color:var(--ink);">'+c.hp+'</b></div>'
+      +'<div style="display:flex;justify-content:space-between;border-bottom:1px solid var(--panel-b);padding-bottom:7px;"><span style="color:var(--dim);">⚔️ '+atk+'</span><b style="color:var(--ink);">'+dmg+'</b></div>'
+      +'</div>';
+    const ok=document.createElement('button'); ok.textContent=t('uiClose');
+    ok.style.cssText='margin-top:18px;padding:11px 32px;border-radius:11px;border:none;background:var(--gold);color:#12121a;font-weight:900;font-size:14px;cursor:pointer;';
+    ok.addEventListener('click',()=>{ try{SFX.back&&SFX.back();}catch(e){} ov.remove(); });
+    box.appendChild(ok); ov.appendChild(box);
+    ov.addEventListener('click',e=>{ if(e.target===ov)ov.remove(); });
+    document.body.appendChild(ov);
   }
   function renderList(){
     list.innerHTML='';
@@ -4294,18 +4830,18 @@ function buildAdvGrimoire(){
     const rf=advGrimState.rarity;
     let items=[];
     if(advGrimState.tab==='monsters'){
-      // MONSTROS: continua em lista vertical
-      list.style.cssText='display:flex;flex-direction:column;gap:8px;';
+      // MONSTROS: grade de bolas (5 por fileira), clique abre a ficha
+      list.style.cssText='display:grid;grid-template-columns:repeat(5,1fr);gap:14px 8px;justify-items:center;padding:8px 8px 12px;';
       items=ADV_MONSTERS.filter(m=>{
         const name=(m.id==='zombie'?t('enemyZombie'):t('enemySkeleton')).toLowerCase();
         const okQ=!q||name.includes(q);
         const okR=rf==='all'||(m.rarity||'basic')===rf;
         return okQ&&okR;
       });
-      items.forEach(m=>list.appendChild(monsterRow(m)));
+      items.forEach(m=>list.appendChild(monsterBall(m)));
     }else{
       // CARTAS: grid de 5 cartas por linha, no formato do jogo, com respiro nas laterais
-      const vw=Math.max(280, window.innerWidth||360);
+      const vw=Math.max(280, Math.min(window.innerWidth||360, 700)); // capa na largura máx do app (#app max-width:700)
       const cols=5;
       const gap=6;                 // espaço entre cartas
       const sidePad=10;            // respiro entre as cartas e as paredes esq/dir
@@ -4319,7 +4855,7 @@ function buildAdvGrimoire(){
         const okR=rf==='all'||(card.rarity||'basic')===rf;
         return okQ&&okR;
       });
-      items.forEach(card=>list.appendChild(advBuildCardEl(card, dims)));
+      items.forEach(card=>list.appendChild(advBuildCardEl(card, dims, true))); // grimório = catálogo (sem ×N)
     }
     if(items.length===0){
       list.style.cssText='display:block;';
@@ -4578,9 +5114,10 @@ function advResolveFight(){
       ADV.gold+=25+ADV.floor*5;       // e muito mais ouro
       ADV.stats.bossKills=(ADV.stats.bossKills||0)+1;
       advBossFight.cleared=true;
+      const wasSuperBoss=!!advBossFight.superBoss; // captura ANTES de zerar
       advBossFight=null;
-      // boss ainda dá carta de recompensa (é uma vitória especial)
-      advShowReward();
+      // boss dá carta; super boss (andar 10) pode dar a carta de CLASSE
+      advShowReward(wasSuperBoss);
     } else {
       advGainXp(2+ADV.floor);          // XP escala com o andar
       ADV.gold+=5+ADV.floor*2;         // ouro por luta
@@ -4596,8 +5133,8 @@ function advResolveFight(){
   }
 }
 // tela de recompensa: escolher 1 de 4 cartas
-function advShowReward(){
-  const choices=advRewardChoices();
+function advShowReward(superBoss){
+  const choices=advRewardChoices(superBoss);
   buildAdvReward(choices);
   show('scrAdvReward',true);
 }
@@ -4641,7 +5178,7 @@ const ADV_CARD_ART_BG='linear-gradient(160deg,#2a2a33,#15151a)';
 // calcula dimensões de carta a partir de uma largura desejada (proporção 5:8)
 function advCardDims(cardW, minW){
   cardW=Math.max(minW||64, Math.min(cardW, 168));
-  const cardH=Math.round(cardW*1.62);
+  const cardH=Math.round(cardW*1.28); // aspecto da moldura nova (~0.78 larg/alt), sem esticar pra cima
   return {
     cardW, cardH,
     fName:Math.max(9, Math.round(cardW*0.135)),
@@ -4650,8 +5187,28 @@ function advCardDims(cardW, minW){
     fIcon:Math.max(18, Math.round(cardW*0.34)),
   };
 }
+// frente da carta BÁSICA usando a moldura de imagem (assets/card_front_basic.png):
+// ícone no painel de cima, nome+efeito no painel de baixo. (posições em % — ajustáveis)
+// Outras raridades continuam no visual CSS até você fazer as molduras delas.
+function advFrameFrontHTML(card, dims, count){
+  const rar=card.rarity||'basic'; // moldura por raridade: card_front_{basic|raro|epico|lendario|classe}.png
+  const iconSz=Math.round(dims.cardW*0.42);
+  const nameSz=Math.max(9,Math.round(dims.cardW*0.115));
+  const descSz=Math.max(7,Math.round(dims.cardW*0.09));
+  const bf='backface-visibility:hidden;-webkit-backface-visibility:hidden;'; // esconde a frente durante o giro (mostra o verso)
+  return `<div style="position:absolute;inset:0;${bf}background:center/100% 100% no-repeat url(assets/card_front_${rar}.png);filter:drop-shadow(0 6px 12px rgba(0,0,0,.55));z-index:1;"></div>`
+    +`<div style="position:absolute;left:15%;right:15%;top:15%;bottom:45%;${bf}display:flex;align-items:center;justify-content:center;`
+      +`font-size:${iconSz}px;line-height:1;filter:drop-shadow(0 2px 4px rgba(0,0,0,.5));z-index:2;">${card.icon}</div>`
+    +`<div style="position:absolute;left:13%;right:13%;top:70%;bottom:9%;${bf}display:flex;flex-direction:column;`
+      +`align-items:center;justify-content:center;text-align:center;z-index:2;color:#3a2410;line-height:1.05;">`
+      +`<div data-namebanner="1" style="font-size:${nameSz}px;font-weight:900;">${advCardName(card)}</div>`
+      +`<div style="font-size:${descSz}px;font-weight:700;margin-top:2px;">${advCardDesc(card,1)}</div></div>`
+    +(count>0?`<div style="position:absolute;top:5%;right:7%;background:rgba(0,0,0,.6);border:1px solid rgba(255,255,255,.5);`
+      +`color:#fff;font-size:${Math.max(8,Math.round(dims.fName*0.85))}px;font-weight:900;border-radius:8px;padding:1px 5px;z-index:3;">×${count}</div>`:'');
+}
 // monta o HTML da FRENTE de uma carta no mesmo visual do jogo (moldura por raridade)
 function advCardFrontHTML(card, dims, count){
+  return advFrameFrontHTML(card, dims, count); // todas as raridades usam moldura-imagem
   const R=advCardTheme(card);
   const artBg=ADV_CARD_ART_BG;
   const starSz=Math.max(15,Math.round(dims.cardW*0.15));
@@ -4683,9 +5240,10 @@ function advCardFrontHTML(card, dims, count){
       +`color:#fff;font-size:${Math.max(8,Math.round(dims.fName*0.85))}px;font-weight:900;border-radius:8px;padding:1px 5px;">×${count}</div>`:'');
 }
 // monta o elemento de carta completo (moldura + brilho + shimmer lendário)
-function advBuildCardEl(card, dims){
+// catalog=true (grimório): NÃO mostra a contagem ×N (é catálogo, não a run atual)
+function advBuildCardEl(card, dims, catalog){
   const R=advCardTheme(card);
-  const count=(typeof ADV!=='undefined' && ADV && ADV.cards)?ADV.cards.filter(c=>c.id===card.id).length:0;
+  const count=catalog?0:((typeof ADV!=='undefined' && ADV && ADV.cards)?ADV.cards.filter(c=>c.id===card.id).length:0);
   const isLegend=(card.rarity==='lendario');
   const front=document.createElement('div');
   front.style.cssText='position:relative;width:'+dims.cardW+'px;height:'+dims.cardH+'px;flex:0 0 auto;'
@@ -4737,17 +5295,17 @@ function buildAdvReward(choices){
   // --- fileira final onde as cartas assentam ---
   // DIMENSÕES RESPONSIVAS: calcula o tamanho da carta a partir do tamanho da tela,
   // pra não ficar desproporcional em telas pequenas/grandes. Todas as 4 ficam iguais.
-  const vw=Math.max(280, window.innerWidth||360);
+  const vw=Math.max(280, Math.min(window.innerWidth||360, 700)); // capa na largura do app (5 cartas não estouram no tablet)
   const vh=Math.max(480, window.innerHeight||640);
-  const GAP=Math.round(vw*0.022);                 // gap proporcional à largura
-  const SIDEPAD=Math.round(vw*0.028);             // respiro nas laterais
-  // largura: 4 cartas cabem na tela; teto e piso pra não exagerar
-  let cardW=Math.floor((vw - SIDEPAD*2 - GAP*3)/4);
-  cardW=Math.max(64, Math.min(cardW, 168));       // 64px..168px (teto maior p/ celular não ficar pequeno)
+  const GAP=Math.round(vw*0.016);                 // gap proporcional à largura
+  const SIDEPAD=Math.round(vw*0.05);              // respiro MAIOR nas laterais (espaço das paredes)
+  // largura: 5 cartas cabem na tela; teto e piso pra não exagerar
+  let cardW=Math.floor((vw - SIDEPAD*2 - GAP*4)/5);
+  cardW=Math.max(48, Math.min(cardW, 168));       // piso 48 p/ 5 cartas caberem em telas estreitas; teto 168
   // altura: proporção 5:8, mas limitada pela altura útil da tela (não passa de ~34% da altura)
-  let cardH=Math.round(cardW*1.62);
+  let cardH=Math.round(cardW*1.28);
   const maxH=Math.round(vh*0.34);
-  if(cardH>maxH){ cardH=maxH; cardW=Math.round(cardH/1.62); }  // se estourar altura, reduz proporcional
+  if(cardH>maxH){ cardH=maxH; cardW=Math.round(cardH/1.28); }  // se estourar altura, reduz proporcional (aspecto da moldura)
   // escala tipográfica conforme o tamanho real da carta (fica legível em qualquer tela)
   const fName=Math.max(11, Math.round(cardW*0.135));   // nome maior — evita quebra espremida
   const fType=Math.max(7, Math.round(cardW*0.075));
@@ -4760,6 +5318,7 @@ function buildAdvReward(choices){
 
   // constrói o CONTEÚDO da frente de uma carta (dimensões vindas de `dims`, iguais p/ todas)
   function frontHTML(card,R,count){
+    return advFrameFrontHTML(card, dims, count); // todas as raridades usam moldura-imagem
     const artBg=ART_BG[card.id]||'linear-gradient(160deg,#2a2a33,#15151a)';
     const starSz=Math.max(15,Math.round(dims.cardW*0.15));   // estrela proporcional (menor)
     const bannerH=Math.round(Math.max(dims.fName,11)*3.0);   // cabe 2 linhas com folga
@@ -4805,21 +5364,26 @@ function buildAdvReward(choices){
     // wrapper que voa e faz o flip (preserva 3D) — tamanho fixo calculado por viewport
     const flip=document.createElement('div');
     flip.style.cssText='position:relative;flex:0 0 auto;width:'+dims.cardW+'px;height:'+dims.cardH+'px;'
-      +'transform-style:preserve-3d;transition:transform .5s cubic-bezier(.4,0,.2,1);'
-      // começa "dentro do baú": encolhida, no topo-centro, virada pra baixo (rotateY 180)
-      +'transform:translate(0,-999px) scale(.3) rotateY(180deg) rotateZ(0deg);cursor:default;';
+      +'transform-style:preserve-3d;transition:transform .5s cubic-bezier(.4,0,.2,1);cursor:default;';
+    // offX = deslocamento do slot em relação ao CENTRO. Começa empilhada no centro,
+    // vinda de baixo, virada de costas (rotateY 180) — depois sobe junto e se espalha.
+    const offX=(i-(choices.length-1)/2)*(dims.cardW+GAP);
+    flip.style.transform='translate('+(-offX)+'px, 480px) scale(.5) rotateY(180deg) rotateZ(0deg)';
     // FACE FRONTAL
     const front=document.createElement('div');
-    const isLegend=(card.rarity==='lendario');
+    const isLegend=(card.rarity==='lendario'||card.rarity==='classe'); // classe também brilha (especial)
     front.style.cssText='position:absolute;inset:0;backface-visibility:hidden;-webkit-backface-visibility:hidden;'
       +'display:flex;flex-direction:column;padding:7px 7px 8px;border-radius:13px;'
       +`background:linear-gradient(160deg,${R.frame},${R.frameDark});`
       +`border:1.5px solid rgba(255,255,255,.35);`
       +`box-shadow:0 8px 22px rgba(0,0,0,.5),0 0 0 1px ${R.frameDark},inset 0 1px 0 rgba(255,255,255,.4)${R.glow!=='rgba(150,158,175,.0)'?`,0 0 16px ${R.glow}`:''};`;
+    // todas as cartas usam moldura-imagem: tira o frame CSS e o fundo (transparente)
+    front.style.background='transparent'; front.style.border='none'; front.style.padding='0'; front.style.boxShadow='none';
+    front.style.visibility='hidden'; // escondida até o meio do giro (evita a frente espelhada aparecer no verso)
     front.innerHTML=frontHTML(card,R,count);
     // lendária: brilho dourado pulsante + faixa de shimmer holográfica atravessando
     if(isLegend){
-      front.style.animation='legendGlow 2.2s ease-in-out infinite';
+      front.style.animation=(card.rarity==='classe'?'classGlow':'legendGlow')+' 2.2s ease-in-out infinite';
       const shine=document.createElement('div');
       shine.className='legend-shine';
       front.appendChild(shine);
@@ -4827,13 +5391,13 @@ function buildAdvReward(choices){
     // FACE TRASEIRA (verso)
     const back=document.createElement('div');
     back.style.cssText='position:absolute;inset:0;backface-visibility:hidden;-webkit-backface-visibility:hidden;'
-      +'transform:rotateY(180deg);border-radius:13px;'
-      +'background:linear-gradient(160deg,#2a2050,#150a28);border:1.5px solid rgba(255,255,255,.3);'
-      +'box-shadow:0 8px 22px rgba(0,0,0,.5),inset 0 1px 0 rgba(255,255,255,.3);';
-    back.innerHTML=backHTML();
+      +'transform:rotateY(180deg);border-radius:13px;overflow:hidden;'
+      +'background:#150a28 center/cover no-repeat url(assets/card.png);' // verso novo (imagem)
+      +'box-shadow:0 8px 22px rgba(0,0,0,.5);';
+    back.innerHTML='';
     flip.appendChild(front); flip.appendChild(back);
     deck.appendChild(flip);
-    cards.push({flip,front,R,card,count});
+    cards.push({flip,front,R,card,count,offX});
   });
   // AUTO-FIT do nome: reduz a fonte só o necessário pra caber (piso 10px).
   // Não uniformiza pra baixo: cada nome fica no maior tamanho que couber, sem cortar.
@@ -4853,42 +5417,63 @@ function buildAdvReward(choices){
   });
 
   // ================= SEQUÊNCIA DA ANIMAÇÃO =================
+  let chosenLock=false; // declarado ANTES do caminho `reduce` (senão a TDZ trava a escolha da carta)
   const reduce = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
   if(reduce){
     // acessibilidade: sem animação, mostra tudo direto
     info.style.opacity='1';
-    cards.forEach(o=>{ o.flip.style.transition='none'; o.flip.style.transform='none'; armCard(o); });
+    cards.forEach(o=>{ o.flip.style.transition='none'; o.flip.style.transform='none'; const bk=o.flip.children[1]; if(bk)bk.style.visibility='hidden'; o.front.style.visibility='visible'; armCard(o); });
     return;
   }
-  let dealDelay=180; // tempo até começar a distribuir
-
-  // 2) cartas saem do baú (viradas pra baixo) e voam pra fileira, uma a uma
-  cards.forEach((o,i)=>{
-    setTimeout(()=>{
-      try{ if(typeof SFX!=='undefined'){ (SFX.tick||SFX.hit||SFX.confirm||function(){})(); } }catch(e){}
-      // assenta na fileira, ainda virada pra baixo (rotateY 180)
+  let dealDelay=160;
+  const maxOff = ((choices.length-1)/2) * (dims.cardW+GAP) || 1; // distância da carta mais externa
+  // 2) TODAS sobem JUNTAS do fundo pro CENTRO (empilhadas, viradas de costas)
+  setTimeout(()=>{
+    try{ if(G.settings.sfx){ const ca=new Audio('assets/sfx/card.mp3'); ca.volume=(G.settings.vol/100)*0.6; ca.play(); } }catch(e){}
+    cards.forEach(o=>{ o.flip.style.transitionDuration='.42s'; o.flip.style.transform='translate('+(-o.offX)+'px, 0) scale(1) rotateY(180deg) rotateZ(0deg)'; });
+  }, dealDelay);
+  // 3) SE DIVIDEM a partir do centro: a do MEIO fica; as de dentro param do lado dela;
+  //    as de fora CONTINUAM até as pontas. Mesma velocidade p/ todas -> as externas demoram mais.
+  const splitAt = dealDelay + 460;
+  setTimeout(()=>{
+    try{ if(G.settings.sfx){ const ca=new Audio('assets/sfx/card.mp3'); ca.volume=(G.settings.vol/100)*0.5; ca.play(); } }catch(e){}
+    cards.forEach(o=>{
+      const dur=0.28+Math.abs(o.offX)/maxOff*0.5; // externas (offX maior) levam mais tempo = continuam até o fim
+      o.flip.style.transitionDuration=dur.toFixed(3)+'s';
       o.flip.style.transform='translate(0,0) scale(1) rotateY(180deg) rotateZ(0deg)';
-    }, dealDelay + i*230);
-  });
-  // tempo em que todas já estão na fileira
-  const allDealt = dealDelay + cards.length*230 + 260;
-  // mostra o texto "escolha..." quando as cartas chegam
-  setTimeout(()=>{ info.style.opacity='1'; }, allDealt-120);
+    });
+  }, splitAt);
+  // tempo em que todas já estão espalhadas (a mais externa é a última a chegar)
+  const allDealt = splitAt + 900;
+  setTimeout(()=>{ info.style.opacity='1'; }, allDealt-140);
 
-  // 3) FLIP pra cima em sequência (revela)
+  // 4) FLIP pra cima em sequência (revela MAIS DEVAGAR) — troca as faces no meio do giro
   cards.forEach((o,i)=>{
     setTimeout(()=>{
       try{ if(typeof SFX!=='undefined'){ (SFX.flip||SFX.confirm||function(){})(); } }catch(e){}
+      // easing SIMÉTRICA no giro: o ponto de 90° (carta de perfil, invisível) cai no meio,
+      // então a troca verso->frente aos 430ms fica exatamente no perfil (sem verso virado).
+      o.flip.style.transition='transform .86s ease-in-out';
       o.flip.style.transform='translate(0,0) scale(1) rotateY(0deg) rotateZ(0deg)';
-    }, allDealt + i*180);
+      setTimeout(()=>{
+        const bk=o.flip.children[1]; if(bk)bk.style.visibility='hidden'; o.front.style.visibility='visible';
+        // HANABI: lendária/classe soltam explosão de fogos + som de brilho
+        if(o.card.rarity==='lendario'||o.card.rarity==='classe'){
+          spawnFireworks(o.flip, o.card.rarity==='classe'
+            ? {core:'rgba(255,210,190,.95)',spark:'#ff7a4a',glow:'#ff5028'}
+            : {core:'rgba(255,246,200,.95)',spark:'#ffe08a',glow:'#ffb43a'});
+          try{ SFX.transform&&SFX.transform(); }catch(e){}
+          try{ SFX.explosion&&SFX.explosion(); }catch(e){}
+        }
+      }, 430);
+    }, allDealt + i*200);
   });
-  // 4) libera interação (hover/click) só depois que a carta revelou
+  // 5) libera interação (hover/click) só depois que a carta revelou
   cards.forEach((o,i)=>{
-    setTimeout(()=>{ armCard(o); }, allDealt + i*180 + 520);
+    setTimeout(()=>{ armCard(o); }, allDealt + i*200 + 950);
   });
 
   // ativa hover + clique de uma carta (chamado após o flip)
-  let chosenLock=false;
   function armCard(o){
     const {flip,front,R,card}=o;
     flip.style.cursor='pointer';
@@ -4902,6 +5487,8 @@ function buildAdvReward(choices){
   function chooseCard(chosen){
     if(chosenLock)return; chosenLock=true;
     audioInit(); try{ SFX.confirm&&SFX.confirm(); }catch(e){}
+    // som das cartas queimando (as não-escolhidas evaporam) — toca uma vez
+    if(cards.some(o=>o!==chosen)){ try{ if(G.settings.sfx){ const a=new Audio('assets/sfx/cardburn.mp3'); a.volume=(G.settings.vol/100)*0.7; a.play().catch(()=>{}); } }catch(e){} }
     cards.forEach(o=>{
       // tira o contexto 3D pra poder animar em 2D sem briga com o rotateY do flip
       o.flip.style.transformStyle='flat';
@@ -4915,7 +5502,6 @@ function buildAdvReward(choices){
       } else {
         // QUEIMA + EVAPORA: começa incandescente, sobe encolhendo, some com blur
         spawnEmbers(o.flip);
-        try{ SFX.hit&&SFX.hit(); }catch(e){}
         const rot=(Math.random()*10-5);
         // frame 1 (imediato): fica incandescente
         o.flip.style.transition='none';
@@ -4941,6 +5527,30 @@ function buildAdvReward(choices){
     }, 820);
   }
   // brasas subindo de uma carta que está queimando
+  // EXPLOSÃO DE FOGOS (hanabi): flash central + faíscas radiais na cor da raridade
+  function spawnFireworks(el, cols){
+    const host=el.parentElement, rect=el.getBoundingClientRect(), hr=host.getBoundingClientRect();
+    const cx=rect.left-hr.left+rect.width/2, cy=rect.top-hr.top+rect.height*0.42;
+    // flash central
+    const flash=document.createElement('div');
+    flash.style.cssText='position:absolute;pointer-events:none;left:'+cx+'px;top:'+cy+'px;width:70px;height:70px;margin:-35px;'
+      +'border-radius:50%;z-index:8;background:radial-gradient(circle,'+cols.core+',transparent 70%);animation:fwflash .5s ease-out forwards;';
+    host.appendChild(flash); setTimeout(()=>flash.remove(),600);
+    // faíscas radiais
+    const n=28;
+    for(let i=0;i<n;i++){
+      const ang=(i/n)*Math.PI*2 + Math.random()*0.25;
+      const dist=48+Math.random()*80;
+      const sz=3+Math.random()*4;
+      const p=document.createElement('div');
+      p.style.cssText='position:absolute;pointer-events:none;border-radius:50%;z-index:8;'
+        +'width:'+sz+'px;height:'+sz+'px;left:'+cx+'px;top:'+cy+'px;margin:'+(-sz/2)+'px;'
+        +'background:radial-gradient(circle,'+cols.spark+',transparent);box-shadow:0 0 7px '+cols.glow+';'
+        +'--fdx:'+(Math.cos(ang)*dist).toFixed(0)+'px;--fdy:'+(Math.sin(ang)*dist).toFixed(0)+'px;'
+        +'animation:fwburst '+(0.6+Math.random()*0.55).toFixed(2)+'s ease-out forwards;animation-delay:'+(Math.random()*0.08).toFixed(2)+'s;';
+      host.appendChild(p); setTimeout(()=>p.remove(),1300);
+    }
+  }
   function spawnEmbers(el){
     const rect=el.getBoundingClientRect();
     const host=el.parentElement; // deck
@@ -5074,7 +5684,13 @@ function startBattle(){
   audioInit();stopMusic();
   if(typeof stopAdventureMusic==='function')stopAdventureMusic();
   show('scrBattle');
+  // no Adventure esconde a barra Menu/Som da batalha (o menu fica no mapa)
+  document.getElementById('scrBattle').classList.toggle('adv-battle', !!advBattleActive);
   bResize();
+  // recalcula depois que o layout da tela de batalha assenta (na 1ª luta a altura vinha errada,
+  // deixando o HUD fora de lugar) — refaz em 2 momentos pra garantir
+  requestAnimationFrame(()=>{ if(G.screen==='scrBattle')bResize(); });
+  setTimeout(()=>{ if(G.screen==='scrBattle')bResize(); }, 220);
   // usa só os slots ativos (ignora os bloqueados no Arena) e reindexa
   const activeSlots=G.slots.filter(s=>!s.locked);
   fighters = activeSlots.map((s,i)=>makeFighter(s,i));
@@ -5119,6 +5735,7 @@ function beginRound(){
   victory=null;
   if(typeof stopVictoryMusic==='function')stopVictoryMusic();
   cancelAnimationFrame(bRaf);lastT=0;acc=0;
+  shakeCd=0; shakeArmed=false; if(typeof updateShakeBtn==='function')updateShakeBtn(); // shake pronto a cada luta
   updateHpBars();drawBattle();
   bRunning=true;bRaf=requestAnimationFrame(bLoop);
   startBattleMusic(); // trilha "Batalha Veloz"
@@ -5171,10 +5788,18 @@ function buildHpBars(){
     fighters.forEach((f,i)=>{ if(f.team===1)mkBar(f,i,top); });
     fighters.forEach((f,i)=>{ if(f.team===0)mkBar(f,i,bottom); });
     bottom.style.display='flex';
+  } else if(advBattleActive){
+    // ADVENTURE: inimigos em LISTA no topo (somem ao morrer), herói GRANDE embaixo
+    top.classList.add('adv-enemies');
+    bottom.classList.add('adv-hero');
+    fighters.forEach((f,i)=>{ if(f.team===1)mkBar(f,i,top); });
+    fighters.forEach((f,i)=>{ if(f.team===0)mkBar(f,i,bottom); });
+    bottom.style.display='flex';
   } else {
     fighters.forEach((f,i)=>mkBar(f,i,top));
     bottom.style.display='none';
   }
+  positionAdvHud(); // ancora o HUD nas faixas de pedra (ou limpa no Arena/VS)
 }
 function updateHpBars(){
   fighters.forEach((f,i)=>{
@@ -5216,10 +5841,20 @@ function updateHpBars(){
     if(f.kind==='soulstealer') soul=` 🔮${Math.round(f.souls)}`; // almas na lanterna
     if(f.soulCurse>0) soul+=` 👻${Math.round(f.soulCurse)}`;     // debuff de alma recebido
     if(f.markedBy>=0) soul+=' 🎯';                                // marcado pelo cachorro
-    const tag=isVS()?(f.team===0?'A':'B'):('P'+(i+1));
-    lbl.textContent=`${tag} ${f.name.slice(0,8)} · ${Math.max(0,Math.round(f.hp))}`+vest+shield+blood+soul+(extra?` +${extra}`:'')+(f.immortal?' ∞':'');
-    const bar=document.getElementById('hp_'+i);if(bar)bar.style.opacity=f.alive?'1':'0.35';
+    let tag;
+    if(isVS()) tag=(f.team===0?'A':'B');
+    else if(advBattleActive) tag=(f.icon||(f.team===0?'★':'•')); // ícone do bicho/herói
+    else tag='P'+(i+1);
+    const nameLen=advBattleActive?12:8;
+    lbl.textContent=`${tag} ${f.name.slice(0,nameLen)} · ${Math.max(0,Math.round(f.hp))}`+vest+shield+blood+soul+(extra?` +${extra}`:'')+(f.immortal?' ∞':'');
+    const bar=document.getElementById('hp_'+i);
+    if(bar){
+      // no Adventure, inimigo morto SOME da lista; herói só esmaece
+      if(advBattleActive && f.team===1 && !f.alive) bar.classList.add('dead-gone');
+      else bar.style.opacity=f.alive?'1':'0.35';
+    }
   });
+  if(typeof updateShakeBtn==='function') updateShakeBtn();
 }
 
 /* ---------- COLISÃO COM PAREDES (por mapa) ---------- */
@@ -5443,19 +6078,28 @@ function dealDamage(target, amount, isProjectile, force, attacker, isArea){
   }
 }
 
-/* ---------- DOUBLE ATTACK / SKILL: repete disparos que usam f.cd ----------
-   Executa a função; se ela disparou (consumiu o cooldown), re-executa N vezes
-   extras, zerando o cd antes de cada repetição. `useSkill` decide se conta
-   extraSkill (Mago, cuja ação é skill) ou extraAttack (Arqueiro/Esqueleto, tiro). */
+/* ---------- SKILL DUPLA / ATAQUE DUPLO: repete a ação que usa f.cd ----------
+   Detecta se a ação disparou NESTE frame (o cooldown "pulou pra cima" = foi
+   resetado pro fireCd). Se disparou, AGENDA N repetições extras — uma de cada vez,
+   escalonadas no tempo pela tickRepeat (consecutivas, não todas juntas).
+   Dura a batalha toda, sempre que a ação dispara.
+   useSkill=true  -> carta SKILL DUPLA  (skill ATIVA: flecha do arqueiro, magias do mago)
+   useSkill=false -> carta ATAQUE DUPLO (ataque BASICO: tiro, corte, soco) */
+const REP_GAP = 10; // ~0.17s entre cada repetição consecutiva
 function doRepeatFire(f, fn, useSkill){
   const before=f.cd;
   fn(f);
-  const extra=(useSkill ? (f.extraSkill||0) : (f.extraAttack||0));
-  if(extra>0 && f.cd>=f.fireCd-0.5 && before<=0.5){
-    // disparou neste frame: repete N vezes extras
-    for(let k=0;k<extra;k++){ f.cd=0; fn(f); }
-    f.cd=f.fireCd; // restaura o cooldown normal
+  if(f.cd > before + 0.5){                        // disparou agora (cd foi resetado)
+    const extra = useSkill ? (f.extraSkill||0) : (f.extraAttack||0);
+    if(extra>0){ f.repQ=extra; f.repFn=fn; f.repTick=REP_GAP; }
   }
+}
+// dispara as repetições agendadas, UMA a cada REP_GAP frames (efeito consecutivo)
+function tickRepeat(f){
+  if(!f.repQ) return;
+  if(f.repTick>0){ f.repTick--; return; }
+  if(f.repFn){ f.cd=0; f.repFn(f); }              // força um disparo extra agora
+  f.repQ--; f.repTick=REP_GAP;
 }
 
 /* ---------- ARQUEIRO: 2 skills (50/50) + passiva de invisibilidade ---------- */
@@ -5491,6 +6135,12 @@ function doArcher(f){
     }
   }
   SFX.arrow();
+}
+// som do IMPACTO da flecha: osso (duro) no esqueleto, carne no resto. Throttle p/ não embolar.
+let _arrowHitT=0;
+function arrowHitSfx(hard){
+  const now=Date.now(); if(now-_arrowHitT<45)return; _arrowHitT=now;
+  try{ if(G.settings.sfx){ const a=new Audio('assets/sfx/'+(hard?'arrowhard':'arrowflesh')+'.mp3'); a.volume=(G.settings.vol/100)*0.6; a.play().catch(()=>{}); } }catch(e){}
 }
 /* ---------- ESQUELETO (inimigo-base): atira 1 flecha simples de longe ---------- */
 function doSkeleton(f){
@@ -5538,18 +6188,24 @@ function doKatana(f){
         o.slashMarkT = 45 + 10*4; // dura o suficiente pra todos aparecerem + fade
       }
     }
-    // terminou a corrida (saiu da arena ou acabou o tempo)
-    let saiu=false;
+    // CONTENÇÃO: durante a corrida ele fica intangível e não quica na parede, então
+    // sem isso ele atravessava a arena. Aqui, se encostar na parede, a posição é presa
+    // na borda e a corrida termina ali (não sai da arena).
+    let hitWall=false;
     if(arena.shape==='circle'){
-      saiu = Math.hypot(f.x-arena.cx, f.y-arena.cy) > arena.R+40;
+      const dx=f.x-arena.cx, dy=f.y-arena.cy, d=Math.hypot(dx,dy), maxd=arena.R-f.r;
+      if(d>maxd){ const nx=dx/(d||1), ny=dy/(d||1); f.x=arena.cx+nx*maxd; f.y=arena.cy+ny*maxd; hitWall=true; }
     } else {
-      saiu = f.x<arena.x-40 || f.x>arena.x+arena.w+40 || f.y<arena.y-40 || f.y>arena.y+arena.h+40;
+      if(f.x<arena.x+f.r){ f.x=arena.x+f.r; hitWall=true; }
+      if(f.x>arena.x+arena.w-f.r){ f.x=arena.x+arena.w-f.r; hitWall=true; }
+      if(f.y<arena.y+f.r){ f.y=arena.y+f.r; hitWall=true; }
+      if(f.y>arena.y+arena.h-f.r){ f.y=arena.y+arena.h-f.r; hitWall=true; }
     }
-    if(f.dashLeft<=0 || saiu){
+    if(f.dashLeft<=0 || hitWall){
       f.jumping=false; f.slashHitList=[];
-      // normaliza a velocidade pra não sair voando na velocidade da corrida
-      const sp=Math.hypot(f.vx,f.vy)||1;
-      f.vx=(f.vx/sp)*3; f.vy=(f.vy/sp)*3;
+      // ao parar, joga a velocidade pra DENTRO da arena (aponta pro centro), devagar
+      const dx=arena.cx-f.x, dy=arena.cy-f.y, d=Math.hypot(dx,dy)||1;
+      f.vx=dx/d*3; f.vy=dy/d*3;
     }
     return;
   }
@@ -6490,6 +7146,7 @@ function bStep(){
     return; // combate só começa depois que todos aterrissam
   }
   const alive=fighters.filter(f=>f.alive);
+  if(shakeCd>0)shakeCd--; // recarga do shake
   // mover
   for(const f of alive) stepMove(f);
 
@@ -6534,8 +7191,9 @@ function bStep(){
       }
     }
     // Arqueiro / Mago
-    if(f.kind==='archer') doRepeatFire(f, doArcher);
-    if(f.kind==='mage') doRepeatFire(f, doMage, true);
+    if(f.kind==='archer') doRepeatFire(f, doArcher, true); // flecha = skill ativa -> Skill Dupla
+    if(f.kind==='mage') doRepeatFire(f, doMage, true);     // magias = skill ativa -> Skill Dupla
+    tickRepeat(f); // dispara as repetições consecutivas (Skill Dupla / Ataque Duplo)
     // Soldier
     if(f.kind==='soldier') doSoldier(f);
     // Pacman
@@ -6604,6 +7262,20 @@ function bStep(){
     // Samurai atravessa inimigos durante a Corrida Cortante (não bate, passa por cima)
     if((alive[i].kind==='katana'&&alive[i].jumping)||(alive[j].kind==='katana'&&alive[j].jumping))continue;
     collide(alive[i],alive[j]);
+  }
+
+  // ANTI-TRAVA: se duas bolas batem de frente na mesma velocidade os vetores se anulam e elas
+  // ficam paradas. Aqui, qualquer bola em movimento livre que ficou lenta demais volta a andar.
+  const MIN_SP=2.2;
+  for(const f of alive){
+    if(f.grabbing||f.spinning||f.biting||f.jumping||f.stun>0||f.knockback>0||f.accelBack>0)continue;
+    if(f.thrownBy>=0)continue;                       // projétil humano voando
+    if(timeStopOwner>=0 && timeFactor(f)===0)continue; // congelado pelo Chronos
+    const sp=Math.hypot(f.vx,f.vy);
+    if(sp<MIN_SP){
+      const a=(sp>0.05)?Math.atan2(f.vy,f.vx):Math.random()*Math.PI*2; // mantém a direção, ou sorteia se zerou
+      f.vx=Math.cos(a)*MIN_SP; f.vy=Math.sin(a)*MIN_SP;
+    }
   }
 
   // PROJÉTIL HUMANO: quem foi arremessado pelo Heavyweight causa dano ao bater
@@ -6690,19 +7362,9 @@ function bStep(){
     }
     p.x+=p.vx;p.y+=p.vy;p.life--;
     if(p.type==='arrow'){
-      let bo=false;
-      if(arena.shape==='circle'){
-        const dx=p.x-arena.cx,dy=p.y-arena.cy,d=Math.hypot(dx,dy);
-        if(d>arena.R-2){const nx=dx/d,ny=dy/d,dot=p.vx*nx+p.vy*ny;p.vx-=2*dot*nx;p.vy-=2*dot*ny;
-          p.x=arena.cx+nx*(arena.R-3);p.y=arena.cy+ny*(arena.R-3);bo=true;}
-      } else {
-        if(p.x<arena.x+2){p.x=arena.x+2;p.vx=Math.abs(p.vx);bo=true;}
-        if(p.x>arena.x+arena.w-2){p.x=arena.x+arena.w-2;p.vx=-Math.abs(p.vx);bo=true;}
-        if(p.y<arena.y+2){p.y=arena.y+2;p.vy=Math.abs(p.vy);bo=true;}
-        if(p.y>arena.y+arena.h-2){p.y=arena.y+arena.h-2;p.vy=-Math.abs(p.vy);bo=true;}
-        if(projBoxHit(p)){p.vx=-p.vx;p.vy=-p.vy;bo=true;}
-      }
-      if(bo){p.bounces--;if(p.bounces<0)p.life=0;}
+      // flechas SOMEM ao bater na parede (não quicam mais — em todo o jogo)
+      if(arena.shape==='circle'){ if(Math.hypot(p.x-arena.cx,p.y-arena.cy)>arena.R-2)p.life=0; }
+      else { if(p.x<arena.x||p.x>arena.x+arena.w||p.y<arena.y||p.y>arena.y+arena.h||projBoxHit(p))p.life=0; }
     } else if(p.type==='bullet'){
       // bala: some ao bater na parede (sem ricochete)
       if(arena.shape==='circle'){ if(Math.hypot(p.x-arena.cx,p.y-arena.cy)>arena.R-2)p.life=0; }
@@ -6746,6 +7408,7 @@ function bStep(){
         if(p.type==='fireball'||p.type==='grenade')explode(p.x,p.y,p.dmg,p.splash,p.owner,p.color);
         else{
           dealDamage(t,p.dmg,true);burst(p.x,p.y,p.color,5);
+          if(p.type==='arrow') arrowHitSfx(t.kind==='skeleton'); // esqueleto=osso(duro), resto=carne
         }
         p.life=0;break; } }
     if(p.life>0)for(const c of clones){ if(c.owner===p.owner)continue;
@@ -7570,6 +8233,12 @@ function drawWizardHat(b){
   bx.closePath(); bx.fill();
   bx.restore();
 }
+// sprites de inimigos (desenhados recortados dentro da bola)
+const spriteImg={};
+['zombie','skeleton'].forEach(k=>{ const im=new Image(); im.src='assets/'+k+'.png'; spriteImg[k]=im; });
+// enquadramento do sprite dentro da bola (ajustado no editor de monstros):
+// zoom = quantas vezes o diâmetro; ox/oy = deslocamento em fração do raio (+x direita, +y baixo)
+const SPRITE_FIT={ zombie:{zoom:2.36,ox:0,oy:0.02}, skeleton:{zoom:3.28,ox:0.01,oy:0.05} };
 function drawBall(b,radius,label,tint){
   bx.save();
   // ENTRADA: bola caindo do alto — sombra no chão cresce conforme se aproxima
@@ -7580,8 +8249,8 @@ function drawBall(b,radius,label,tint){
     bx.beginPath();bx.ellipse(b.x,b.y+radius*0.55,radius*sh,radius*0.42*sh,0,0,7);bx.fill();
     bx.translate(0,-iz);
   }
-  // GLOW: brilho suave da cor do personagem atrás dele
-  if(G.settings.particles){
+  // GLOW: brilho suave da cor do personagem atrás dele (sprites zumbi/esqueleto NÃO têm glow)
+  if(G.settings.particles && !spriteImg[b.kind]){
     const gl=bx.createRadialGradient(b.x,b.y,radius*0.6,b.x,b.y,radius*1.9);
     gl.addColorStop(0,b.color+'55'); gl.addColorStop(1,'rgba(0,0,0,0)');
     bx.fillStyle=gl; bx.beginPath(); bx.arc(b.x,b.y,radius*1.9,0,7); bx.fill();
@@ -7623,8 +8292,22 @@ function drawBall(b,radius,label,tint){
       bx.restore();
     }
   }
-  bx.fillStyle=b.color;bx.strokeStyle='#000';bx.lineWidth=3;
-  bx.beginPath();bx.arc(b.x,b.y,radius,0,7);bx.fill();bx.stroke();
+  // sprite de imagem (zumbi/esqueleto) recortado no círculo, senão bola de cor sólida
+  const spr=b.kind&&spriteImg[b.kind];
+  if(spr&&spr.complete&&spr.naturalWidth){
+    // recorta no círculo e desenha o sprite com o enquadramento definido no editor
+    // (zoom p/ cortar a moldura do PNG + deslocamento). Depois a borda preta como as outras bolas.
+    const fit=SPRITE_FIT[b.kind]||{zoom:2.34,ox:0,oy:0};
+    bx.save();
+    bx.beginPath();bx.arc(b.x,b.y,radius,0,7);bx.clip();
+    const s=radius*fit.zoom;
+    bx.drawImage(spr, b.x - s/2 + fit.ox*radius, b.y - s/2 + fit.oy*radius, s, s);
+    bx.restore();
+    bx.strokeStyle='#000';bx.lineWidth=3;bx.beginPath();bx.arc(b.x,b.y,radius,0,7);bx.stroke(); // contorno preto (sem o tint colorido)
+  } else {
+    bx.fillStyle=b.color;bx.strokeStyle='#000';bx.lineWidth=3;
+    bx.beginPath();bx.arc(b.x,b.y,radius,0,7);bx.fill();bx.stroke();
+  }
   // manchas de camuflagem do Soldier
   if(b.kind==='soldier'){
     bx.save();bx.beginPath();bx.arc(b.x,b.y,radius,0,7);bx.clip();
@@ -7633,8 +8316,8 @@ function drawBall(b,radius,label,tint){
       bx.beginPath();bx.ellipse(b.x+ox*radius,b.y+oy*radius,radius*sz,radius*sz*0.8,0,0,7);bx.fill(); }
     bx.restore();bx.strokeStyle='#000';bx.lineWidth=3;bx.beginPath();bx.arc(b.x,b.y,radius,0,7);bx.stroke();
   }
-  // anel de tint do jogador
-  if(tint){ bx.strokeStyle=tint;bx.lineWidth=2.5;bx.beginPath();bx.arc(b.x,b.y,radius+3,0,7);bx.stroke(); }
+  // anel de tint do jogador (zumbi/esqueleto NÃO recebem — ficava um círculo colorido feio em volta)
+  if(tint && !spriteImg[b.kind]){ bx.strokeStyle=tint;bx.lineWidth=2.5;bx.beginPath();bx.arc(b.x,b.y,radius+3,0,7);bx.stroke(); }
   // presas de vampiro (2 dentinhos na parte de baixo)
   if(b.kind==='vampire'){
     bx.fillStyle='#fff'; bx.strokeStyle='#000'; bx.lineWidth=1;
@@ -8107,6 +8790,9 @@ function drawBattle(){
 
 let lastT=0,acc=0;const STEP=1000/60;
 function bLoop(now){
+  // PAUSA ao minimizar/trocar de app (APK não parava, rodava em segundo plano):
+  // não simula enquanto escondido e zera o relógio pra não dar fast-forward ao voltar.
+  if(document.hidden){ lastT=0; acc=0; if(!bOver)bRaf=requestAnimationFrame(bLoop); return; }
   if(!lastT)lastT=now;let dt=now-lastT;lastT=now;if(dt>100)dt=100;
   if(bRunning){acc+=dt;let g=0;while(acc>=STEP&&g<5){
     if(hitStop>0){ hitStop--; acc-=STEP; g++; continue; } // hit-stop: pausa dramática no impacto
@@ -8115,6 +8801,90 @@ function bLoop(now){
   drawBattle();
   if(!bOver)bRaf=requestAnimationFrame(bLoop);
 }
+// pausa a trilha quando some, retoma quando volta (só se ainda estiver em batalha)
+document.addEventListener('visibilitychange',()=>{
+  if(document.hidden){ // pausa a trilha ao minimizar (mantém qual faixa estava tocando)
+    try{ for(const k in musicEls){ musicEls[k].pause(); } }catch(e){}
+  } else { lastT=0; acc=0;
+    try{ if(typeof updateMusicForScreen==='function')updateMusicForScreen(); }catch(e){} // retoma a faixa da tela atual
+  }
+});
+
+// ===== SHAKE: habilidade recarregável (10s). Arma no botão e toca a arena p/ empurrar tudo pra longe do toque =====
+let shakeCd=0, shakeArmed=false; const SHAKE_MAX=600; // 600 frames = 10s @60fps
+const bShakeEl=document.getElementById('bShake');
+function updateShakeBtn(){
+  if(!bShakeEl)return;
+  if(shakeCd>0){ bShakeEl.textContent=Math.ceil(shakeCd/60); bShakeEl.className='shake-btn cooling'; }
+  else if(shakeArmed){ bShakeEl.textContent='👆'; bShakeEl.className='shake-btn armed'; }
+  else { bShakeEl.textContent='💥'; bShakeEl.className='shake-btn ready'; }
+}
+function triggerArenaShake(px,py){
+  const alive=fighters.filter(f=>f.alive);
+  const reach=Math.max(BW,BH)*0.6;
+  for(const f of alive){
+    const dx=f.x-px, dy=f.y-py, d=Math.hypot(dx,dy)||1;
+    const near=Math.max(0.18, 1-d/reach);           // mais perto do toque = empurrão mais forte
+    const kick=7+near*17;
+    f.vx+=dx/d*kick; f.vy+=dy/d*kick;
+    f.knockback=Math.max(f.knockback||0,6);          // desliza livre alguns frames pra voar
+  }
+  addShake(18); setFlash(12,'255,240,200');
+  try{ SFX.explosion&&SFX.explosion(); }catch(e){}
+  for(let k=0;k<26;k++){ const a=Math.random()*7; burst(px+Math.cos(a)*16,py+Math.sin(a)*16,'#ffd24a',3); }
+  // CUSTO: a explosão tira 50 de HP do herói DIRETO (ignora escudo) pra não abusar da mecânica
+  if(advBattleActive){
+    const heroF=fighters.find(f=>f.alive && f.team===0);
+    if(heroF){ heroF.hp=Math.max(1, heroF.hp-50); burst(heroF.x,heroF.y,'#ff3344',14);
+      try{ if(typeof updateHpBars==='function')updateHpBars(); }catch(e){} }
+  }
+}
+if(bShakeEl){
+  bShakeEl.addEventListener('click',e=>{ e.stopPropagation(); audioInit();
+    if(shakeCd>0||!bRunning||bOver)return;
+    shakeArmed=!shakeArmed; updateShakeBtn(); });
+}
+bcv.addEventListener('pointerdown',e=>{
+  if(!shakeArmed||shakeCd>0||!bRunning||bOver)return;
+  const rect=bcv.getBoundingClientRect();
+  triggerArenaShake(e.clientX-rect.left, e.clientY-rect.top);
+  shakeArmed=false; shakeCd=SHAKE_MAX; updateShakeBtn();
+});
+
+// ===== MENU DO MAPA (Adventure): Áudio / Retomar / Abandonar =====
+(function(){
+  const ov=document.getElementById('mapMenuOverlay');
+  const btn=document.getElementById('advMapMenuBtn');
+  const mmAudio=document.getElementById('mmAudio');
+  const mmResume=document.getElementById('mmResume');
+  const mmAbandon=document.getElementById('mmAbandon');
+  const cardMain=document.getElementById('mapMenuMain');
+  const cardConfirm=document.getElementById('mapMenuConfirm');
+  const mmYes=document.getElementById('mmConfirmYes');
+  const mmNo=document.getElementById('mmConfirmNo');
+  if(!ov||!btn)return;
+  function refreshAudioLabel(){ const on=(G.settings.sfx||G.settings.music);
+    mmAudio.textContent=on?t('mmAudioOn'):t('mmAudioOff'); }
+  function showMain(){ cardConfirm.style.display='none'; cardMain.style.display=''; }
+  const open=()=>{ refreshAudioLabel(); showMain(); ov.classList.add('show'); };
+  const close=()=>{ ov.classList.remove('show'); showMain(); };
+  btn.addEventListener('click',()=>{ audioInit(); try{SFX.select&&SFX.select();}catch(e){} open(); });
+  mmResume.addEventListener('click',()=>{ try{SFX.back&&SFX.back();}catch(e){} close(); });
+  mmAudio.addEventListener('click',()=>{ const on=!(G.settings.sfx||G.settings.music);
+    G.settings.sfx=on; G.settings.music=on; persistSettings(); refreshAudioLabel();
+    if(typeof updateMusicForScreen==='function')updateMusicForScreen();
+    const sb=document.getElementById('bSound'); if(sb)sb.textContent=G.settings.sfx?'🔊':'🔇'; });
+  // Abandonar pede confirmação "Certeza?"
+  mmAbandon.addEventListener('click',()=>{ try{SFX.select&&SFX.select();}catch(e){}
+    cardMain.style.display='none'; cardConfirm.style.display=''; });
+  mmNo.addEventListener('click',()=>{ try{SFX.back&&SFX.back();}catch(e){} showMain(); });
+  mmYes.addEventListener('click',()=>{ try{SFX.back&&SFX.back();}catch(e){}
+    close(); advBattleActive=false;
+    try{ if(typeof stopBattleMusic==='function')stopBattleMusic(); }catch(e){}
+    if(typeof buildAdvMenu==='function')buildAdvMenu();
+    show('scrAdvMenu',true); });
+  ov.addEventListener('click',e=>{ if(e.target===ov) close(); }); // toca fora = fecha
+})();
 
 document.getElementById('vBack').addEventListener('click',()=>{audioInit();stopVictoryMusic();stopBattleMusic();SFX.confirm();
   bRunning=false;bOver=true;victory=null;cancelAnimationFrame(bRaf);
@@ -8223,6 +8993,9 @@ function bootSequence(){
   const imgEl=document.getElementById('loadingImg');
   const fill=document.getElementById('loadingBarFill');
   const pct=document.getElementById('loadingPct');
+  // tenta já iniciar a música do menu na tela de loading (no exe o autoplay pode liberar;
+  // no navegador só toca após o 1º toque — o audioInit retoma nesse momento)
+  try{ if(typeof updateMusicForScreen==='function')updateMusicForScreen(); }catch(e){}
   // aplica a imagem de fundo
   if(typeof LOADING_BG_DATA!=='undefined' && LOADING_BG_DATA){
     imgEl.style.backgroundImage='url('+LOADING_BG_DATA+')';
@@ -8322,6 +9095,7 @@ function revealMenu(){
   title.classList.add('on');
   // garante que a música do menu comece (respeitando a config)
   if(G.settings.music && G.screen!=='scrBattle'){ /* inicia no 1º toque via listener */ }
+  try{ checkDailyReward(); }catch(e){}
 }
 
 // --- LEMBRAR SE O JOGADOR JÁ VIU OS UPDATES ---

@@ -1,14 +1,19 @@
 /* Service worker do Ball Fighting Arena (PWA).
    Cache versionado: mudar o nome CACHE forca a atualizacao do app instalado.
    Estrategia: HTML = rede primeiro (mostra a versao nova), assets = cache primeiro (rapido + offline). */
-const CACHE = 'bfa-2026-07-07a';
+const CACHE = 'bfa-2026-07-07g';
 const ASSETS = [
   './', './index.html', './manifest.webmanifest',
   './icon-192.png', './icon-512.png',
   './icon-192-maskable.png', './icon-512-maskable.png', './icon-1024.png',
   './assets/loading_bg.jpg', './assets/arena_btn.jpg', './assets/vs_btn.jpg', './assets/adv_btn.jpg',
   './assets/sfx/rifle.mp3', './assets/sfx/dogbite.mp3', './assets/sfx/punch.mp3',
-  './assets/sfx/kick.mp3', './assets/sfx/katana.mp3', './assets/sfx/sniper.mp3'
+  './assets/sfx/kick.mp3', './assets/sfx/katana.mp3', './assets/sfx/sniper.mp3', './assets/sfx/card.mp3',
+  './assets/sfx/cardburn.mp3', './assets/sfx/newhero.mp3', './assets/sfx/slot.mp3', './assets/sfx/rarehero.mp3', './assets/sfx/arrow.mp3', './assets/sfx/arrowflesh.mp3', './assets/sfx/arrowhard.mp3',
+  './assets/music/main.mp3', './assets/music/menu.mp3', './assets/music/phase.mp3', './assets/music/rush.mp3',
+  './assets/zombie.png', './assets/skeleton.png', './assets/card.png',
+  './assets/card_front_basic.png', './assets/card_front_raro.png', './assets/card_front_epico.png',
+  './assets/card_front_lendario.png', './assets/card_front_classe.png'
 ];
 
 self.addEventListener('install', e => {
