@@ -802,17 +802,21 @@ input[type=range]::-webkit-slider-thumb{appearance:none;width:20px;height:20px;b
     </div>
     <div class="menu-list" id="titleMenu">
       <div class="menu-item" data-act="start" data-i18n="start">Iniciar</div>
+      <div class="menu-item" data-act="daily"><span data-i18n="dailyMenu">🎁 Recompensa Diária</span><span id="dailyDot" style="display:none;width:9px;height:9px;border-radius:50%;background:#ff4444;box-shadow:0 0 7px #ff4444;margin-left:8px;vertical-align:middle;"></span></div>
       <div class="menu-item" data-act="almanac" data-i18n="almanac">Grimório</div>
       <div class="menu-item" data-act="achievements" data-i18n="achievements">Conquistas</div>
       <div class="menu-item" data-act="shop" data-i18n="shop">Loja</div>
-      <div class="menu-item" data-act="code">🎟️ Code</div>
-      <div class="menu-item" data-act="feedback" data-i18n="fbMenu">💬 Feedback</div>
-      <div class="menu-item" data-act="settings" data-i18n="settings">Configurações</div>
       <div class="menu-item" data-act="quit" data-i18n="quit">Sair</div>
     </div>
     <div id="coinBadge" style="position:absolute;top:16px;right:16px;display:flex;align-items:center;gap:6px;background:var(--panel);border:1px solid var(--gold);border-radius:20px;padding:6px 14px;font-weight:900;color:var(--gold);letter-spacing:.05em;z-index:3;">🪙 <span id="coinCount">0</span></div>
     <div style="flex:1.3"></div>
-    <button id="verBtn" data-act="changelog" style="position:absolute;bottom:12px;right:14px;background:transparent;border:none;font-size:10px;color:var(--dimmer);letter-spacing:.15em;text-transform:uppercase;z-index:3;cursor:pointer;padding:6px 8px;opacity:.7;font-family:inherit;">v1.3</button>
+    <!-- feedback: mini botão translúcido no canto inferior esquerdo -->
+    <button id="fbCorner" data-act="feedback" title="Feedback" style="position:absolute;bottom:12px;left:14px;background:transparent;border:none;font-size:20px;z-index:3;cursor:pointer;opacity:.45;padding:6px;line-height:1;transition:opacity .15s;">💬</button>
+    <!-- canto inferior direito: engrenagem de configurações + versão -->
+    <div style="position:absolute;bottom:10px;right:12px;display:flex;align-items:center;gap:6px;z-index:3;">
+      <button id="settingsGear" data-act="settings" title="Configurações" style="background:transparent;border:none;font-size:20px;cursor:pointer;opacity:.75;padding:4px;line-height:1;">⚙️</button>
+      <button id="verBtn" data-act="changelog" style="background:transparent;border:none;font-size:10px;color:var(--dimmer);letter-spacing:.15em;text-transform:uppercase;cursor:pointer;padding:6px 4px;opacity:.7;font-family:inherit;">v1.3</button>
+    </div>
   </div>
 
   <!-- ============ MODOS ============ -->
@@ -1136,6 +1140,8 @@ const I18N = {
     fbMenu:'💬 Feedback', fbTitle:'💬 Feedback', fbSub:'Manda sua sugestão ou reporta um bug!',
     fbPlaceholder:'Escreve aqui...', fbContact:'Seu nome/contato (opcional)', fbSend:'Enviar',
     fbThanks:'✅ Obrigado pelo feedback!', fbEmpty:'Escreve algo primeiro 🙂',
+    dailyMenu:'🎁 Recompensa Diária', dailyTitle:'🎁 Recompensa Diária', dailySub:'Entre todo dia e resgate o prêmio!',
+    dailyRedeem:'Resgatar', dailyDayLabel:'Dia', dailyBackIn:'Volte em', dailyGotChar:'🎉 Novo personagem!', dailyCharPrize:'Personagem',
     start:'Iniciar', almanac:'Grimório', achievements:'Conquistas', shop:'Loja',
     settings:'Configurações', quit:'Sair',
     gameModes:'Modos de Jogo', arenaConfig:'Arena Mode · Configurar',
@@ -1214,6 +1220,8 @@ const I18N = {
     fbMenu:'💬 Feedback', fbTitle:'💬 Feedback', fbSub:'Send a suggestion or report a bug!',
     fbPlaceholder:'Write here...', fbContact:'Your name/contact (optional)', fbSend:'Send',
     fbThanks:'✅ Thanks for the feedback!', fbEmpty:'Write something first 🙂',
+    dailyMenu:'🎁 Daily Reward', dailyTitle:'🎁 Daily Reward', dailySub:'Come back every day and claim!',
+    dailyRedeem:'Claim', dailyDayLabel:'Day', dailyBackIn:'Come back in', dailyGotChar:'🎉 New character!', dailyCharPrize:'Character',
     start:'Start', almanac:'Grimoire', achievements:'Achievements', shop:'Shop',
     settings:'Settings', quit:'Quit',
     gameModes:'Game Modes', arenaConfig:'Arena Mode · Setup',
@@ -1291,6 +1299,8 @@ const I18N = {
     fbMenu:'💬 フィードバック', fbTitle:'💬 フィードバック', fbSub:'提案やバグ報告を送ってね！',
     fbPlaceholder:'ここに書いてね...', fbContact:'名前/連絡先（任意）', fbSend:'送信',
     fbThanks:'✅ フィードバックありがとう！', fbEmpty:'まず何か書いてね 🙂',
+    dailyMenu:'🎁 デイリー報酬', dailyTitle:'🎁 デイリー報酬', dailySub:'毎日ログインして受け取ろう！',
+    dailyRedeem:'受け取る', dailyDayLabel:'日目', dailyBackIn:'あと', dailyGotChar:'🎉 新キャラ！', dailyCharPrize:'キャラ',
     start:'スタート', almanac:'図鑑', achievements:'実績', shop:'ショップ',
     settings:'設定', quit:'終了',
     gameModes:'ゲームモード', arenaConfig:'アリーナモード · 設定',
@@ -1559,7 +1569,7 @@ function achievementText(a){
 
 /* ---------- PROGRESSO (salvo no aparelho) ---------- */
 const SAVE_KEY='bfa_save_v1';
-let SAVE = { coins:0, games:0, kills:0, suicides:0, flawless:0, unlocked:{}, chars:{}, codes:{}, lastDaily:0 };
+let SAVE = { coins:0, games:0, kills:0, suicides:0, flawless:0, unlocked:{}, chars:{}, codes:{}, lastDaily:0, dailyDay:0 };
 function loadSave(){
   try{ const raw=localStorage.getItem(SAVE_KEY); if(raw){ SAVE=Object.assign(SAVE, JSON.parse(raw)); if(!SAVE.unlocked)SAVE.unlocked={}; if(!SAVE.chars)SAVE.chars={}; if(!SAVE.codes)SAVE.codes={}; } }catch(e){}
   // carrega as configurações salvas (idioma, volume, toggles)
@@ -1577,14 +1587,69 @@ function coinToast(msg){
   requestAnimationFrame(()=>{ el.style.opacity='1'; el.style.transform='translateX(-50%) translateY(0)'; });
   setTimeout(()=>{ el.style.opacity='0'; el.style.transform='translateX(-50%) translateY(-14px)'; setTimeout(()=>el.remove(),420); }, 2800);
 }
-// recompensa diária de login: +100 moedas a cada 24h
-const DAILY_COINS=100, DAY_MS=24*3600*1000;
-function checkDailyReward(){
-  const now=Date.now();
-  if(!SAVE.lastDaily || (now - SAVE.lastDaily) >= DAY_MS){
-    SAVE.lastDaily=now; SAVE.coins+=DAILY_COINS; persistSave(); updateCoinDisplay();
-    setTimeout(()=>coinToast(t('dailyRewardPrefix')+DAILY_COINS+' 🪙'), 700);
+// ===== RECOMPENSA DIÁRIA (streak de 7 dias) =====
+const DAY_MS=24*3600*1000;
+const DAILY_REWARDS=[100,200,300,500,800,1000,'char']; // dias 1..7 (7º = personagem misterioso)
+function dailyAvailable(){ return !SAVE.lastDaily || (Date.now()-SAVE.lastDaily)>=DAY_MS; }
+function dailyTimeLeft(){ return Math.max(0, DAY_MS-(Date.now()-(SAVE.lastDaily||0))); }
+function updateDailyDot(){ const d=document.getElementById('dailyDot'); if(d)d.style.display=dailyAvailable()?'inline-block':'none'; }
+function checkDailyReward(){ updateDailyDot(); } // não dá mais automático — o player resgata no botão
+function claimDaily(){
+  if(!dailyAvailable())return null;
+  const day=(SAVE.dailyDay||0)%7, reward=DAILY_REWARDS[day];
+  let res;
+  if(reward==='char'){
+    const pool=LOCKABLE_CHARS.filter(id=>!SAVE.chars[id]);
+    if(pool.length){ const id=pool[Math.floor(Math.random()*pool.length)]; SAVE.chars[id]=true; res={char:id}; }
+    else { SAVE.coins+=1500; res={coins:1500}; } // já tem todos → moedas
+  } else { SAVE.coins+=reward; res={coins:reward}; }
+  SAVE.lastDaily=Date.now(); SAVE.dailyDay=(day+1)%7;
+  persistSave(); updateCoinDisplay(); updateDailyDot();
+  return res;
+}
+function showDailyModal(){
+  const ov=document.createElement('div');
+  ov.style.cssText='position:fixed;inset:0;z-index:99990;display:flex;align-items:flex-start;justify-content:center;padding:5vh 14px 14px;overflow-y:auto;background:rgba(0,0,0,.66);';
+  const box=document.createElement('div');
+  box.style.cssText='background:linear-gradient(160deg,var(--panel),#120a1e);border:1.5px solid var(--gold);border-radius:18px;padding:22px 18px;width:min(94vw,420px);box-shadow:0 16px 44px rgba(0,0,0,.6);text-align:center;';
+  ov.appendChild(box); document.body.appendChild(ov);
+  const close=()=>ov.remove();
+  ov.addEventListener('click',e=>{ if(e.target===ov)close(); });
+  function render(){
+    box.innerHTML='<div style="font-size:19px;font-weight:900;color:var(--gold);margin-bottom:2px;">'+t('dailyTitle')+'</div>'
+      +'<div style="font-size:12px;color:var(--dim);margin-bottom:16px;">'+t('dailySub')+'</div>';
+    const grid=document.createElement('div'); grid.style.cssText='display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:16px;';
+    const cur=(SAVE.dailyDay||0)%7;
+    for(let i=0;i<7;i++){
+      const claimed=i<cur, isNow=(i===cur), isChar=(i===6);
+      const cell=document.createElement('div');
+      cell.style.cssText='position:relative;border-radius:12px;padding:10px 4px 8px;border:2px solid '+(isNow?'var(--gold)':'var(--panel-b)')+';'
+        +'background:'+(isNow?'linear-gradient(160deg,#3a2f12,#241a08)':'var(--panel)')+';'+(claimed?'opacity:.5;':'')+(isNow?'box-shadow:0 0 12px rgba(242,193,78,.55);':'')+(isChar?'grid-column:span 3;':'');
+      const inner = isChar
+        ? '<div style="width:56px;height:56px;margin:2px auto;border-radius:50%;background:radial-gradient(circle at 35% 30%,#7a5ac0,#2a1a4a);display:flex;align-items:center;justify-content:center;font-size:32px;font-weight:900;color:#fff;border:2px solid var(--gold);">?</div><div style="font-size:11px;font-weight:800;color:var(--gold);margin-top:4px;">'+t('dailyCharPrize')+'</div>'
+        : '<div style="font-size:22px;">🪙</div><div style="font-size:14px;font-weight:900;color:var(--gold);">'+DAILY_REWARDS[i]+'</div>';
+      cell.innerHTML='<div style="font-size:10px;font-weight:800;color:var(--dim);letter-spacing:.05em;">'+t('dailyDayLabel')+' '+(i+1)+'</div>'+inner
+        +(claimed?'<div style="position:absolute;top:4px;right:6px;color:#4ade80;font-weight:900;font-size:14px;">✓</div>':'');
+      grid.appendChild(cell);
+    }
+    box.appendChild(grid);
+    const btn=document.createElement('button');
+    if(dailyAvailable()){ btn.textContent='🎁 '+t('dailyRedeem'); btn.style.cssText='width:100%;padding:13px;border-radius:12px;border:none;background:linear-gradient(180deg,var(--gold),var(--gold-d));color:#12121a;font-weight:900;font-size:16px;cursor:pointer;box-shadow:0 4px 14px rgba(0,0,0,.4);'; }
+    else { const ms=dailyTimeLeft(), h=Math.floor(ms/3600000), m=Math.floor((ms%3600000)/60000);
+      btn.textContent='⏳ '+t('dailyBackIn')+' '+h+'h '+m+'m'; btn.disabled=true;
+      btn.style.cssText='width:100%;padding:13px;border-radius:12px;border:1.5px solid var(--panel-b);background:var(--panel);color:var(--dim);font-weight:800;font-size:14px;'; }
+    btn.addEventListener('click',()=>{ if(!dailyAvailable())return; audioInit();
+      const r=claimDaily(); try{ SFX.confirm&&SFX.confirm(); }catch(e){}
+      if(r&&r.char){ coinToast(t('dailyGotChar')+' '+CHARS[r.char].icon+' '+CHARS[r.char].name); if(G.screen==='scrSelect')buildSelect(); }
+      else if(r&&r.coins){ coinToast('🎁 +'+r.coins+' 🪙'); }
+      render();
+    });
+    const cl=document.createElement('button'); cl.textContent=t('uiClose');
+    cl.style.cssText='width:100%;margin-top:8px;padding:10px;border-radius:11px;border:1.5px solid var(--panel-b);background:transparent;color:var(--dim);font-weight:800;font-size:13px;cursor:pointer;';
+    cl.addEventListener('click',()=>{ try{SFX.back&&SFX.back();}catch(e){} close(); });
+    box.appendChild(btn); box.appendChild(cl);
   }
+  render();
 }
 // ===== CÓDIGOS PROMOCIONAIS =====
 function redeemCode(raw){
@@ -2942,27 +3007,30 @@ document.querySelectorAll('[data-back]').forEach(b=>{
 });
 
 /* ---------- TÍTULO ---------- */
+function doMenuAction(act){
+  audioInit();
+  if(act==='start'){ SFX.confirm(); buildModes(); showSlide('scrModes'); }
+  else if(act==='daily'){ SFX.select(); showDailyModal(); }
+  else if(act==='almanac'){ SFX.select(); buildAlmanac(); showSlide('scrAlmanac'); }
+  else if(act==='achievements'){ SFX.select(); buildAchievements(); showSlide('scrAchievements'); }
+  else if(act==='shop'){ SFX.select(); buildShop(); showSlide('scrShop'); }
+  else if(act==='feedback'){ SFX.select(); showFeedbackModal(); }
+  else if(act==='changelog'){ SFX.select(); buildChangelog(); showSlide('scrChangelog'); }
+  else if(act==='settings'){ SFX.select();
+    // sincroniza os controles com os valores salvos
+    const vr=document.getElementById('vfxRange'); if(vr){vr.value=G.settings.vfx;document.getElementById('vfxVal').textContent=t(['low','medium','high'][G.settings.vfx]||'high');}
+    const vol=document.getElementById('volRange'); if(vol){vol.value=G.settings.vol;document.getElementById('volVal').textContent=G.settings.vol+'%';}
+    ['tglParticles','tglFlash','tglMusic','tglSfx'].forEach((id,i)=>{ const k=['particles','flash','music','sfx'][i]; const el=document.getElementById(id); if(el)el.classList.toggle('on',G.settings[k]); });
+    if(typeof updateLangSel==='function')updateLangSel();
+    showSlide('scrSettings'); }
+  else if(act==='quit'){ SFX.back(); tryQuit(); }
+}
 document.querySelectorAll('#titleMenu .menu-item').forEach(it=>{
-  it.addEventListener('click',()=>{
-    audioInit();
-    const act=it.dataset.act;
-    if(act==='start'){ SFX.confirm(); buildModes(); showSlide('scrModes'); }
-    else if(act==='almanac'){ SFX.select(); buildAlmanac(); showSlide('scrAlmanac'); }
-    else if(act==='achievements'){ SFX.select(); buildAchievements(); showSlide('scrAchievements'); }
-    else if(act==='shop'){ SFX.select(); buildShop(); showSlide('scrShop'); }
-    else if(act==='code'){ SFX.select(); showCodeModal(); }
-    else if(act==='feedback'){ SFX.select(); showFeedbackModal(); }
-    else if(act==='changelog'){ SFX.select(); buildChangelog(); showSlide('scrChangelog'); }
-    else if(act==='settings'){ SFX.select();
-      // sincroniza os controles com os valores salvos
-      const vr=document.getElementById('vfxRange'); if(vr){vr.value=G.settings.vfx;document.getElementById('vfxVal').textContent=t(['low','medium','high'][G.settings.vfx]||'high');}
-      const vol=document.getElementById('volRange'); if(vol){vol.value=G.settings.vol;document.getElementById('volVal').textContent=G.settings.vol+'%';}
-      ['tglParticles','tglFlash','tglMusic','tglSfx'].forEach((id,i)=>{ const k=['particles','flash','music','sfx'][i]; const el=document.getElementById(id); if(el)el.classList.toggle('on',G.settings[k]); });
-      if(typeof updateLangSel==='function')updateLangSel();
-      showSlide('scrSettings'); }
-    else if(act==='quit'){ SFX.back(); tryQuit(); }
-  });
+  it.addEventListener('click',()=>doMenuAction(it.dataset.act));
 });
+// botões de canto (feedback embaixo-esquerda, engrenagem embaixo-direita)
+['fbCorner','settingsGear'].forEach(id=>{ const b=document.getElementById(id);
+  if(b)b.addEventListener('click',()=>doMenuAction(b.dataset.act)); });
 // botão discreto de versão (canto inferior direito do título) abre as Novidades
 (function setupVerBtn(){
   const vb=document.getElementById('verBtn');
@@ -3106,6 +3174,12 @@ function buildShop(){
     grid.appendChild(card);
   });
   box.appendChild(grid);
+  // ===== RESGATAR CÓDIGO (movido do menu pra cá) =====
+  const codeBtn=document.createElement('button');
+  codeBtn.style.cssText='width:100%;margin-top:14px;padding:12px;border-radius:12px;border:1.5px solid var(--panel-b);background:linear-gradient(150deg,#2a1d3e,var(--panel));color:var(--ink);font-weight:800;font-size:14px;cursor:pointer;';
+  codeBtn.textContent=t('codeTitle');
+  codeBtn.addEventListener('click',()=>{ audioInit();SFX.select(); showCodeModal(); });
+  box.appendChild(codeBtn);
   // ===== GACHA DE PERSONAGENS =====
   const gTitle=document.createElement('div');
   gTitle.style.cssText='font-size:12px;font-weight:800;letter-spacing:.16em;text-transform:uppercase;color:var(--gold);margin:16px 0 8px;';
@@ -4052,6 +4126,22 @@ function uiScale(){
 window.addEventListener('resize', uiScale);
 window.addEventListener('orientationchange', uiScale);
 uiScale();
+
+// ===== TRAVA DE SCROLL (teclado do celular) =====
+// Quando o teclado sobe pra escrever, o navegador tenta ROLAR a página pra mostrar o campo,
+// e ao fechar ela "volta" (puxão pra cima/baixo). Com o layout fixo isso bagunça tudo.
+// Aqui forçamos a página a ficar SEMPRE no topo (o scroll interno de listas não é afetado).
+(function(){
+  function lockTop(){ if(window.pageYOffset||window.pageXOffset){ window.scrollTo(0,0); }
+    if(document.scrollingElement){ document.scrollingElement.scrollTop=0; document.scrollingElement.scrollLeft=0; } }
+  window.addEventListener('scroll', lockTop, {passive:true});
+  window.addEventListener('focusin', ()=>setTimeout(lockTop,0));
+  window.addEventListener('focusout', ()=>{ setTimeout(lockTop,0); setTimeout(lockTop,80); setTimeout(lockTop,200); });
+  if(window.visualViewport){
+    window.visualViewport.addEventListener('resize', ()=>setTimeout(lockTop,0));
+    window.visualViewport.addEventListener('scroll', lockTop);
+  }
+})();
 
 // define a geometria da arena conforme o mapa
 function computeArena(){
