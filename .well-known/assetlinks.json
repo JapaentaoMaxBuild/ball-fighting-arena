@@ -1,1 +1,13 @@
-[{"relation":["delegate_permission/common.handle_all_urls"],"target":{"namespace":"android_app","package_name":"app.netlify.taupe_frangipane_5a2d94.twa","sha256_cert_fingerprints":["CC:46:59:99:67:CB:11:7F:DB:B2:DE:24:58:25:82:CE:2A:01:21:0B:A7:C3:27:C2:50:7F:ED:05:41:01:B4:05"]}}]
+[
+  {
+    "relation": ["delegate_permission/common.handle_all_urls"],
+    "target": {
+      "namespace": "android_app",
+      "package_name": "app.netlify.taupe_frangipane_5a2d94.twa",
+      "sha256_cert_fingerprints": [
+        "F3:79:91:F9:35:F1:90:16:EC:0C:90:A5:D1:7D:C3:06:F3:81:7E:03:9E:45:7D:42:36:3D:E3:17:9F:4F:77:69",
+        "CC:46:59:99:67:CB:11:7F:DB:B2:DE:24:58:25:82:CE:2A:01:21:0B:A7:C3:27:C2:50:7F:ED:05:41:01:B4:05"
+      ]
+    }
+  }
+]
