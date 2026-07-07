@@ -1422,7 +1422,11 @@ const CHARS = {
   zombie:{ name:'Zumbi', color:'#5fa845', dark:'#35651f', icon:'🧟',
     kind:'zombie', hp:50, touchDmg:4 },              // verde, dá dano ao encostar
   skeleton:{ name:'Esqueleto', color:'#e8e8e0', dark:'#9a9a90', icon:'💀',
-    kind:'skeleton', hp:45, dmg:5, fireCd:150 }       // branco, atira flechas
+    kind:'skeleton', hp:45, dmg:5, fireCd:150 },      // branco, atira flechas
+  // --- SLIMES do Adventure (monstros; o "Hero Slime" amarelo é herói jogável à parte) ---
+  nslime:{ name:'Slime',       color:'#3ad46a', dark:'#127a34', icon:'🟢', kind:'nslime', hp:60, touchDmg:6 }, // verde
+  vslime:{ name:'Venom Slime', color:'#9b4dff', dark:'#5a1f9e', icon:'🟣', kind:'vslime', hp:60, touchDmg:6 }, // roxo (veneno)
+  mslime:{ name:'Magic Slime', color:'#3b9ae0', dark:'#1f5f96', icon:'🔵', kind:'mslime', hp:55, dmg:8, fireCd:140 } // azul (magia)
 };
 const ORDER=['berserker','samurai','arqueiro','mago','clonador','luciferus','pandora','soldier','pacman','heavyweight','chronos','vampire','soulstealer','hunter','boku','necro','slime'];
 // personagens LIVRES por padrão; o resto trava e precisa comprar/gacha (Arena)
@@ -2684,6 +2688,11 @@ function stopBattleMusic(){ if(battleMusicTimer){clearInterval(battleMusicTimer)
 // (crossfade) — nada de terminar abruptamente. As funções abaixo SOBRESCREVEM as de cima.
 const MUSIC_SRC = { main:'assets/music/main.mp3', menu:'assets/music/menu.mp3', phase:'assets/music/phase.mp3', rush:'assets/music/rush.mp3' };
 const musicEls = {};
+// iOS Safari/PWA IGNORA `audio.volume` (fica travado em 1). Detecta isso: se não dá pra
+// controlar volume, o fade nunca zera e a faixa nunca pausa -> música fica tocando pra sempre.
+// Nesse caso usamos troca DURA (play/pause direto), sem fade.
+let AUDIO_VOL_OK = true;
+try{ const _t=new Audio(); _t.volume=0.5; AUDIO_VOL_OK = Math.abs(_t.volume-0.5)<0.01; }catch(e){ AUDIO_VOL_OK=false; }
 let musicWant = null;                 // faixa desejada da tela atual ('menu'|'phase'|null)
 let musicFadeRAF = 0, musicFadeLast = 0;
 const MUSIC_FADE_MS = 1400;           // duração do fade in/out
@@ -2699,9 +2708,18 @@ function musicApply(){
   if(!musicFadeRAF){ musicFadeLast = 0; musicFadeRAF = requestAnimationFrame(musicFadeStep); }
 }
 function musicFadeStep(ts){
+  const target = G.settings.music ? musicWant : null;
+  // iOS (sem controle de volume): troca DURA — só o alvo toca, o resto pausa na hora.
+  if(!AUDIO_VOL_OK){
+    for(const k of ['main','menu','phase','rush']){
+      const a = musicEls[k]; if(!a) continue;
+      if(k===target){ if(a.paused) a.play().catch(()=>{}); }
+      else if(!a.paused){ try{ a.pause(); }catch(e){} }
+    }
+    musicFadeRAF = 0; return;
+  }
   if(!musicFadeLast) musicFadeLast = ts;
   const dt = ts - musicFadeLast; musicFadeLast = ts;
-  const target = G.settings.music ? musicWant : null;
   const full = musicVolTarget();
   const rate = Math.max(0.003, full * dt / MUSIC_FADE_MS);
   let busy = false;
@@ -4984,7 +5002,9 @@ function buildAdvStore(){
 const ADV_MONSTERS=[
   {id:'zombie',   rarity:'basic'},
   {id:'skeleton', rarity:'raro'},
-  {id:'slime',    rarity:'lendario'}, // Hero Slime — no preview p/ ajustar o enquadramento do sprite
+  {id:'nslime',   rarity:'basic'},  // Slime normal (verde)
+  {id:'vslime',   rarity:'raro'},   // Venom Slime (roxo) — veneno
+  {id:'mslime',   rarity:'epico'},  // Magic Slime (azul) — magia
 ];
 // estado da UI do grimório (aba ativa, texto de busca, raridade filtrada)
 const advGrimState={ tab:'monsters', q:'', rarity:'all' };
@@ -5168,8 +5188,8 @@ function buildAdvGrimoire(){
   function showMonsterDetail(m){
     const c=CHARS[m.id];
     const R=CARD_RARITY[m.rarity]||CARD_RARITY.basic;
-    const isTouch = c.kind==='zombie' || c.kind==='slime';
-    const dmg = isTouch ? (c.touchDmg||4) : (c.dmg||5);
+    const isTouch = (c.touchDmg||0) > 0; // tem dano de toque? senão é atirador
+    const dmg = isTouch ? c.touchDmg : (c.dmg||5);
     const atk = isTouch ? t('advTouchDmg') : t('advShootsArrows');
     const ov=document.createElement('div');
     ov.style.cssText='position:fixed;inset:0;z-index:99990;display:flex;align-items:center;justify-content:center;background:rgba(0,0,0,.75);padding:20px;';
@@ -9161,10 +9181,11 @@ function drawWizardHat(b){
 }
 // sprites de inimigos (desenhados recortados dentro da bola)
 const spriteImg={};
-['zombie','skeleton','slime'].forEach(k=>{ const im=new Image(); im.src='assets/'+k+'.png'; spriteImg[k]=im; });
+['zombie','skeleton','slime','nslime','vslime','mslime'].forEach(k=>{ const im=new Image(); im.src='assets/'+k+'.png'; spriteImg[k]=im; });
 // enquadramento do sprite dentro da bola (ajustado no editor de monstros):
 // zoom = quantas vezes o diâmetro; ox/oy = deslocamento em fração do raio (+x direita, +y baixo)
-const SPRITE_FIT={ zombie:{zoom:2.36,ox:0,oy:0.02}, skeleton:{zoom:3.28,ox:0.01,oy:0.05}, slime:{zoom:2.05,ox:0,oy:0} };
+const SPRITE_FIT={ zombie:{zoom:2.36,ox:0,oy:0.02}, skeleton:{zoom:3.28,ox:0.01,oy:0.05}, slime:{zoom:2.05,ox:0,oy:0},
+  nslime:{zoom:2.05,ox:0,oy:0}, vslime:{zoom:2.05,ox:0,oy:0}, mslime:{zoom:2.05,ox:0,oy:0} };
 // os zumbis invocados pelo Necro reaproveitam a arte do zumbi do Adventure
 spriteImg['necrozombie']=spriteImg['zombie']; SPRITE_FIT['necrozombie']=SPRITE_FIT['zombie'];
 function drawBall(b,radius,label,tint){
@@ -9846,6 +9867,15 @@ document.addEventListener('visibilitychange',()=>{
   } else { lastT=0; acc=0;
     try{ if(typeof updateMusicForScreen==='function')updateMusicForScreen(); }catch(e){} // retoma a faixa da tela atual
   }
+});
+// iOS PWA: 'visibilitychange' nem sempre dispara ao ir pra home; 'pagehide' é mais confiavel.
+// Garante que música e aura parem ao sair/minimizar o app (senão ficam tocando no fundo).
+window.addEventListener('pagehide',()=>{
+  try{ for(const k in musicEls){ musicEls[k].pause(); } }catch(e){}
+  try{ if(typeof stopBokuAura==='function' && bokuAuraAudio) stopBokuAura(); }catch(e){}
+});
+window.addEventListener('pageshow',()=>{ lastT=0; acc=0;
+  try{ if(typeof updateMusicForScreen==='function')updateMusicForScreen(); }catch(e){}
 });
 
 // ===== SHAKE: habilidade recarregável (10s). Arma no botão e toca a arena p/ empurrar tudo pra longe do toque =====

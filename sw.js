@@ -1,7 +1,7 @@
 /* Service worker do Ball Fighting Arena (PWA).
    Cache versionado: mudar o nome CACHE forca a atualizacao do app instalado.
    Estrategia: HTML = rede primeiro (mostra a versao nova), assets = cache primeiro (rapido + offline). */
-const CACHE = 'bfa-2026-07-08-as';
+const CACHE = 'bfa-2026-07-08-au';
 const ASSETS = [
   './', './index.html', './manifest.webmanifest',
   './icon-192.png', './icon-512.png',
@@ -12,7 +12,8 @@ const ASSETS = [
   './assets/sfx/cardburn.mp3', './assets/sfx/newhero.mp3', './assets/sfx/slot.mp3', './assets/sfx/rarehero.mp3', './assets/sfx/arrow.mp3', './assets/sfx/arrowflesh.mp3', './assets/sfx/arrowhard.mp3',
   './assets/sfx/kamehameha.mp3', './assets/sfx/auraburst.mp3', './assets/sfx/superaura.mp3', './assets/sfx/teleport.mp3', './assets/sfx/strongpunch.mp3', './assets/sfx/bodycrash.mp3', './assets/sfx/dbzexplosion.mp3', './assets/sfx/zombiebite.mp3',
   './assets/music/main.mp3', './assets/music/menu.mp3', './assets/music/phase.mp3', './assets/music/rush.mp3',
-  './assets/zombie.png', './assets/skeleton.png', './assets/slime.png', './assets/card.png',
+  './assets/zombie.png', './assets/skeleton.png', './assets/slime.png',
+  './assets/nslime.png', './assets/vslime.png', './assets/mslime.png', './assets/card.png',
   './assets/card_front_basic.png', './assets/card_front_raro.png', './assets/card_front_epico.png',
   './assets/card_front_lendario.png', './assets/card_front_classe.png'
 ];
