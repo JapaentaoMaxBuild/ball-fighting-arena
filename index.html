@@ -5096,7 +5096,7 @@ function buildAdvGrimoire(){
       +'border:1.5px solid '+(active?'var(--gold)':'var(--panel-b)')+';'
       +'background:'+(active?'linear-gradient(160deg,#3a2f12,#241a08)':'var(--panel)')+';'
       +'color:'+(active?'var(--gold)':'var(--dim)')+';transition:all .15s;';
-    b.textContent=icon+' '+label;
+    b.textContent=label; // o emoji já vem no label (evita o "undefined" na frente)
     b.addEventListener('click',()=>{ if(advGrimState.tab!==key){ audioInit&&audioInit(); SFX&&SFX.select&&SFX.select(); advGrimState.tab=key; advGrimState.rarity='all'; buildAdvGrimoire(); } });
     return b;
   }
@@ -10245,7 +10245,19 @@ document.getElementById('updateOkBtn').addEventListener('click',()=>{
 bootSequence();
 </script>
 <script>
-if('serviceWorker' in navigator){window.addEventListener('load',function(){navigator.serviceWorker.register('sw.js').catch(function(){});});}
+if('serviceWorker' in navigator){
+ var had=!!navigator.serviceWorker.controller, refreshing=false;
+ navigator.serviceWorker.addEventListener('controllerchange',function(){
+  if(refreshing)return; refreshing=true; if(had)location.reload();
+ });
+ window.addEventListener('load',function(){
+  navigator.serviceWorker.register('sw.js',{updateViaCache:'none'}).then(function(reg){
+   reg.update().catch(function(){});
+   setInterval(function(){reg.update().catch(function(){});},60000);
+  }).catch(function(){});
+ });
+ document.addEventListener('visibilitychange',function(){ if(!document.hidden){ navigator.serviceWorker.getRegistration().then(function(r){ if(r)r.update().catch(function(){}); }).catch(function(){}); } });
+}
 </script>
 </body>
 </html>
