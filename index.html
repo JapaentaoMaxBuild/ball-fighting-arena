@@ -9924,11 +9924,11 @@ bcv.addEventListener('pointerdown',e=>{
   ov.addEventListener('click',e=>{ if(e.target===ov) close(); }); // toca fora = fecha
 })();
 
-document.getElementById('vBack').addEventListener('click',()=>{audioInit();stopVictoryMusic();stopBattleMusic();SFX.confirm();
+document.getElementById('vBack').addEventListener('click',()=>{audioInit();stopVictoryMusic();stopBattleMusic();stopBokuAura();SFX.confirm();
   bRunning=false;bOver=true;victory=null;cancelAnimationFrame(bRaf);
   document.getElementById('victoryCard').classList.remove('show');
   buildSelect();show('scrSelect',true);});
-document.getElementById('bMenu').addEventListener('click',()=>{audioInit();stopVictoryMusic();stopBattleMusic();SFX.back();
+document.getElementById('bMenu').addEventListener('click',()=>{audioInit();stopVictoryMusic();stopBattleMusic();stopBokuAura();SFX.back();
   bRunning=false;bOver=true;victory=null;cancelAnimationFrame(bRaf);
   document.getElementById('victoryCard').classList.remove('show');show('scrTitle');});
 document.getElementById('bSound').addEventListener('click',function(){audioInit();
