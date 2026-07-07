@@ -35,7 +35,7 @@
 ::-webkit-scrollbar-thumb:hover{background:linear-gradient(180deg,#9a6de0,#5a3d8a);}
 html,body{height:100%;overflow:hidden;background:var(--bg0);color:var(--ink);
   font-family:'Segoe UI',system-ui,-apple-system,sans-serif;}
-#app{position:relative;height:100dvh;max-width:700px;margin:0 auto;overflow:hidden;
+#app{position:relative;height:100vh;height:100svh;max-width:700px;margin:0 auto;overflow:hidden;
   /* --s = escala da UI (1 na largura de referência 420px). O JS ajusta conforme o
      tamanho real do app, então tudo que usa calc(N*var(--s)) fica proporcional em
      qualquer tela: celular, tablet ou TV. Elementos grandes (VS, cards, vitória,
@@ -1086,15 +1086,6 @@ input[type=range]::-webkit-slider-thumb{appearance:none;width:20px;height:20px;b
     </div>
   </div>
 
-  <!-- form ESTÁTICO só p/ o Netlify detectar o formulário "feedback" no deploy.
-       O envio real é feito via JS (showFeedbackModal). Fica escondido. -->
-  <form name="feedback" data-netlify="true" netlify-honeypot="bot-field" hidden>
-    <input type="hidden" name="form-name" value="feedback">
-    <input type="text" name="message">
-    <input type="text" name="contact">
-    <input type="text" name="bot-field">
-  </form>
-
   <!-- zoom fx e modais -->
   <div id="zoomFx"><div class="zface" id="zface">⚔</div></div>
 
@@ -1614,7 +1605,7 @@ function redeemCode(raw){
 }
 function showCodeModal(){
   const ov=document.createElement('div');
-  ov.style.cssText='position:fixed;inset:0;z-index:99990;display:flex;align-items:center;justify-content:center;background:rgba(0,0,0,.6);';
+  ov.style.cssText='position:fixed;inset:0;z-index:99990;display:flex;align-items:flex-start;justify-content:center;padding:7vh 12px 12px;overflow-y:auto;background:rgba(0,0,0,.6);';
   const box=document.createElement('div');
   box.style.cssText='background:linear-gradient(160deg,var(--panel),#120a1e);border:1.5px solid var(--panel-b);border-radius:18px;padding:22px;width:min(88vw,360px);box-shadow:0 16px 44px rgba(0,0,0,.6);';
   box.innerHTML='<div style="font-size:16px;font-weight:900;color:var(--gold);margin-bottom:4px;">'+t('codeTitle')+'</div>'
@@ -1638,7 +1629,7 @@ function showCodeModal(){
 // ===== FEEDBACK (Netlify Forms): a pessoa escreve e vai pro painel do Netlify =====
 function showFeedbackModal(){
   const ov=document.createElement('div');
-  ov.style.cssText='position:fixed;inset:0;z-index:99990;display:flex;align-items:center;justify-content:center;background:rgba(0,0,0,.6);padding:16px;';
+  ov.style.cssText='position:fixed;inset:0;z-index:99990;display:flex;align-items:flex-start;justify-content:center;padding:7vh 16px 16px;overflow-y:auto;background:rgba(0,0,0,.6);';
   const box=document.createElement('div');
   box.style.cssText='background:linear-gradient(160deg,var(--panel),#120a1e);border:1.5px solid var(--panel-b);border-radius:18px;padding:22px;width:min(92vw,400px);box-shadow:0 16px 44px rgba(0,0,0,.6);';
   box.innerHTML='<div style="font-size:17px;font-weight:900;color:var(--gold);margin-bottom:4px;">'+t('fbTitle')+'</div>'
@@ -2981,7 +2972,7 @@ document.querySelectorAll('#titleMenu .menu-item').forEach(it=>{
 function tryQuit(){
   stopMusic();
   document.getElementById('app').innerHTML=
-    '<div style="height:100dvh;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:14px;text-align:center;padding:30px;">'
+    '<div style="height:100svh;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:14px;text-align:center;padding:30px;">'
     +'<div style="font-size:22px;font-weight:900;color:var(--gold);letter-spacing:.1em;text-transform:uppercase;">'+t('quitBye')+'</div>'
     +'<div style="font-size:13px;color:var(--dim);">'+t('quitClose')+'</div>'
     +'<button onclick="location.reload()" style="margin-top:10px;padding:12px 26px;border:none;border-radius:9px;background:var(--panel);color:var(--ink);font-weight:800;letter-spacing:.08em;text-transform:uppercase;cursor:pointer;">'+t('back')+'</button></div>';

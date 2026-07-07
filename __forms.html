@@ -1,0 +1,12 @@
+<!doctype html>
+<html lang="pt-BR"><head><meta charset="utf-8"><title>forms</title></head>
+<body>
+  <!-- Arquivo APENAS para o Netlify detectar o formulário "feedback" no deploy.
+       O envio real é feito por JS (fetch) lá no jogo (index.html). Ninguém abre esta página. -->
+  <form name="feedback" data-netlify="true" netlify-honeypot="bot-field">
+    <input type="hidden" name="form-name" value="feedback">
+    <textarea name="message"></textarea>
+    <input type="text" name="contact">
+    <input type="text" name="bot-field">
+  </form>
+</body></html>
