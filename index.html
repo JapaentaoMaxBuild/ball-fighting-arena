@@ -806,6 +806,7 @@ input[type=range]::-webkit-slider-thumb{appearance:none;width:20px;height:20px;b
       <div class="menu-item" data-act="achievements" data-i18n="achievements">Conquistas</div>
       <div class="menu-item" data-act="shop" data-i18n="shop">Loja</div>
       <div class="menu-item" data-act="code">🎟️ Code</div>
+      <div class="menu-item" data-act="feedback" data-i18n="fbMenu">💬 Feedback</div>
       <div class="menu-item" data-act="settings" data-i18n="settings">Configurações</div>
       <div class="menu-item" data-act="quit" data-i18n="quit">Sair</div>
     </div>
@@ -1085,6 +1086,15 @@ input[type=range]::-webkit-slider-thumb{appearance:none;width:20px;height:20px;b
     </div>
   </div>
 
+  <!-- form ESTÁTICO só p/ o Netlify detectar o formulário "feedback" no deploy.
+       O envio real é feito via JS (showFeedbackModal). Fica escondido. -->
+  <form name="feedback" data-netlify="true" netlify-honeypot="bot-field" hidden>
+    <input type="hidden" name="form-name" value="feedback">
+    <input type="text" name="message">
+    <input type="text" name="contact">
+    <input type="text" name="bot-field">
+  </form>
+
   <!-- zoom fx e modais -->
   <div id="zoomFx"><div class="zface" id="zface">⚔</div></div>
 
@@ -1132,6 +1142,9 @@ const I18N = {
     dailyRewardPrefix:'🎁 Recompensa diária: +', storeFree:'✓ Livre', storeBuyPrefix:'Comprar ', storeUnlockedSuffix:' desbloqueado!',
     searchMap:'Buscar mapa...', mapAll:'Todos', mapNone:'Nenhum mapa nesse filtro.',
     quitBye:'Até a próxima!', quitClose:'Você pode fechar esta aba.', menuBtn:'Menu',
+    fbMenu:'💬 Feedback', fbTitle:'💬 Feedback', fbSub:'Manda sua sugestão ou reporta um bug!',
+    fbPlaceholder:'Escreve aqui...', fbContact:'Seu nome/contato (opcional)', fbSend:'Enviar',
+    fbThanks:'✅ Obrigado pelo feedback!', fbEmpty:'Escreve algo primeiro 🙂',
     start:'Iniciar', almanac:'Grimório', achievements:'Conquistas', shop:'Loja',
     settings:'Configurações', quit:'Sair',
     gameModes:'Modos de Jogo', arenaConfig:'Arena Mode · Configurar',
@@ -1207,6 +1220,9 @@ const I18N = {
     dailyRewardPrefix:'🎁 Daily reward: +', storeFree:'✓ Free', storeBuyPrefix:'Buy ', storeUnlockedSuffix:' unlocked!',
     searchMap:'Search map...', mapAll:'All', mapNone:'No maps in this filter.',
     quitBye:'See you next time!', quitClose:'You can close this tab.', menuBtn:'Menu',
+    fbMenu:'💬 Feedback', fbTitle:'💬 Feedback', fbSub:'Send a suggestion or report a bug!',
+    fbPlaceholder:'Write here...', fbContact:'Your name/contact (optional)', fbSend:'Send',
+    fbThanks:'✅ Thanks for the feedback!', fbEmpty:'Write something first 🙂',
     start:'Start', almanac:'Grimoire', achievements:'Achievements', shop:'Shop',
     settings:'Settings', quit:'Quit',
     gameModes:'Game Modes', arenaConfig:'Arena Mode · Setup',
@@ -1281,6 +1297,9 @@ const I18N = {
     dailyRewardPrefix:'🎁 デイリー報酬：+', storeFree:'✓ 無料', storeBuyPrefix:'購入 ', storeUnlockedSuffix:' 解放！',
     searchMap:'マップを検索...', mapAll:'すべて', mapNone:'このフィルターにマップなし',
     quitBye:'またね！', quitClose:'このタブを閉じてOK。', menuBtn:'メニュー',
+    fbMenu:'💬 フィードバック', fbTitle:'💬 フィードバック', fbSub:'提案やバグ報告を送ってね！',
+    fbPlaceholder:'ここに書いてね...', fbContact:'名前/連絡先（任意）', fbSend:'送信',
+    fbThanks:'✅ フィードバックありがとう！', fbEmpty:'まず何か書いてね 🙂',
     start:'スタート', almanac:'図鑑', achievements:'実績', shop:'ショップ',
     settings:'設定', quit:'終了',
     gameModes:'ゲームモード', arenaConfig:'アリーナモード · 設定',
@@ -1615,6 +1634,42 @@ function showCodeModal(){
   ov.addEventListener('click',e=>{ if(e.target===ov)close(); });
   row.appendChild(redeem); row.appendChild(cancel); box.appendChild(row); ov.appendChild(box);
   document.body.appendChild(ov); setTimeout(()=>inp.focus(),50);
+}
+// ===== FEEDBACK (Netlify Forms): a pessoa escreve e vai pro painel do Netlify =====
+function showFeedbackModal(){
+  const ov=document.createElement('div');
+  ov.style.cssText='position:fixed;inset:0;z-index:99990;display:flex;align-items:center;justify-content:center;background:rgba(0,0,0,.6);padding:16px;';
+  const box=document.createElement('div');
+  box.style.cssText='background:linear-gradient(160deg,var(--panel),#120a1e);border:1.5px solid var(--panel-b);border-radius:18px;padding:22px;width:min(92vw,400px);box-shadow:0 16px 44px rgba(0,0,0,.6);';
+  box.innerHTML='<div style="font-size:17px;font-weight:900;color:var(--gold);margin-bottom:4px;">'+t('fbTitle')+'</div>'
+    +'<div style="font-size:12px;color:var(--dim);margin-bottom:14px;">'+t('fbSub')+'</div>';
+  const ta=document.createElement('textarea'); ta.placeholder=t('fbPlaceholder'); ta.rows=5; ta.maxLength=1000;
+  ta.style.cssText='width:100%;box-sizing:border-box;padding:11px 12px;border-radius:11px;border:1.5px solid var(--panel-b);background:#0e0818;color:var(--ink);font-size:14px;outline:none;resize:vertical;font-family:inherit;margin-bottom:10px;';
+  box.appendChild(ta);
+  const contact=document.createElement('input'); contact.type='text'; contact.placeholder=t('fbContact'); contact.maxLength=120; contact.autocomplete='off';
+  contact.style.cssText='width:100%;box-sizing:border-box;padding:10px 12px;border-radius:11px;border:1.5px solid var(--panel-b);background:#0e0818;color:var(--ink);font-size:13px;outline:none;margin-bottom:14px;';
+  box.appendChild(contact);
+  const row=document.createElement('div'); row.style.cssText='display:flex;gap:8px;';
+  const close=()=>ov.remove();
+  const send=document.createElement('button'); send.textContent=t('fbSend');
+  send.style.cssText='flex:1;padding:11px;border-radius:11px;border:none;background:var(--gold);color:#12121a;font-weight:900;font-size:14px;cursor:pointer;';
+  const cancel=document.createElement('button'); cancel.textContent=t('uiClose');
+  cancel.style.cssText='padding:11px 16px;border-radius:11px;border:1.5px solid var(--panel-b);background:transparent;color:var(--dim);font-weight:800;font-size:14px;cursor:pointer;';
+  send.addEventListener('click',()=>{
+    const msg=ta.value.trim(); audioInit();
+    if(!msg){ try{SFX.lock&&SFX.lock();}catch(e){} coinToast(t('fbEmpty')); return; }
+    send.disabled=true; send.style.opacity='.5';
+    // envia pro Netlify Forms (funciona no site publicado; no exe/local só não chega, mas não trava)
+    try{
+      fetch('/', { method:'POST', headers:{'Content-Type':'application/x-www-form-urlencoded'},
+        body:new URLSearchParams({'form-name':'feedback', message:msg, contact:contact.value||'', 'bot-field':''}).toString() }).catch(()=>{});
+    }catch(e){}
+    try{SFX.confirm&&SFX.confirm();}catch(e){} coinToast(t('fbThanks')); close();
+  });
+  cancel.addEventListener('click',()=>{ try{SFX.back&&SFX.back();}catch(e){} close(); });
+  ov.addEventListener('click',e=>{ if(e.target===ov)close(); });
+  row.appendChild(send); row.appendChild(cancel); box.appendChild(row); ov.appendChild(box);
+  document.body.appendChild(ov); setTimeout(()=>ta.focus(),50);
 }
 function updateCoinDisplay(){
   ['coinCount','achCoins','shopCoins','advStoreCoins'].forEach(id=>{ const el=document.getElementById(id); if(el)el.textContent=SAVE.coins; });
@@ -2905,6 +2960,7 @@ document.querySelectorAll('#titleMenu .menu-item').forEach(it=>{
     else if(act==='achievements'){ SFX.select(); buildAchievements(); showSlide('scrAchievements'); }
     else if(act==='shop'){ SFX.select(); buildShop(); showSlide('scrShop'); }
     else if(act==='code'){ SFX.select(); showCodeModal(); }
+    else if(act==='feedback'){ SFX.select(); showFeedbackModal(); }
     else if(act==='changelog'){ SFX.select(); buildChangelog(); showSlide('scrChangelog'); }
     else if(act==='settings'){ SFX.select();
       // sincroniza os controles com os valores salvos
@@ -6203,8 +6259,11 @@ function doKatana(f){
     }
     if(f.dashLeft<=0 || hitWall){
       f.jumping=false; f.slashHitList=[];
-      // ao parar, joga a velocidade pra DENTRO da arena (aponta pro centro), devagar
-      const dx=arena.cx-f.x, dy=arena.cy-f.y, d=Math.hypot(dx,dy)||1;
+      // ao parar, joga a velocidade pra DENTRO da arena (aponta pro centro), devagar.
+      // Mapa quadrado NÃO tem arena.cx/cy (só o círculo) — calcula o centro pra evitar NaN.
+      const acx=(arena.cx!==undefined)?arena.cx:(arena.x+arena.w/2);
+      const acy=(arena.cy!==undefined)?arena.cy:(arena.y+arena.h/2);
+      const dx=acx-f.x, dy=acy-f.y, d=Math.hypot(dx,dy)||1;
       f.vx=dx/d*3; f.vy=dy/d*3;
     }
     return;
