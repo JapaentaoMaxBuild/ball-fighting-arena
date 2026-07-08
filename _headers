@@ -1,9 +1,11 @@
-# Netlify: nunca cachear o service worker nem o HTML (senao o app fica preso em versao antiga).
+# Netlify: força o navegador a SEMPRE revalidar o service worker e o HTML
+# (assim o app pega versao nova). 'no-cache' = pode guardar, mas revalida antes de usar
+# (padrao recomendado p/ service worker; 'no-store' pode atrapalhar alguns navegadores).
 /sw.js
-  Cache-Control: no-cache, no-store, must-revalidate
+  Cache-Control: no-cache
 /index.html
-  Cache-Control: no-cache, no-store, must-revalidate
+  Cache-Control: no-cache
 /
-  Cache-Control: no-cache, no-store, must-revalidate
+  Cache-Control: no-cache
 /manifest.webmanifest
   Cache-Control: no-cache
