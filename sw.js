@@ -1,7 +1,7 @@
 /* Service worker do Ball Fighting Arena (PWA).
    Cache versionado: mudar o nome CACHE forca a atualizacao do app instalado.
    Estrategia: HTML = rede primeiro (mostra a versao nova), assets = cache primeiro (rapido + offline). */
-const CACHE = 'bfa-2026-07-08-av';
+const CACHE = 'bfa-2026-07-08-aw';
 const ASSETS = [
   './', './index.html', './manifest.webmanifest',
   './icon-192.png', './icon-512.png',

@@ -2704,31 +2704,34 @@ function ensureMusicEl(track){
 }
 function musicApply(){
   const target = G.settings.music ? musicWant : null;
-  if(target){ const a = ensureMusicEl(target); if(a.paused){ a.play().catch(()=>{}); } }
+  if(target){ const a = ensureMusicEl(target); a.muted=false; if(a.paused){ a.play().catch(()=>{}); } }
   if(!musicFadeRAF){ musicFadeLast = 0; musicFadeRAF = requestAnimationFrame(musicFadeStep); }
 }
+// Loop de fade. À prova de iOS: o `volume` é IGNORADO no iOS Safari, então NÃO dá pra confiar
+// nele pra pausar. Usamos 2 garantias: (1) `muted` (que o iOS RESPEITA) silencia na hora que
+// a faixa deve parar; (2) um PRAZO por tempo pausa a faixa em ~1,4s independente do volume.
 function musicFadeStep(ts){
-  const target = G.settings.music ? musicWant : null;
-  // iOS (sem controle de volume): troca DURA — só o alvo toca, o resto pausa na hora.
-  if(!AUDIO_VOL_OK){
-    for(const k of ['main','menu','phase','rush']){
-      const a = musicEls[k]; if(!a) continue;
-      if(k===target){ if(a.paused) a.play().catch(()=>{}); }
-      else if(!a.paused){ try{ a.pause(); }catch(e){} }
-    }
-    musicFadeRAF = 0; return;
-  }
   if(!musicFadeLast) musicFadeLast = ts;
   const dt = ts - musicFadeLast; musicFadeLast = ts;
+  const target = G.settings.music ? musicWant : null;
   const full = musicVolTarget();
   const rate = Math.max(0.003, full * dt / MUSIC_FADE_MS);
   let busy = false;
   for(const k of ['main','menu','phase','rush']){
     const a = musicEls[k]; if(!a) continue;
     const want = (k===target) ? full : 0;
-    if(a.volume < want - 0.002){ a.volume = Math.min(want, a.volume + rate); busy = true; if(a.paused) a.play().catch(()=>{}); }
-    else if(a.volume > want + 0.002){ a.volume = Math.max(0, a.volume - rate); busy = true; if(want===0 && a.volume<=0.004 && !a.paused) a.pause(); }
-    else { if(a.volume!==want) a.volume = want; if(want===0 && !a.paused) a.pause(); }
+    if(want>0){
+      a.muted=false; a._stopAt=0;
+      if(a.paused){ a.play().catch(()=>{}); }
+      if(a.volume < want-0.002){ try{ a.volume=Math.min(want,a.volume+rate); }catch(e){} busy=true; }
+    } else {
+      if(!a.paused){
+        if(!a._stopAt){ a._stopAt = ts + MUSIC_FADE_MS; a.muted=true; } // silencia JÁ (iOS respeita muted)
+        try{ if(a.volume>0.004) a.volume=Math.max(0,a.volume-rate); }catch(e){}
+        if(a.volume<=0.004 || ts>=a._stopAt){ try{ a.pause(); }catch(e){} a._stopAt=0; }
+        else busy=true;
+      } else { a._stopAt=0; }
+    }
   }
   musicFadeRAF = busy ? requestAnimationFrame(musicFadeStep) : 0;
 }
